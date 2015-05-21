@@ -1,0 +1,23 @@
+name: Horizon_Professions
+main: com.gmail.Rhisereld.Horizon_Professions.Main
+version: 1.0
+commands:
+  professions:
+    description: All Horizon Profession commands.
+    aliases: hp
+    permissions: horizon_professions.help
+
+permissions:
+  horizon_professions.*:
+    description: Gives access to all Horizon Profession commands.
+    children:
+      horizon_professions.help: true
+      horizon_professions.help.admin: true
+      horizon_professions.view: true
+      horizon_professions.view.admin: true
+    
+  horizon_professions.common:
+    description: Access to Horizon Profession for normal players.
+    children:
+      horizon_professions.help: true
+      horizon_professions.view: true
