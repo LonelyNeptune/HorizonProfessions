@@ -8,6 +8,8 @@ import org.bukkit.entity.Player;
 
 public class ProfessionCommandExecutor implements CommandExecutor
 {
+	private final int PROGRESS_BAR_BLOCKS = 20;
+	
 	Main main;
 	
     public ProfessionCommandExecutor(Main main) 
@@ -19,7 +21,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	{
 		Player player = (Player) sender;
 		
-		if (commandLabel.equalsIgnoreCase("professions"))
+		if (commandLabel.equalsIgnoreCase("profession"))
 		{
 			if (args.length == 0)
 			{
@@ -76,16 +78,63 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		int level;
 		int experience;
 		int maxLevel;
+		int whitespace;
+		String message;
+		String profession_cap;
+		int practiceFatigue;
+		int instructionFatigue;
 		
-		player.sendMessage("-----<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">-----");
+		player.sendMessage("------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">------");
 		
 		for (int i = 0; i < 5; i++)
 		{
 			tier = main.getTier(player, main.PROFESSIONS[i]);
-			level = main.getMetadataInt(player, "level_" + main.PROFESSIONS[i], Main.plugin);
-			experience = main.getMetadataInt(player, "experience_" + main.PROFESSIONS[i], Main.plugin);
+			level = main.getMetadataInt(player, main.PROFESSIONS[i] + "_level", Main.plugin);
+			experience = main.getMetadataInt(player, main.PROFESSIONS[i] + "_exp", Main.plugin);
 			maxLevel = main.getMaxLevel(player, main.PROFESSIONS[i]);
-			player.sendMessage(ChatColor.GOLD + tier + " " + main.PROFESSIONS[i] + ":	" + ChatColor.WHITE + "|||||||||||||||||||| " + ChatColor.GOLD + "[" + level + "/" + maxLevel + "]");
+			profession_cap = main.PROFESSIONS[i].substring(0, 1).toUpperCase() + main.PROFESSIONS[i].substring(1);
+			practiceFatigue = main.getMetadataInt(player, main.PROFESSIONS[i] + "_practicefatigue", Main.plugin);
+			instructionFatigue = main.getMetadataInt(player, main.PROFESSIONS[i] + "_instructionfatigue", Main.plugin);
+			
+			//Figure out how many spaces to add to make everything line up all pretty.
+			whitespace = 15 - main.PROFESSIONS[i].length()*2;
+			
+			if (whitespace < 0)
+				whitespace = 0;
+			
+			//Build profession header for each profession.
+			message = ChatColor.YELLOW + "    " + tier + " " + profession_cap;
+			
+			for (int i1 = 0; i1 <= whitespace; i1++)
+				message = message + " ";
+			
+			message = message + "    Level " + "[" + level + "/" + maxLevel + "]";
+			
+			//Send it.
+			player.sendMessage(message);
+			
+			//Build progress bar for each profession.
+			if (practiceFatigue > 0 && instructionFatigue > 0)
+				message = "" + ChatColor.RED;
+			else if (practiceFatigue > 0 || instructionFatigue > 0)
+					message = "" + ChatColor.GOLD;
+			else 
+				message = "" + ChatColor.GREEN;
+			
+			for (int i2 = 0; i2 < PROGRESS_BAR_BLOCKS; i2++)
+			{
+				if (practiceFatigue > 0)
+					message = message + "█";
+				else if (i2 < experience / 5)
+					message = message + "█";
+				else
+					message = message + ChatColor.DARK_GRAY + "█";
+			}
+			
+			message = message + ChatColor.YELLOW + " XP";
+			
+			//Send it.
+			player.sendMessage(message);
 		}
 	}
 	

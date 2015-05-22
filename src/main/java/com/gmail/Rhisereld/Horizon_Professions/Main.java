@@ -33,7 +33,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	final String[] PROFESSIONS = {"medic", "hunter", "labourer", "engineer", "pilot"};
 	final String[] TIERS = {"", ".novice", ".adept", ".expert"};
 	
-	long time;
+	long time = 0;
 	
     @Override
     public void onEnable() 
@@ -51,7 +51,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
         
         //Listeners and commands.
         getServer().getPluginManager().registerEvents(new ProfessionListener(this), this);
-    	this.getCommand("professions").setExecutor(new ProfessionCommandExecutor(this));
+    	this.getCommand("profession").setExecutor(new ProfessionCommandExecutor(this));
     	
     	loadAllStats();
     	
@@ -284,11 +284,11 @@ public final class Main extends JavaPlugin implements CommandExecutor
 
 	public int getMaxLevel(Player player, String profession) 
 	{
-		if (!player.hasPermission("horizon_profession." + profession))
+		if (!player.hasPermission("horizon_professions." + profession))
 			return 1;
-		else if (player.hasPermission("horizon_profession." + profession + TIERS[1]))
+		else if (player.hasPermission("horizon_professions." + profession + TIERS[1]))
 			return 20;
-		else if (player.hasPermission("horizon_profession." + profession + TIERS[2]))
+		else if (player.hasPermission("horizon_professions." + profession + TIERS[2]))
 			return 40;
 		else
 			return -1;
@@ -296,13 +296,13 @@ public final class Main extends JavaPlugin implements CommandExecutor
 
 	public String getTier(Player player, String profession) 
 	{
-		if (!player.hasPermission("horizon_profession." + profession))
+		if (!player.hasPermission("horizon_professions." + profession))
 			return "Unskilled";
-		else if (player.hasPermission("horizon_profession." + profession + TIERS[1]))
+		else if (player.hasPermission("horizon_professions." + profession + TIERS[1]))
 			return "Novice";
-		else if (player.hasPermission("horizon_profession." + profession + TIERS[2]))
+		else if (player.hasPermission("horizon_professions." + profession + TIERS[2]))
 			return "Adept";
-		else if (player.hasPermission("horizon_profession." + profession + TIERS[3]))
+		else if (player.hasPermission("horizon_professions." + profession + TIERS[3]))
 			return "Expert";
 		else
 			return "Error";
@@ -310,6 +310,14 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	
     protected void updateFatigue() 
     {    	
+    	//Try loading from config
+    	if (time == 0)
+    		time = getConfig().getLong("lasttimeupdated");
+    	
+    	//If no previous time available set to current time.
+    	if (time == 0)
+    		time = System.currentTimeMillis();
+    	
     	long timeDifference = System.currentTimeMillis() - time;
     	int newFatigue = 0;
     	
@@ -354,6 +362,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
     	
     	//New time
 		time = System.currentTimeMillis();
+		getConfig().set("lasttimeupdated", time);
 	}
 }
 
