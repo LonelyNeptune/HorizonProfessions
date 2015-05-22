@@ -63,7 +63,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 				getLogger().info("Backing up player stats.");
 				saveAllStats();
 			}			
-		} , 0, 36000);
+		} , 36000, 36000);
 		
 		//Reduce fatigue time.
 		Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable()
