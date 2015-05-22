@@ -1,7 +1,5 @@
 package com.gmail.Rhisereld.Horizon_Professions;
 
-import net.milkbowl.vault.permission.Permission;
-
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -35,9 +33,17 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			//profession view [player]
 			if (args[0].equalsIgnoreCase("view"))
 			{
+				//Permission required
 				if (!player.hasPermission("horizon_professions.view"))
 				{
 					player.sendMessage(ChatColor.RED + "You don't have permission to view these commands.");
+					return false;
+				}
+				
+				//Player-only command
+				if (!(player instanceof Player))
+				{
+					player.sendMessage(ChatColor.RED + "This command can only be used by players.");
 					return false;
 				}
 				
@@ -79,7 +85,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			level = main.getMetadataInt(player, "level_" + main.PROFESSIONS[i], Main.plugin);
 			experience = main.getMetadataInt(player, "experience_" + main.PROFESSIONS[i], Main.plugin);
 			maxLevel = main.getMaxLevel(player, main.PROFESSIONS[i]);
-			player.sendMessage(ChatColor.GOLD + tier + " " + main.PROFESSIONS[i] + ": " + ChatColor.WHITE + "|||||||||||||||||||| " + ChatColor.GOLD + "[" + level + "/" + maxLevel + "]");
+			player.sendMessage(ChatColor.GOLD + tier + " " + main.PROFESSIONS[i] + ":	" + ChatColor.WHITE + "|||||||||||||||||||| " + ChatColor.GOLD + "[" + level + "/" + maxLevel + "]");
 		}
 	}
 	
