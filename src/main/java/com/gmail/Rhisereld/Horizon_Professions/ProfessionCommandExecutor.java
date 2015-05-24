@@ -8,21 +8,30 @@ import org.bukkit.entity.Player;
 
 public class ProfessionCommandExecutor implements CommandExecutor
 {
-	private final int PROGRESS_BAR_BLOCKS = 20;
+	private final int PROGRESS_BAR_BLOCKS = 20; //The number of blocks that appear in the progress bar for command /profession view
 	
-	Main main;
+	Main main;									//A reference to main.
 	
+	//Constructor that passes a reference to main.
     public ProfessionCommandExecutor(Main main) 
     {
 		this.main = main;
 	}
 
+    /*
+     * onCommand() is called when a player enters a command recognised by Bukkit to belong to this plugin.
+     * After that it is up to the contents of this method to determine what the commands do.
+     * 
+     * @see org.bukkit.command.CommandExecutor#onCommand(org.bukkit.command.CommandSender, org.bukkit.command.Command, java.lang.String, java.lang.String[])
+     */
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
 	{
 		Player player = (Player) sender;
 		
+		//All commands that fall under /profession [additional arguments]
 		if (commandLabel.equalsIgnoreCase("profession"))
 		{
+			//profession
 			if (args.length == 0)
 			{
 				if (player.hasPermission("horizon_profession.help.admin"))
@@ -72,6 +81,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		return false;
 	}
 
+	/*
+	 * viewStats() displays all current stats to the player including tiers, levels, experience and fatigue level
+	 * for each profession.
+	 * @param player - the player to display the stats for and to.
+	 */
 	private void viewStats(Player player) 
 	{
 		String tier;
@@ -138,12 +152,22 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		}
 	}
 	
+	/*
+	 * viewStatsAdmin() is the admin version of viewStats(). It displays all current stats of any player including 
+	 * tiers, levels, experience and fatigue level for each profession.
+	 * @param mod - the player to display the stats to.
+	 * @param player - the player to display the stats of.
+	 */
 	private void viewStatsAdmin(Player player, String string) 
 	{
 		// TODO Auto-generated method stub
 		
 	}
 
+	/*
+	 * giveCommandsGuide() displays a list of the available commands.
+	 * @param player - the player to display the commands to.
+	 */
 	private void giveCommandsGuide(Player player) 
 	{
 		player.sendMessage("-----<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">-----");
@@ -152,6 +176,10 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		player.sendMessage("View your professions.");
 	}
 	
+	/*
+	 * giveCommandsGuide() displays a list of the available commands to moderators.
+	 * @param player - the player to display the commands to.
+	 */
 	private void giveCommandsGuideAdmin(Player player) 
 	{
 		player.sendMessage("-----<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">-----");
@@ -161,6 +189,4 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		player.sendMessage(ChatColor.YELLOW + "/professions view [player]");
 		player.sendMessage("View the professions of another player.");
 	}
-	
-
 }
