@@ -107,42 +107,148 @@ public final class Main extends JavaPlugin implements CommandExecutor
         return perms != null;
     }
     
+	/*
+	 * loadAllStats() loads data for all online players.
+	 */
+	public void loadAllStats()
+	{
+		Collection<? extends Player> playerCollection = Bukkit.getServer().getOnlinePlayers();
+		
+		for (Player player : playerCollection) 
+			loadPlayerStats(player);
+	}
+	
     /*
      * loadPlayerStats() loads saved data from the configuration file and stores it on the player as metadata.
      * @param player - the player for whom the data is loaded.
      */
     public void loadPlayerStats(Player player)
     {
-    	//If stats don't exist these are all set to 0.
-    	int exp;
-		int level;
-		int practiceFatigue;
-
 		for (int i = 0; i < 5; i++)
 		{
-			exp = getConfig().getInt("data." + player.getUniqueId() + "." + PROFESSIONS[i] + ".exp");
-			level = getConfig().getInt("data." + player.getUniqueId() + "." + PROFESSIONS[i] + ".level");
-			practiceFatigue = getConfig().getInt("data." + player.getUniqueId() + "." + PROFESSIONS[i] + ".practicefatigue");
-			player.setMetadata(PROFESSIONS[i] + "_exp", new FixedMetadataValue(plugin, exp));
-			player.setMetadata(PROFESSIONS[i] + "_level", new FixedMetadataValue(plugin, level));
-			player.setMetadata(PROFESSIONS[i] + "_practicefatigue", new FixedMetadataValue(plugin, practiceFatigue));
+			loadExp(player, PROFESSIONS[i]);
+			loadLevel(player, PROFESSIONS[i]);
+			loadPracticeFatigue(player, PROFESSIONS[i]);
+			loadInstructionFatigue(player, PROFESSIONS[i]);
 		}
     }
-
+    
+    /*
+     * loadExp() retrieves the experience from the configuration file, for the player and profession specified, and 
+     * stores it in the player's metadata.
+     * @param player - the player for whom the experience is loaded.
+     * @param profession - the profession for which the experience is loaded.
+     */
+	public void loadExp(Player player, String profession)
+	{
+		int exp = getConfig().getInt("data." + player.getUniqueId() + "." + profession + ".exp");
+		player.setMetadata(profession + "_exp", new FixedMetadataValue(plugin, exp));
+	}
+	
+    /*
+     * loadLevel() retrieves the level from the configuration file, for the player and profession specified, and
+     * stores it in the player's metadata.
+     * @param player - the player for whom the level is loaded.
+     * @param profession - the profession for which the level is loaded.
+     */
+	public void loadLevel(Player player, String profession)
+	{
+		int level = getConfig().getInt("data." + player.getUniqueId() + "." + profession + ".level");
+		player.setMetadata(profession + "_level", new FixedMetadataValue(plugin, level));
+	}
+	
+	/*
+	 * loadPracticeFatigue() retrieves the practice fatigue value from the configuration file, for the player and profession
+	 * specified, and stores it in the player's metadata.
+	 * @param player - the player for whom the fatigue value is loaded.
+	 * @param profession - the profession for which the fatigue value is loaded.
+	 */
+	public void loadPracticeFatigue(Player player, String profession)
+	{
+		int fatigue = getConfig().getInt("data." + player.getUniqueId() + "." + profession + ".practicefatigue");
+		player.setMetadata(profession + "_practicefatigue", new FixedMetadataValue(plugin, fatigue));
+	}
+	
+	/*
+	 * loadInstructionFatigue() retrieves the instruction fatigue value from the configuration file, for the player and profession
+	 * specified, and stores it in the player's metadata.
+	 * @param player - the player for whom the fatigue value is loaded.
+	 * @param profession - the profession for which the fatigue value is loaded.
+	 */
+	public void loadInstructionFatigue(Player player, String profession)
+	{
+		int fatigue = getConfig().getInt("data." + player.getUniqueId() + "." + profession + ".instructionfatigue");
+		player.setMetadata(profession + "_instructionfatigue", new FixedMetadataValue(plugin, fatigue));
+	}
+	
+	/*
+	 * saveAllStats() saves data for all online players.
+	 */
+	public void saveAllStats()
+	{
+		Collection<? extends Player> playerCollection = Bukkit.getServer().getOnlinePlayers();
+		
+		for (Player player : playerCollection) 
+			savePlayerStats(player);
+	}
+	
     /*
      * savePlayerStats() retrieves metadata from the player and stores it in a configuration file.
-     * @para player - the player for whom the data is saved.
+     * @param player - the player for whom the data is saved.
      */
 	public void savePlayerStats(Player player) 
 	{
 		for (String profession: PROFESSIONS)
 		{
-			getConfig().set("data." + player.getUniqueId() + "." + profession + ".exp", getMetadataInt(player, profession + "_exp", this));
-			getConfig().set("data." + player.getUniqueId() + "." + profession + ".level", getMetadataInt(player, profession + "_level", this));
-			getConfig().set("data." + player.getUniqueId() + "." + profession + ".practicefatigue", getMetadataInt(player, profession + "_practicefatigue", this));
+			saveExp(player, profession);
+			saveLevel(player, profession);
+			savePracticeFatigue(player, profession);
+			saveInstructionFatigue(player, profession);
 		}
 
     	saveConfig();
+	}
+	
+	/*
+	 * saveExp() retrieves the metadata for experience from the player and stores it in a configuration file.
+	 * @param player - the player for whom the experience is saved.
+	 * @param profession - the profession for which the experience is saved.
+	 */
+	public void saveExp(Player player, String profession)
+	{
+		getConfig().set("data." + player.getUniqueId() + "." + profession + ".exp", getExp(player, profession));
+	}
+
+	/*
+	 * saveLevel() retrieves the metadata for level from the player and stores it in a configuration file.
+	 * @param player - the player for whom the level is saved.
+	 * @param profession - the profession for which the level is saved.
+	 */
+	public void saveLevel(Player player, String profession)
+	{
+		getConfig().set("data." + player.getUniqueId() + "." + profession + ".level", getLevel(player, profession));
+	}
+	
+	/*
+	 * savePracticeFatigue() retrieves the metadata for practice fatigue from the player and stores it in a configuration 
+	 * file.
+	 * @param player - the player for whom the fatigue value is saved.
+	 * @param profession - the profession for which the fatigue value is saved.
+	 */
+	public void savePracticeFatigue(Player player, String profession)
+	{
+		getConfig().set("data." + player.getUniqueId() + "." + profession + ".practicefatigue", getPracticeFatigue(player, profession));
+	}
+	
+	/*
+	 * saveInstructionFatigue() retrieves the metadata for instruction fatigue from the player and stores it in a 
+	 * configuration file.
+	 * @param player - the player for whom the fatigue value is saved.
+	 * @param profession - the profession for which the fatigue value is saved.
+	 */
+	public void saveInstructionFatigue(Player player, String profession)
+	{
+		getConfig().set("data." + player.getUniqueId() + "." + profession + ".instructionfatigue", getInstructionFatigue(player, profession));
 	}
 
 	/*
@@ -157,29 +263,8 @@ public final class Main extends JavaPlugin implements CommandExecutor
 			player.removeMetadata(profession + "_exp", this);
 			player.removeMetadata(profession + "_level", this);
 			player.removeMetadata(profession + "_practicefatigue", this);
+			player.removeMetadata(profession + "_instructionfatigue", this);
 		}
-	}
-	
-	/*
-	 * loadAllStats() loads data for all online players.
-	 */
-	public void loadAllStats()
-	{
-		Collection<? extends Player> playerCollection = Bukkit.getServer().getOnlinePlayers();
-		
-		for (Player player : playerCollection) 
-			loadPlayerStats(player);
-	}
-	
-	/*
-	 * saveAllStats() saves data for all online players.
-	 */
-	public void saveAllStats()
-	{
-		Collection<? extends Player> playerCollection = Bukkit.getServer().getOnlinePlayers();
-		
-		for (Player player : playerCollection) 
-			savePlayerStats(player);
 	}
 	
 	/*
@@ -209,10 +294,10 @@ public final class Main extends JavaPlugin implements CommandExecutor
 			return;
 		
 		//If player is fatigued, return.
-		if (getMetadataInt(player, profession + "_playerfatigue", plugin) > 0)
+		if (getPracticeFatigue(player, profession) > 0)
 			return;
 		
-		int newExp = exp + getMetadataInt(player, profession + "_exp", plugin);
+		int newExp = exp + getExp(player, profession);
 
 		//If player has reached maximum experience, level them up, set the daily cap and set exp to 0.
 		if (newExp >= MAX_EXP)
@@ -225,12 +310,19 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		}
 		
 		//Set new experience.
-		player.setMetadata(profession + "_exp", new FixedMetadataValue(plugin, newExp));
+		setExp(player, profession, newExp);
 	}
 	
+	/*
+	 * giveInstruction() allows a trainer to train another player in a profession, awarding them 2 levels in the profession
+	 * but also activating instruction fatigue.
+	 * @param trainer - the player who is doing the training
+	 * @param trainee - the player who is being trained
+	 * @param profession - the profession that the trainee is being trained in.
+	 */
 	public void giveInstruction(Player trainer, Player trainee, String profession)
 	{
-		
+		//TODO
 	}
 	
 	/*
@@ -242,8 +334,8 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	public void gainLevel(Player player, String profession, int level)
 	{
-		int newLevel = level + getMetadataInt(player, profession + "_level", plugin);
-		player.setMetadata(profession + "_level", new FixedMetadataValue(plugin, newLevel));
+		int newLevel = level + getLevel(player, profession);
+		setLevel(player, profession, level + newLevel);
 		
 		if (!player.hasPermission("horizon_professions." + profession))
 			gainTier(player, profession);
@@ -262,27 +354,27 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	public int gainTier(Player player, String profession)
 	{		
-		int level = getMetadataInt(player, profession + "_level", plugin);
+		int level = getLevel(player, profession);
 		
 		if (!player.hasPermission("horizon_professions." + profession))
 		{
 			perms.playerAdd(null, player, "horizon_professions." + profession);
 			perms.playerAdd(null, player, "horizon_professions." + profession + ".novice");
-			player.setMetadata(profession + "_level", new FixedMetadataValue(plugin, level - MAX_LEVEL_UNSKILLED));
+			setLevel(player, profession, level - MAX_LEVEL_UNSKILLED);
 			return NOVICE;
 		}
 		else if (player.hasPermission("horizon_professions." + profession + ".novice"))
 		{
 			perms.playerAdd(null, player, "horizon_professions." + profession + ".adept");
 			perms.playerRemove(null, player, "horizon_professions." + profession + ".novice");	
-			player.setMetadata(profession + "_level", new FixedMetadataValue(plugin, level - MAX_LEVEL_NOVICE));
+			setLevel(player, profession, level - MAX_LEVEL_NOVICE);
 			return ADEPT;
 		}
 		else if (player.hasPermission("horizon_professions." + profession + ".adept"))
 		{
 			perms.playerAdd(null, player, "horizon_professions." + profession + ".expert");
 			perms.playerRemove(null, player, "horizon_professions." + profession + ".adept");
-			player.setMetadata(profession + "_level", new FixedMetadataValue(plugin, level - MAX_LEVEL_ADEPT));
+			setLevel(player, profession, level - MAX_LEVEL_ADEPT);
 			return EXPERT;
 		}
 		else
@@ -297,7 +389,8 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	public int forgetTier(Player player, String profession)
 	{
-		player.setMetadata(profession + "_level", new FixedMetadataValue(plugin, 0));
+		setExp(player, profession, 0);
+		setLevel(player, profession, 0);
 		
 		if (player.hasPermission("horizon_professions." + profession + ".expert"))
 		{
@@ -335,8 +428,8 @@ public final class Main extends JavaPlugin implements CommandExecutor
 				perms.playerRemove(null, player, "horizon_professions." + profession + tier);
 			}
 			
-			player.setMetadata(profession + "_level", new FixedMetadataValue(plugin, 0));
-			player.setMetadata(profession + "_exp", new FixedMetadataValue(plugin, 0));
+			setExp(player, profession, 0);
+			setLevel(player, profession, 0);
 		}
 	}
 
@@ -360,7 +453,6 @@ public final class Main extends JavaPlugin implements CommandExecutor
 
 	/*
 	 * getTier() gets string of the name of the tier the player currently has in a profession.
-	 * Doesn't follow good conventions - rework in future?
 	 * @param player - the player for whom to get the tier name.
 	 * @param profession - the profession for which to get the tier name.
 	 * @return - the name of the tier the player has in the profession in a string.
@@ -397,7 +489,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
     		time = System.currentTimeMillis();
     	
     	long timeDifference = System.currentTimeMillis() - time;
-    	int newFatigue = 0;
+    	int practiceFatigue, instructionFatigue = 0;
     	
     	//Get all online players
 		Collection<? extends Player> onlinePlayers = Bukkit.getServer().getOnlinePlayers();
@@ -410,14 +502,19 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		{
 			for (String profession: PROFESSIONS)
 			{
-				newFatigue = (int) (getMetadataInt(player, profession + "_practicefatigue", this) - timeDifference);
-				
-				if (newFatigue < 0)
-					player.setMetadata(profession + "_practicefatigue", new FixedMetadataValue(plugin, 0));
+				practiceFatigue = (int) (getPracticeFatigue(player, profession) - timeDifference);
+				instructionFatigue = (int) (getInstructionFatigue(player, profession) - timeDifference);
+					
+				if (practiceFatigue < 0)
+					setPracticeFatigue(player, profession, 0);
 				else
-					player.setMetadata(profession + "_practicefatigue", new FixedMetadataValue(plugin, newFatigue));
+					setPracticeFatigue(player, profession, practiceFatigue);
+				
+				if (instructionFatigue < 0)
+					setInstructionFatigue(player, profession, 0);
+				else
+					setInstructionFatigue(player, profession, instructionFatigue);
 			}
-
 		}
 		
 		//Update fatigue for offline players
@@ -429,12 +526,13 @@ public final class Main extends JavaPlugin implements CommandExecutor
 			
 			for (String profession: PROFESSIONS)
 			{
-				newFatigue = (int) (getConfig().getInt("data." + playerUUID + "." + profession + ".practicefatigue") - timeDifference);
+				practiceFatigue = (int) (getConfig().getInt("data." + playerUUID + "." + profession + ".practicefatigue") - timeDifference);
+				instructionFatigue = (int) (getConfig().getInt("data." + playerUUID + "." + profession + ".instructionfatigue") - timeDifference);
 				
-				if (newFatigue < 0)
-					getConfig().set("data." + playerUUID + "." + profession + ".practicefatigue", 0);
+				if (instructionFatigue < 0)
+					getConfig().set("data." + playerUUID + "." + profession + ".instructionfatigue", 0);
 				else
-					getConfig().set("data." + playerUUID + "." + profession + ".practicefatigue", newFatigue);
+					getConfig().set("data." + playerUUID + "." + profession + ".instructionfatigue", instructionFatigue);
 			}
 		}
     	
@@ -462,6 +560,88 @@ public final class Main extends JavaPlugin implements CommandExecutor
 			}
 		}
 		return 0;
+	}
+	
+	/*
+	 * setExp() sets the experience of a player for the specified profession in their metadata.
+	 * @param player - the player for whom the experience is being set.
+	 * @param profession - the profession for which the experience is being set.
+	 */
+	public void setExp(Player player, String profession, int exp)
+	{
+		player.setMetadata(profession + "_exp", new FixedMetadataValue(plugin, exp));
+	}
+	
+	/*
+	 * setLevel() sets the level of a player for the specified profession in their metadata.
+	 * @param player - the player for whom the level is being set.
+	 * @param profession - the profession for which the level is being set.
+	 */
+	public void setLevel(Player player, String profession, int level)
+	{
+		player.setMetadata(profession + "_level", new FixedMetadataValue(plugin, level));
+	}
+		
+	/*
+	 * setPracticeFatigue() sets the practice fatigue value of a player for the specified profession in their metadata.
+	 * @param player - the player for whom the fatigue value is being set.
+	 * @param profession - the profession for which the fatigue value is being set.
+	 */
+	public void setPracticeFatigue(Player player, String profession, int fatigue)
+	{
+		player.setMetadata(profession + "_practicefatigue", new FixedMetadataValue(plugin, fatigue));
+	}
+	
+	/*
+	 * setInstructionFatigue() sets the practice fatigue value of a player for the specified profession in their metadata.
+	 * @param player - the player for whom the fatigue value is being set.
+	 * @param profession - the profession for which the fatigue value is being set.
+	 */
+	public void setInstructionFatigue(Player player, String profession, int fatigue)
+	{
+		player.setMetadata(profession + "_instructionfatigue", new FixedMetadataValue(plugin, fatigue));
+	}
+	
+	/*
+	 * getExp() retrieves the experience of a player for the specified profession from their metadata.
+	 * @param player - the player for whom the experience is being retrieved.
+	 * @param profession - the profession for which the experience is being retrieved.
+	 */
+	public int getExp(Player player, String profession)
+	{
+		return getMetadataInt(player, profession + "_exp", plugin);
+	}
+	
+	/*
+	 * getLevel() retrieves the level of a player for the specified profession from their metadata.
+	 * @param player - the player for whom the level is being retrieved.
+	 * @param profession - the profession for which the level is being retrieved.
+	 */
+	public int getLevel(Player player, String profession)
+	{
+		return getMetadataInt(player, profession + "_level", plugin);
+	}
+
+	/*
+	 * getPracticeFatigue() retrieves the practice fatigue value of a player for the specified profession from their 
+	 * metadata.
+	 * @param player - the player for whom the fatigue value is being retrieved.
+	 * @param profession - the profession for which the fatigue value is being retrieved.
+	 */
+	public int getPracticeFatigue(Player player, String profession)
+	{
+		return getMetadataInt(player, profession + "_practicefatigue", plugin);
+	}
+
+	/*
+	 * getInstructionFatigue() retrieves the instruction fatigue value of a player for the specified profession from their 
+	 * metadata.
+	 * @param player - the player for whom the fatigue value is being retrieved.
+	 * @param profession - the profession for which the fatigue value is being retrieved.
+	 */
+	public int getInstructionFatigue(Player player, String profession) 
+	{
+		return getMetadataInt(player, profession + "_instructionfatigue", plugin);
 	}
 }
 

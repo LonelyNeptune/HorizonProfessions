@@ -61,7 +61,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				//Player is attempting to view another player's stats.
 				if (args.length == 2)
 				{
-					//Administrator
+					//Administrators only
 					if (player.hasPermission("horizon_professions.view.admin"))
 						viewStatsAdmin(player, args[1]);
 					//Nope
@@ -94,7 +94,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		int maxLevel;
 		int whitespace;
 		String message;
-		String profession_cap;
+		String professionCap;
 		int practiceFatigue;
 		int instructionFatigue;
 		
@@ -103,12 +103,12 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		for (int i = 0; i < 5; i++)
 		{
 			tier = main.getTier(player, main.PROFESSIONS[i]);
-			level = main.getMetadataInt(player, main.PROFESSIONS[i] + "_level", Main.plugin);
-			experience = main.getMetadataInt(player, main.PROFESSIONS[i] + "_exp", Main.plugin);
+			level = main.getLevel(player, main.PROFESSIONS[i]);
+			experience = main.getExp(player, main.PROFESSIONS[i]);
 			maxLevel = main.getMaxLevel(player, main.PROFESSIONS[i]);
-			profession_cap = main.PROFESSIONS[i].substring(0, 1).toUpperCase() + main.PROFESSIONS[i].substring(1);
-			practiceFatigue = main.getMetadataInt(player, main.PROFESSIONS[i] + "_practicefatigue", Main.plugin);
-			instructionFatigue = main.getMetadataInt(player, main.PROFESSIONS[i] + "_instructionfatigue", Main.plugin);
+			professionCap = main.PROFESSIONS[i].substring(0, 1).toUpperCase() + main.PROFESSIONS[i].substring(1);
+			practiceFatigue = main.getPracticeFatigue(player, main.PROFESSIONS[i]);
+			instructionFatigue = main.getInstructionFatigue(player, main.PROFESSIONS[i]);
 			
 			//Figure out how many spaces to add to make everything line up all pretty.
 			whitespace = 15 - main.PROFESSIONS[i].length()*2;
@@ -117,7 +117,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				whitespace = 0;
 			
 			//Build profession header for each profession.
-			message = ChatColor.YELLOW + "    " + tier + " " + profession_cap;
+			message = ChatColor.YELLOW + "    " + tier + " " + professionCap;
 			
 			for (int i1 = 0; i1 <= whitespace; i1++)
 				message = message + " ";
