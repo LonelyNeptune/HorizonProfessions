@@ -1,9 +1,14 @@
 package com.gmail.Rhisereld.Horizon_Professions;
 
+import java.util.UUID;
+
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
 public class ProfessionCommandExecutor implements CommandExecutor
@@ -26,7 +31,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
      */
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
 	{
-		Player player = (Player) sender;
+		Player player;
 		
 		//All commands that fall under /profession [additional arguments]
 		if (commandLabel.equalsIgnoreCase("profession"))
@@ -34,45 +39,48 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			//profession
 			if (args.length == 0)
 			{
-				if (player.hasPermission("horizon_profession.help.admin"))
-					giveCommandsGuideAdmin(player);
+				if (sender instanceof ConsoleCommandSender)
+					giveCommandsGuideConsole((ConsoleCommandSender) sender);
+				else if (sender.hasPermission("horizon_profession.help.admin"))
+					giveCommandsGuideAdmin((Player) sender);
 				else 
-					giveCommandsGuide(player);
+					giveCommandsGuide((Player) sender);
 				return false;
 			}	
 			
 			//profession view [player]
 			if (args[0].equalsIgnoreCase("view"))
-			{
+			{				
 				//Permission required
-				if (!player.hasPermission("horizon_professions.view"))
+				if (!sender.hasPermission("horizon_professions.view"))
 				{
-					player.sendMessage(ChatColor.RED + "You don't have permission to view these commands.");
-					return false;
-				}
-				
-				//Player-only command
-				if (!(player instanceof Player))
-				{
-					player.sendMessage(ChatColor.RED + "This command can only be used by players.");
+					sender.sendMessage(ChatColor.RED + "You don't have permission to view these commands.");
 					return false;
 				}
 				
 				//Player is attempting to view another player's stats.
 				if (args.length == 2)
 				{
-					//Administrators only
-					if (player.hasPermission("horizon_professions.view.admin"))
-						viewStatsAdmin(player, args[1]);
+					//Console or admin-only command.
+					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.view.admin"))
+						viewStatsAdmin(sender, args[1]);
 					//Nope
 					else
-						player.sendMessage(ChatColor.RED + "You don't have permission to view another player's trade skills.");
+						sender.sendMessage(ChatColor.RED + "You don't have permission to view another player's professions.");
 				}
 					
 				//Player is attempting to view their own stats.
 				if (args.length == 1)
 				{
-					viewStats(player);
+					//Player-only command
+					if (!(sender instanceof Player))
+					{
+						sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+						return false;
+					}
+					
+					player = (Player) sender;
+					viewStats(player.getUniqueId(), sender);
 				}
 				
 				return true;
@@ -83,32 +91,35 @@ public class ProfessionCommandExecutor implements CommandExecutor
 
 	/*
 	 * viewStats() displays all current stats to the player including tiers, levels, experience and fatigue level
-	 * for each profession.
-	 * @param player - the player to display the stats for and to.
+	 * for each profession. Only use for players that are online! Use viewStatsOffline() for offline players.
+	 * @param uuid - the uuid of the player's stats being displayed.
+	 * @param sender - the viewer to display the stats to.
 	 */
-	private void viewStats(Player player) 
+	private void viewStats(UUID uuid, CommandSender sender) 
 	{
-		String tier;
+		int tier;
 		int level;
 		int experience;
 		int maxLevel;
 		int whitespace;
-		String message;
-		String professionCap;
 		int practiceFatigue;
 		int instructionFatigue;
+		String professionCapitalised;
+		String tierCapitalised;
+		String message;
 		
-		player.sendMessage("------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">------");
+		sender.sendMessage("------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">------");
 		
 		for (int i = 0; i < 5; i++)
 		{
-			tier = main.getTier(player, main.PROFESSIONS[i]);
-			level = main.getLevel(player, main.PROFESSIONS[i]);
-			experience = main.getExp(player, main.PROFESSIONS[i]);
-			maxLevel = main.getMaxLevel(player, main.PROFESSIONS[i]);
-			professionCap = main.PROFESSIONS[i].substring(0, 1).toUpperCase() + main.PROFESSIONS[i].substring(1);
-			practiceFatigue = main.getPracticeFatigue(player, main.PROFESSIONS[i]);
-			instructionFatigue = main.getInstructionFatigue(player, main.PROFESSIONS[i]);
+			tier = main.getTier(uuid, main.PROFESSIONS[i]);
+			level = main.getLevel(uuid, main.PROFESSIONS[i]);
+			experience = main.getExp(uuid, main.PROFESSIONS[i]);
+			maxLevel = main.MAX_LEVEL[tier];
+			practiceFatigue = main.getPracticeFatigue(uuid, main.PROFESSIONS[i]);
+			instructionFatigue = main.getInstructionFatigue(uuid, main.PROFESSIONS[i]);
+			professionCapitalised = main.PROFESSIONS[i].substring(0, 1).toUpperCase() + main.PROFESSIONS[i].substring(1);
+			tierCapitalised = main.TIERS[tier].substring(0, 1).toUpperCase() + main.TIERS[tier].substring(1);
 			
 			//Figure out how many spaces to add to make everything line up all pretty.
 			whitespace = 15 - main.PROFESSIONS[i].length()*2;
@@ -117,7 +128,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				whitespace = 0;
 			
 			//Build profession header for each profession.
-			message = ChatColor.YELLOW + "    " + tier + " " + professionCap;
+			message = ChatColor.YELLOW + "    " + tierCapitalised + " " + professionCapitalised;
 			
 			for (int i1 = 0; i1 <= whitespace; i1++)
 				message = message + " ";
@@ -125,7 +136,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			message = message + "    Level " + "[" + level + "/" + maxLevel + "]";
 			
 			//Send it.
-			player.sendMessage(message);
+			sender.sendMessage(message);
 			
 			//Build progress bar for each profession.
 			if (practiceFatigue > 0 && instructionFatigue > 0)
@@ -148,7 +159,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			message = message + ChatColor.YELLOW + " XP";
 			
 			//Send it.
-			player.sendMessage(message);
+			sender.sendMessage(message);
 		}
 	}
 	
@@ -158,10 +169,25 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param mod - the player to display the stats to.
 	 * @param player - the player to display the stats of.
 	 */
-	private void viewStatsAdmin(Player player, String string) 
+	@SuppressWarnings("deprecation")
+	private void viewStatsAdmin(CommandSender admin, String playerString) 
 	{
-		// TODO Auto-generated method stub
+		Player player = Bukkit.getServer().getPlayer(playerString);
+		OfflinePlayer offlinePlayer;
 		
+		//Player is offline.
+		if (player == null)
+		{
+			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
+			viewStats(offlinePlayer.getUniqueId(), admin);
+		}
+
+		//Player is online.
+		else
+		{
+			player = Bukkit.getServer().getPlayer(playerString);
+			viewStats(player.getUniqueId(), admin);
+		}
 	}
 
 	/*
@@ -177,7 +203,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	}
 	
 	/*
-	 * giveCommandsGuide() displays a list of the available commands to moderators.
+	 * giveCommandsGuideAdmin() displays a list of the available commands to administrators.
 	 * @param player - the player to display the commands to.
 	 */
 	private void giveCommandsGuideAdmin(Player player) 
@@ -188,5 +214,17 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		player.sendMessage("View your professions.");
 		player.sendMessage(ChatColor.YELLOW + "/professions view [player]");
 		player.sendMessage("View the professions of another player.");
+	}
+	
+	/*
+	 * giveCommandsGuideConsole() displays a list of the available commands to the console.
+	 * @param console - the console.
+	 */
+	private void giveCommandsGuideConsole(ConsoleCommandSender console)
+	{
+		console.sendMessage("-----<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">-----");
+		console.sendMessage(ChatColor.GOLD + "Horizon Professions allows you to keep track of your trade skills!");
+		console.sendMessage(ChatColor.YELLOW + "/professions view [player]");
+		console.sendMessage("View the professions of another player.");
 	}
 }
