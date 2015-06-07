@@ -45,16 +45,16 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					giveCommandsGuideAdmin((Player) sender);
 				else 
 					giveCommandsGuide((Player) sender);
-				return false;
+				return true;
 			}	
 			
 			//profession view [player]
 			if (args[0].equalsIgnoreCase("view"))
-			{				
-				//Permission required
-				if (!sender.hasPermission("horizon_professions.view"))
+			{			
+				//Player provided too many arguments
+				if (args.length > 2)
 				{
-					sender.sendMessage(ChatColor.RED + "You don't have permission to view these commands.");
+					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession view [optional:player]");
 					return false;
 				}
 				
@@ -72,6 +72,13 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				//Player is attempting to view their own stats.
 				if (args.length == 1)
 				{
+					//Permission required
+					if (!sender.hasPermission("horizon_professions.view"))
+					{
+						sender.sendMessage(ChatColor.RED + "You don't have permission to view professions.");
+						return false;
+					}
+					
 					//Player-only command
 					if (!(sender instanceof Player))
 					{
@@ -80,10 +87,60 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					}
 					
 					player = (Player) sender;
-					viewStats(player.getUniqueId(), sender);
+					viewStats(player.getName(), player.getUniqueId(), sender);
 				}
 				
 				return true;
+			}
+			
+			//profession forget [profession] [player]
+			if (args[0].equalsIgnoreCase("forget"))
+			{			
+				//Player provided too many arguments
+				if (args.length > 3)
+				{
+					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession forget [profession] [optional:player]");
+					return false;
+				}
+				
+				//Player is attempting to force another player to forget a tier.
+				if (args.length == 3)
+				{
+					//Console or admin-only command.
+					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.forget.admin"))
+						forgetTier(sender, args[1], args[2]);
+					//Nope
+					else
+						sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to forget a tier.");
+				}
+				
+				//Player is attempting to forget a tier.
+				if (args.length == 2)
+				{
+					//Permission required
+					if (!sender.hasPermission("horizon_professions.forget"))
+					{
+						sender.sendMessage(ChatColor.RED + "You don't have permission to forget a tier.");
+						return false;
+					}
+					
+					//Player-only command
+					if (!(sender instanceof Player))
+					{
+						sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+						return false;
+					}
+					
+					player = (Player) sender;
+					forgetTier(sender, args[1], player.getName());
+				}
+				
+				//Player did not provide enough arguments
+				if (args.length < 2)
+				{
+					sender.sendMessage(ChatColor.RED + "Too few arguments! Correct usage: /profession forget [profession] [optional:player]");
+					return false;
+				}
 			}
 		}
 		return false;
@@ -95,7 +152,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param uuid - the uuid of the player's stats being displayed.
 	 * @param sender - the viewer to display the stats to.
 	 */
-	private void viewStats(UUID uuid, CommandSender sender) 
+	private void viewStats(String name, UUID uuid, CommandSender sender) 
 	{
 		int tier;
 		int level;
@@ -109,6 +166,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		String message;
 		
 		sender.sendMessage("------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">------");
+		sender.sendMessage("        " + ChatColor.GOLD + " Viewing " + name);
 		
 		for (int i = 0; i < 5; i++)
 		{
@@ -122,7 +180,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			tierCapitalised = main.TIERS[tier].substring(0, 1).toUpperCase() + main.TIERS[tier].substring(1);
 			
 			//Figure out how many spaces to add to make everything line up all pretty.
-			whitespace = 15 - main.PROFESSIONS[i].length()*2;
+			whitespace = 16 - main.PROFESSIONS[i].length()*3;
 			
 			if (whitespace < 0)
 				whitespace = 0;
@@ -179,15 +237,33 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		if (player == null)
 		{
 			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
-			viewStats(offlinePlayer.getUniqueId(), admin);
+			viewStats(playerString, offlinePlayer.getUniqueId(), admin);
 		}
 
 		//Player is online.
 		else
+			viewStats(playerString, player.getUniqueId(), admin);
+	}
+
+	private void forgetTier(CommandSender sender, String profession, String playerString) 
+	{
+		Player player = Bukkit.getServer().getPlayer(playerString);
+		OfflinePlayer offlinePlayer;
+		UUID uuid;
+		int newTier;
+		
+		//Player is offline.
+		if (player == null)
 		{
-			player = Bukkit.getServer().getPlayer(playerString);
-			viewStats(player.getUniqueId(), admin);
+			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
+			uuid = offlinePlayer.getUniqueId();
+			newTier = main.forgetTier(offlinePlayer.getUniqueId(), profession);
 		}
+		//Player is online.
+		else
+			newTier = main.forgetTier(player.getUniqueId(), profession);
+		
+		sender.sendMessage(ChatColor.GOLD + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
 	}
 
 	/*
