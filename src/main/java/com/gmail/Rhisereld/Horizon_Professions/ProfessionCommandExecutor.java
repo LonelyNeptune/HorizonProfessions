@@ -39,12 +39,12 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			//profession
 			if (args.length == 0)
 			{
-				if (sender instanceof ConsoleCommandSender)
-					giveCommandsGuideConsole((ConsoleCommandSender) sender);
-				else if (sender.hasPermission("horizon_profession.help.admin"))
-					giveCommandsGuideAdmin((Player) sender);
-				else 
+				if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.help.admin"))
+					giveCommandsGuideAdmin(sender);
+				else if (sender.hasPermission("horizon_professions.help"))
 					giveCommandsGuide((Player) sender);
+				else
+					sender.sendMessage(ChatColor.RED + "You don't have permission to use this command!");
 				return true;
 			}	
 			
@@ -93,7 +93,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				return true;
 			}
 			
-			//profession forget [profession] [player]
+			//profession forget [profession] [player] 
 			if (args[0].equalsIgnoreCase("forget"))
 			{			
 				//Player provided too many arguments
@@ -142,6 +142,34 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					return false;
 				}
 			}
+			
+			//profession givetier [profession] [player] 
+			if (args[0].equalsIgnoreCase("givetier"))
+			{
+				//Player provided too many arguments
+				if (args.length > 3)
+				{
+					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession givetier [player] [profession]");
+					return false;
+				}
+				
+				//Player did not provide enough arguments
+				if (args.length < 3)
+				{
+					sender.sendMessage(ChatColor.RED + "Too few arguments! Correct usage: /profession givetier [player] [profession]");
+					return false;
+				}
+				
+				if (args.length == 3)
+				{
+					//Console or admin-only command.
+					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.givetier.admin"))
+						giveTier(sender, args[1], args[2]);
+					//Nope
+					else
+						sender.sendMessage(ChatColor.RED + "You don't have permission to give tiers to players.");
+				}
+			}
 		}
 		return false;
 	}
@@ -170,7 +198,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		
 		for (int i = 0; i < 5; i++)
 		{
-			tier = main.getTier(uuid, main.PROFESSIONS[i]);
+			if ((tier = main.getTier(uuid, main.PROFESSIONS[i])) == -1)
+			{
+				sender.sendMessage("Error fetching tier. Please contact an Administrator.");
+				return;
+			}
 			level = main.getLevel(uuid, main.PROFESSIONS[i]);
 			experience = main.getExp(uuid, main.PROFESSIONS[i]);
 			maxLevel = main.MAX_LEVEL[tier];
@@ -180,7 +212,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			tierCapitalised = main.TIERS[tier].substring(0, 1).toUpperCase() + main.TIERS[tier].substring(1);
 			
 			//Figure out how many spaces to add to make everything line up all pretty.
-			whitespace = 16 - main.PROFESSIONS[i].length()*3;
+			whitespace = (int) (25 - (tierCapitalised + professionCapitalised).length()*1.5);
 			
 			if (whitespace < 0)
 				whitespace = 0;
@@ -191,7 +223,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			for (int i1 = 0; i1 <= whitespace; i1++)
 				message = message + " ";
 			
-			message = message + "    Level " + "[" + level + "/" + maxLevel + "]";
+			//If the player has hit max tier, don't even show the level progression
+			if (maxLevel == 0)
+				message = message + "    Level " + "[Maximum]";
+			else
+				message = message + "    Level " + "[" + level + "/" + maxLevel + "]";
 			
 			//Send it.
 			sender.sendMessage(message);
@@ -224,10 +260,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	/*
 	 * viewStatsAdmin() is the admin version of viewStats(). It displays all current stats of any player including 
 	 * tiers, levels, experience and fatigue level for each profession.
-	 * @param mod - the player to display the stats to.
+	 * @param admin - the sender to display the stats to.
 	 * @param player - the player to display the stats of.
 	 */
-	@SuppressWarnings("deprecation")
 	private void viewStatsAdmin(CommandSender admin, String playerString) 
 	{
 		Player player = Bukkit.getServer().getPlayer(playerString);
@@ -245,6 +280,12 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			viewStats(playerString, player.getUniqueId(), admin);
 	}
 
+	/*
+	 * forgetTier() reduces the tier of the player in a certain profession by one.
+	 * @param sender - the sender to return messages to.
+	 * @param profession - the profession for which to reduce a tier.
+	 * @param playerString - the player of whom to reduce the tier of.
+	 */
 	private void forgetTier(CommandSender sender, String profession, String playerString) 
 	{
 		Player player = Bukkit.getServer().getPlayer(playerString);
@@ -257,13 +298,51 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		{
 			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
 			uuid = offlinePlayer.getUniqueId();
-			newTier = main.forgetTier(offlinePlayer.getUniqueId(), profession);
+		}
+		else 
+			uuid = player.getUniqueId();
+
+		newTier = main.forgetTier(uuid, profession);
+		
+		sender.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+		if (sender instanceof Player && (Player) sender != player)
+			player.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+	}
+	
+	/*
+	 * giveTier() increases the tier of the player in a certain profession by one.
+	 * @param sender - the sender to return messages to.
+	 * @param - player - the player for whom to increase the tier.
+	 * @param - profession - the profession for which to increase the tier.
+	 */
+	private void giveTier(CommandSender sender, String playerString, String profession) 
+	{
+		Player player = Bukkit.getServer().getPlayer(playerString);
+		OfflinePlayer offlinePlayer;
+		UUID uuid;
+		int newTier;
+		
+		//Player is offline.
+		if (player == null)
+		{
+			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
+			uuid = offlinePlayer.getUniqueId();
 		}
 		//Player is online.
 		else
-			newTier = main.forgetTier(player.getUniqueId(), profession);
+			uuid = player.getUniqueId();
 		
-		sender.sendMessage(ChatColor.GOLD + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+		main.setExp(uuid, profession, 0);
+		main.setLevel(uuid, profession, 0);
+		if ((newTier = main.gainTier(uuid, profession)) == -1)
+		{
+			sender.sendMessage("Error giving tier. Please contact an Administrator.");
+			return;
+		}
+
+		sender.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+		if (sender instanceof Player && (Player) sender != player)
+			player.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
 	}
 
 	/*
@@ -274,33 +353,23 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	{
 		player.sendMessage("-----<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">-----");
 		player.sendMessage(ChatColor.GOLD + "Horizon Professions allows you to keep track of your trade skills!");
-		player.sendMessage(ChatColor.YELLOW + "/professions view");
+		player.sendMessage(ChatColor.YELLOW + "/profession view");
 		player.sendMessage("View your professions.");
+		player.sendMessage(ChatColor.YELLOW + "/profession forget [profession]");
+		player.sendMessage("Lose a tier in a profession.");
 	}
 	
 	/*
 	 * giveCommandsGuideAdmin() displays a list of the available commands to administrators.
-	 * @param player - the player to display the commands to.
+	 * @param sender - the sender to display the commands to.
 	 */
-	private void giveCommandsGuideAdmin(Player player) 
+	private void giveCommandsGuideAdmin(CommandSender sender) 
 	{
-		player.sendMessage("-----<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">-----");
-		player.sendMessage(ChatColor.GOLD + "Horizon Professions allows you to keep track of your trade skills!");
-		player.sendMessage(ChatColor.YELLOW + "/professions view");
-		player.sendMessage("View your professions.");
-		player.sendMessage(ChatColor.YELLOW + "/professions view [player]");
-		player.sendMessage("View the professions of another player.");
-	}
-	
-	/*
-	 * giveCommandsGuideConsole() displays a list of the available commands to the console.
-	 * @param console - the console.
-	 */
-	private void giveCommandsGuideConsole(ConsoleCommandSender console)
-	{
-		console.sendMessage("-----<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">-----");
-		console.sendMessage(ChatColor.GOLD + "Horizon Professions allows you to keep track of your trade skills!");
-		console.sendMessage(ChatColor.YELLOW + "/professions view [player]");
-		console.sendMessage("View the professions of another player.");
+		sender.sendMessage("-----<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">-----");
+		sender.sendMessage(ChatColor.GOLD + "Horizon Professions allows you to keep track of your trade skills!");
+		sender.sendMessage(ChatColor.YELLOW + "/profession view [optional:player]");
+		sender.sendMessage("View the professions of a player.");
+		sender.sendMessage(ChatColor.YELLOW + "/profession forget [profession] [optional:player]");
+		sender.sendMessage("Force a player to lose a tier in a profession.");
 	}
 }
