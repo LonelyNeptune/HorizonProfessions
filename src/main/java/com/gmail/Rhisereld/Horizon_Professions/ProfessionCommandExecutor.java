@@ -152,14 +152,14 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				//Player provided too many arguments
 				if (args.length > 3)
 				{
-					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession givetier [player] [profession]");
+					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession givetier [profession] [player]");
 					return false;
 				}
 				
 				//Player did not provide enough arguments
 				if (args.length < 3)
 				{
-					sender.sendMessage(ChatColor.RED + "Too few arguments! Correct usage: /profession givetier [player] [profession]");
+					sender.sendMessage(ChatColor.RED + "Too few arguments! Correct usage: /profession givetier [profession] [player]");
 					return false;
 				}
 				
@@ -171,6 +171,43 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					//Nope
 					else
 						sender.sendMessage(ChatColor.RED + "You don't have permission to give tiers to players.");
+				}
+			}
+			
+			//profession claim [profession]
+			if (args[0].equalsIgnoreCase("claim"))
+			{
+				//Player provided too many arguments
+				if (args.length > 2)
+				{
+					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession claim [profession]");
+					return false;
+				}
+			
+				//Player did not provide enough arguments
+				if (args.length < 2)
+				{
+					sender.sendMessage(ChatColor.RED + "Too few arguments! Correct usage: /profession claim [profession]");
+					return false;
+				}
+				
+				if (args.length == 2)
+				{
+					//Player-only command
+					if (!(sender instanceof Player))
+					{
+						sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+						return false;
+					}
+					
+					//Permission required
+					if (!sender.hasPermission("horizon_professions.claimtier"))
+					{
+						sender.sendMessage(ChatColor.RED + "You don't have permission to claim a tier.");
+						return false;
+					}
+
+					claimTier((Player) sender, args[1]);
 				}
 			}
 		}
@@ -393,6 +430,43 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		sender.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
 		if (sender instanceof Player && (Player) sender != player)
 			player.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+	}
+	
+	private void claimTier(Player player, String profession) 
+	{
+		UUID uuid = player.getUniqueId();
+		int newTier;
+		int claimed = main.getClaimed(uuid);
+		
+		//Check if they have reached the maximum number of claimable tiers.
+		if (claimed >= main.CLAIMABLE_TIERS)
+		{
+			player.sendMessage(ChatColor.RED + "You do not have any claimable tiers left!");
+			return;
+		}
+		
+		//Check if they are already maximum tier in that profession.
+		if (main.getTier(uuid, profession) == 3)
+		{
+			player.sendMessage(ChatColor.RED + "You are already the maximum tier in that profession!");
+			return;
+		}
+			
+		//Give them a tier.
+		if ((newTier = main.gainTier(uuid, profession)) == -1)
+		{
+			player.sendMessage("Error claiming tier. Please contact an Administrator.");
+			return;
+		}
+		
+		//Reset level and exp
+		main.setExp(uuid, profession, 0);
+		main.setLevel(uuid, profession, 0);
+		
+		//Increment the number of tiers they have claimed.
+		main.setClaimed(uuid, claimed + 1);
+		
+		player.sendMessage(ChatColor.YELLOW + player.getName() + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
 	}
 
 	/*

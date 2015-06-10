@@ -18,6 +18,7 @@ permissions:
       horizon_professions.forget: true
       horizon_professions.forget.admin: true
       horizon_professions.givetier: true
+      horizon_professions.claimtier: true
       
   horizon_professions.admin:
     description: Gives access to all Horizon Profession commands for admins and normal players.
@@ -29,6 +30,7 @@ permissions:
       horizon_professions.forget: true
       horizon_professions.forget.admin: true
       horizon_professions.givetier: true
+      horizon_professions.claimtier: true
 
   horizon_professions.common:
     description: Access to Horizon Profession for normal players.
@@ -36,3 +38,4 @@ permissions:
       horizon_professions.help: true
       horizon_professions.view: true
       horizon_professions.forget: true
+      horizon_professions.claimtier: true

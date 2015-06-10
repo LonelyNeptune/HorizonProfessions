@@ -24,7 +24,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 {
 	static Plugin plugin;						//Some functions require a reference to the plugin in args.
 	public static Permission perms = null;		//Reference to permission object from Vault.
-	final int MAX_EXP = 100;			//Maximum experience before level-up.
+	final int MAX_EXP = 100;					//Maximum experience before level-up.
 	private final int UNSKILLED = 0;			
 	private final int NOVICE = 1;				//Tiers progress as unskilled -> novice -> adept -> expert
 	private final int ADEPT = 2;				//Tiers correlate with numbers 0-3 for simplicity and fetching 
@@ -32,7 +32,8 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	private final int FATIGUE_TIME = 86400000;	//Daily cooldown for level-up in milliseconds.
 	final String[] PROFESSIONS = {"medic", "hunter", "labourer", "engineer", "pilot"}; 	//Names of professions.
 	final String[] TIERS = {"unskilled", "novice", "adept", "expert"};						//Names of tiers.
-	final int[] MAX_LEVEL = {1, 20, 40, 0};	//Maximum level before progressing to the next tier
+	final int[] MAX_LEVEL = {1, 20, 40, 0};		//Maximum level before progressing to the next tier
+	final int CLAIMABLE_TIERS = 3;				//The number of free tiers a new player may claim.
 	
 	long time = 0;	//Time of last fatigue update.
 	
@@ -132,9 +133,11 @@ public final class Main extends JavaPlugin implements CommandExecutor
 			loadPracticeFatigue(player, PROFESSIONS[i]);
 			loadInstructionFatigue(player, PROFESSIONS[i]);
 		}
+		
+		loadClaimed(player);
     }
-    
-    /*
+
+	/*
      * loadExp() retrieves the experience from the configuration file, for the player and profession specified, and 
      * stores it in the player's metadata.
      * @param player - the player for whom the experience is loaded.
@@ -182,6 +185,12 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		player.setMetadata(profession + "_instructionfatigue", new FixedMetadataValue(plugin, fatigue));
 	}
 	
+	 private void loadClaimed(Player player) 
+	 {
+		 int claims = getConfig().getInt("data." + player.getUniqueId() + ".claimed");
+		 player.setMetadata("claimed", new FixedMetadataValue(plugin, claims));	
+	 }
+	
 	/*
 	 * saveAllStats() saves data for all online players.
 	 */
@@ -207,6 +216,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 			saveInstructionFatigue(player, profession);
 		}
 
+		saveClaimed(player);
     	saveConfig();
 	}
 	
@@ -254,6 +264,13 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		UUID uuid = player.getUniqueId();
 		
 		getConfig().set("data." + uuid + "." + profession + ".instructionfatigue", getInstructionFatigue(uuid, profession));
+	}
+	
+	public void saveClaimed(Player player)
+	{
+		UUID uuid = player.getUniqueId();
+		
+		getConfig().set("data." + uuid + ".claimed", getClaimed(uuid));
 	}
 
 	/*
@@ -721,6 +738,13 @@ public final class Main extends JavaPlugin implements CommandExecutor
 			player.setMetadata(profession + "_instructionfatigue", new FixedMetadataValue(plugin, fatigue));
 	}
 	
+	public void setClaimed(UUID uuid, int claimed)
+	{
+		Player player = getServer().getPlayer(uuid);
+		
+		player.setMetadata("claimed", new FixedMetadataValue(plugin, claimed));
+	}
+	
 	/*
 	 * getExp() retrieves the experience of a player for the specified profession.
 	 * @param player - the player for whom the experience is being retrieved.
@@ -789,6 +813,13 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		//Player is online.
 		else	
 			return getMetadataInt(player, profession + "_instructionfatigue", plugin);
+	}
+	
+	public int getClaimed(UUID uuid)
+	{
+		Player player = getServer().getPlayer(uuid);
+		
+		return getMetadataInt(player, "claimed", plugin);
 	}
 }
 
