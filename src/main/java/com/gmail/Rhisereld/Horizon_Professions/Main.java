@@ -192,6 +192,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 			loadLevel(player, PROFESSIONS[i]);
 			loadPracticeFatigue(player, PROFESSIONS[i]);
 			loadInstructionFatigue(player, PROFESSIONS[i]);
+			loadTier(player, PROFESSIONS[i]);
 		}
 		
 		loadClaimed(player);
@@ -257,6 +258,17 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	}
 	
 	/*
+	 * loadTier() retrieves the tier for a player in the profession specified, and stores it in the player's metadata.
+	 * @param player - the player for whom the tier is loaded.
+	 * @param profession - the profession for which the tier is loaded.
+	 */
+	private void loadTier(Player player, String profession) 
+	{
+		 int tier = getConfig().getInt("data." + player.getUniqueId() + "." + profession + ".tier");
+		 player.setMetadata(profession + "_tier", new FixedMetadataValue(plugin, tier));	
+	}
+	
+	/*
 	 * saveAllStats() saves data for all online players.
 	 */
 	 private void saveAllStats()
@@ -279,6 +291,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 			saveLevel(player, profession);
 			savePracticeFatigue(player, profession);
 			saveInstructionFatigue(player, profession);
+			saveTier(player, profession);
 		}
 
 		saveClaimed(player);
@@ -342,6 +355,18 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		
 		getConfig().set("data." + uuid + ".claimed", getClaimed(uuid));
 	}
+	
+	/*
+	 * saveTier() retrieves the tier for the player in the profession specified and stores it in a configuration file.
+	 * @param player - the player for whom the tier is saved.
+	 * @param profession - the profession for which the tier is saved.
+	 */
+	private void saveTier(Player player, String profession)
+	{
+		UUID uuid = player.getUniqueId();
+		
+		getConfig().set("data." + uuid + "." + profession + ".tier", getTier(uuid, profession));
+	}
 
 	/*
 	 * removePlayerStats() removes metadata from the player when it is no longer needed (such as when the plugin
@@ -356,6 +381,8 @@ public final class Main extends JavaPlugin implements CommandExecutor
 			player.removeMetadata(profession + "_level", this);
 			player.removeMetadata(profession + "_practicefatigue", this);
 			player.removeMetadata(profession + "_instructionfatigue", this);
+			player.removeMetadata(profession + "_claimed", this);
+			player.removeMetadata(profession + "_tier", this);
 		}
 	}
 	
@@ -383,13 +410,11 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		{
 			perms.playerRemove(null, player, "horizon_professions." + profession);
 			
-			for (String tier: TIERS)
-			{
-				perms.playerRemove(null, player, "horizon_professions." + profession + "." + tier);
-			}
-			
 			setExp(uuid, profession, 0);
 			setLevel(uuid, profession, 0);
+			setPracticeFatigue(uuid, profession, 0);
+			setInstructionFatigue(uuid, profession, 0);
+			setTier(uuid, profession, 0);
 		}
 	}
 	
@@ -501,65 +526,15 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	public int gainTier(UUID uuid, String profession)
 	{		
-		Player player = Bukkit.getServer().getPlayer(uuid);
-		OfflinePlayer offlinePlayer;
-		int level = getLevel(uuid, profession);
+		int tier = getTier(uuid, profession);
+		int newTier;
 		
-		//Player is offline
-		if (player == null)
-		{
-			offlinePlayer = Bukkit.getServer().getOfflinePlayer(uuid);
-			
-			if (!perms.playerHas(null, offlinePlayer, "horizon_professions." + profession))
-			{
-				perms.playerAdd(null, offlinePlayer, "horizon_professions." + profession);
-				perms.playerAdd(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[1]);
-				return NOVICE;
-			}
-			else if (perms.playerHas(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[1]))
-			{
-				perms.playerAdd(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[2]);
-				perms.playerRemove(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[1]);	
-				return ADEPT;
-			}
-			else if (perms.playerHas(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[2]))
-			{
-				perms.playerAdd(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[3]);
-				perms.playerRemove(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[2]);
-				return EXPERT;
-			}
-			else if (perms.playerRemove(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[3]))
-				return EXPERT;
-			else
-				return -1;
-		}
-		//Player is online
-		else
-		{
-			if (!player.hasPermission("horizon_professions." + profession))
-			{
-				perms.playerAdd(null, player, "horizon_professions." + profession);
-				perms.playerAdd(null, player, "horizon_professions." + profession + "." + TIERS[1]);
-				return NOVICE;
-			}
-			else if (player.hasPermission("horizon_professions." + profession + "." + TIERS[1]))
-			{
-				perms.playerAdd(null, player, "horizon_professions." + profession + "." + TIERS[2]);
-				perms.playerRemove(null, player, "horizon_professions." + profession + "." + TIERS[1]);	
-				return ADEPT;
-			}
-			else if (player.hasPermission("horizon_professions." + profession + "." + TIERS[2]))
-			{
-				perms.playerAdd(null, player, "horizon_professions." + profession + "." + TIERS[3]);
-				perms.playerRemove(null, player, "horizon_professions." + profession + "." + TIERS[2]);
-				return EXPERT;
-			}
-			else if (player.hasPermission("horizon_professions." + profession + "." + TIERS[3]))
-				return EXPERT;
-			else
-				return -1;
-		}
-
+		if ((newTier = tier + 1) > 3)
+			newTier = 3;
+		
+		setLevel(uuid, profession, getLevel(uuid, profession) - MAX_LEVEL[tier]);
+		setTier(uuid, profession, newTier);
+		return newTier;
 	}
 	
 	/*
@@ -570,69 +545,15 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	public int forgetTier(UUID uuid, String profession)
 	{
-		Player player = Bukkit.getServer().getPlayer(uuid);
-		OfflinePlayer offlinePlayer;
+		int newTier;
+		
+		if ((newTier = getTier(uuid, profession) - 1) < 0)
+			newTier = 0;
 		
 		setExp(uuid, profession, 0);
 		setLevel(uuid, profession, 0);
-		
-		//Player is offline
-		if (player == null)
-		{
-			offlinePlayer = Bukkit.getServer().getOfflinePlayer(uuid);
-			
-			if (!perms.playerHas(null, offlinePlayer, "horizon_professions." + profession))
-			{
-				return UNSKILLED;
-			}
-			else if (perms.playerHas(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[1]))
-			{
-				perms.playerRemove(null, offlinePlayer, "horizon_professions." + profession);
-				perms.playerRemove(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[1]);
-				return UNSKILLED;
-			}
-			else if (perms.playerHas(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[2]))
-			{
-				perms.playerAdd(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[1]);
-				perms.playerRemove(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[2]);
-				return NOVICE;
-			}
-			else if (perms.playerHas(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[3]))
-			{
-				perms.playerRemove(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[3]);
-				perms.playerRemove(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[2]);
-				return ADEPT;
-			}
-			else
-				return -1;
-		}
-		//Player is online.
-		else
-		{
-			if (!perms.playerHas(null, player, "horizon_professions." + profession))
-			{
-				return UNSKILLED;
-			}
-			else if (perms.playerHas(null, player, "horizon_professions." + profession + "." + TIERS[1]))
-			{
-				perms.playerRemove(null, player, "horizon_professions." + profession);
-				perms.playerRemove(null, player, "horizon_professions." + profession + "." + TIERS[1]);
-				return UNSKILLED;
-			}
-			else if (perms.playerHas(null, player, "horizon_professions." + profession + "." + TIERS[2]))
-			{
-				perms.playerAdd(null, player, "horizon_professions." + profession + "." + TIERS[1]);
-				perms.playerRemove(null, player, "horizon_professions." + profession + "." + TIERS[2]);
-				return NOVICE;
-			}
-			else if (perms.playerHas(null, player, "horizon_professions." + profession + "." + TIERS[3]))
-			{
-				perms.playerAdd(null, player, "horizon_professions." + profession + "." + TIERS[2]);
-				perms.playerRemove(null, player, "horizon_professions." + profession + "." + TIERS[3]);
-				return ADEPT;
-			}
-			else
-				return -1;		}
+		setTier(uuid, profession, newTier);
+		return newTier;
 	}
 	
 	/*
@@ -716,6 +637,54 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	}
 	
 	/*
+	 * setTier() sets the tier that a player has in the profession specified.
+	 * @param uuid - the uuid of the player.
+	 * @param profession - the profession for which to set the tier.
+	 * @param tier - the value of the tier.
+	 */
+	public void setTier(UUID uuid, String profession, int tier)
+	{
+		Player player = getServer().getPlayer(uuid);
+		OfflinePlayer offlinePlayer;
+		
+		//Player is offline.
+		if (player == null)
+		{
+			offlinePlayer = getServer().getOfflinePlayer(uuid);
+			
+			//Remove all previously held permissions.
+			for (String previousTier: TIERS)
+				perms.playerRemove(null, offlinePlayer, "horizon_professions." + profession + "." + previousTier);
+			perms.playerRemove(null, offlinePlayer, "horizon_professions." + profession);
+			
+			//Re-add relevant ones.
+			if (tier != 0)
+			{
+				perms.playerAdd(null, offlinePlayer, "horizon_professions." + profession);
+				perms.playerAdd(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[tier]);
+			}
+
+			getConfig().set("data." + uuid + "." + profession + ".tier", tier);
+		}
+		//Player is online.
+		else
+		{
+			//Remove all previously held permissions.
+			for (String previousTier: TIERS)
+				perms.playerRemove(null, player, "horizon_professions." + profession + "." + previousTier);
+			perms.playerRemove(null, player, "horizon_professions." + profession);
+			
+			//Re-add relevant ones.
+			if (tier != 0)
+			{
+				perms.playerAdd(null, player, "horizon_professions." + profession);
+				perms.playerAdd(null, player, "horizon_professions." + profession + "." + TIERS[tier]);
+			}
+			player.setMetadata(profession + "_tier", new FixedMetadataValue(plugin, tier));
+		}
+	}
+	
+	/*
 	 * getExp() retrieves the experience of a player for the specified profession.
 	 * @param player - the player for whom the experience is being retrieved.
 	 * @param profession - the profession for which the experience is being retrieved.
@@ -786,49 +755,6 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	}
 	
 	/*
-	 * getTier() gets the tier the player currently has in a profession.
-	 * @param player - the player for whom to get the tier name.
-	 * @param profession - the profession for which to get the tier name.
-	 * @return - the tier the player has in the profession.
-	 */
-	public int getTier(UUID uuid, String profession) 
-	{
-		Player player = getServer().getPlayer(uuid);
-		OfflinePlayer offlinePlayer;
-		
-		//Player is offline.
-		if (player == null)
-		{
-			offlinePlayer = getServer().getOfflinePlayer(uuid);
-			
-			if (!perms.playerHas(null, offlinePlayer, "horizon_professions." + profession))
-				return UNSKILLED;
-			else if (perms.playerHas(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[1]))
-				return NOVICE;
-			else if (perms.playerHas(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[2]))
-				return ADEPT;
-			else if (perms.playerHas(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[3]))
-				return EXPERT;
-			else
-				return -1;
-		}
-		//Player is online.
-		else
-		{
-			if (!perms.playerHas(null, player, "horizon_professions." + profession))
-				return UNSKILLED;
-			else if (perms.playerHas(null, player, "horizon_professions." + profession + "." + TIERS[1]))
-				return NOVICE;
-			else if (perms.playerHas(null, player, "horizon_professions." + profession + "." + TIERS[2]))
-				return ADEPT;
-			else if (perms.playerHas(null, player, "horizon_professions." + profession + "." + TIERS[3]))
-				return EXPERT;
-			else
-				return -1;
-		}
-	}
-	
-	/*
 	 * getClaimed() returns the number of free tiers a player has claimed.
 	 * @param uuid - the uuid of the player.
 	 * @return the number of the free tiers a player has claimed.
@@ -838,6 +764,24 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		Player player = getServer().getPlayer(uuid);
 		
 		return getMetadataInt(player, "claimed", plugin);
+	}
+	
+	/*
+	 * getTier() gets the tier the player currently has in a profession.
+	 * @param player - the player for whom to get the tier name.
+	 * @param profession - the profession for which to get the tier name.
+	 * @return - the tier the player has in the profession.
+	 */
+	public int getTier(UUID uuid, String profession) 
+	{
+		Player player = getServer().getPlayer(uuid);
+		
+		//Player is offline.
+		if (player == null)
+			return getConfig().getInt("data." + uuid + "." + profession + ".tier");
+		//Player is online.
+		else
+			return getMetadataInt(player, profession + "_tier", plugin);
 	}
 }
 
