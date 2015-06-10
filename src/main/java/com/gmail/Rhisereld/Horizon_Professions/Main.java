@@ -28,16 +28,13 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	private final int UNSKILLED = 0;			
 	private final int NOVICE = 1;				//Tiers progress as unskilled -> novice -> adept -> expert
 	private final int ADEPT = 2;				//Tiers correlate with numbers 0-3 for simplicity and fetching 
-	private final int EXPERT = 3;				//from PROFESSIONS String array.
+	private final int EXPERT = 3;				//from TIERS String array.
 	private final int FATIGUE_TIME = 86400000;	//Daily cooldown for level-up in milliseconds.
 	final String[] PROFESSIONS = {"medic", "hunter", "labourer", "engineer", "pilot"}; 	//Names of professions.
 	final String[] TIERS = {"unskilled", "novice", "adept", "expert"};						//Names of tiers.
 	final int[] MAX_LEVEL = {1, 20, 40, 0};	//Maximum level before progressing to the next tier
 	
 	long time = 0;	//Time of last fatigue update.
-	
-	//Note - tier checks based on permissions must be done in ASCENDING order (unskilled -> novice -> adept -> expert)
-	//		due to the nature of operators having all permissions.
 	
 	/*
 	 * onEnable() is called when the server is started or the plugin is enabled.
@@ -667,7 +664,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		
 		//Player is offline.
 		if (player == null)
-			getConfig().set("data." + profession + ".exp", exp);
+			getConfig().set("data." + uuid + "." + profession + ".exp", exp);
 		//Player is online.
 		else
 			player.setMetadata(profession + "_exp", new FixedMetadataValue(plugin, exp));
@@ -684,7 +681,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		
 		//Player is offline.
 		if (player == null)
-			getConfig().set("data." + profession + ".level", level);
+			getConfig().set("data." + uuid + "." + profession + ".level", level);
 		//Player is online.
 		else
 			player.setMetadata(profession + "_level", new FixedMetadataValue(plugin, level));
@@ -701,7 +698,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		
 		//Player is offline.
 		if (player == null)
-			getConfig().set("data." + profession + ".practicefatigue", fatigue);
+			getConfig().set("data." + uuid + "." + profession + ".practicefatigue", fatigue);
 		//Player is online.
 		else
 			player.setMetadata(profession + "_practicefatigue", new FixedMetadataValue(plugin, fatigue));
@@ -718,7 +715,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		
 		//Player is offline.
 		if (player == null)
-			getConfig().set("data." + profession + ".instructionfatigue", fatigue);
+			getConfig().set("data." + uuid + "." + profession + ".instructionfatigue", fatigue);
 		//Player is online.
 		else
 			player.setMetadata(profession + "_instructionfatigue", new FixedMetadataValue(plugin, fatigue));

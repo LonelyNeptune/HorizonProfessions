@@ -350,6 +350,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		else 
 			uuid = player.getUniqueId();
 
+		main.setExp(uuid, profession, 0);
+		main.setLevel(uuid,  profession,  0);
 		newTier = main.forgetTier(uuid, profession);
 		
 		sender.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
