@@ -312,6 +312,13 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			viewStats(playerString, player.getUniqueId(), admin);
 	}
 	
+	/*
+	 * alignText() allows for text to be aligned into columns in the chatbox by adding the appropriate number of spaces
+	 * to the end of the string.
+	 * @param string - the string to modify.
+	 * @param size - the ideal size of the column for the string to occupy.
+	 * @return - the modified string.
+	 */
 	private static String alignText(String string, int size) 
 	{
 	    String alignedString = string;
@@ -336,6 +343,13 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	    return alignedString;
 	}
 	
+	/*
+	 * centreText() allows text to be centred in the middle of the chatbox by adding the appropriate number of spaces to
+	 * the beginning and end of the string
+	 * @param string - the string to modify
+	 * @param size - the ideal size of the column for the string to occupy.
+	 * @return - the modified string.
+	 */
 	private static String centreText(String string, int size) 
 	{
 	    String alignedString = " ";
@@ -432,6 +446,12 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			player.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
 	}
 	
+	/*
+	 * claimTier() increases the tier of the player in a certain profession by one and updates the number of tiers the 
+	 * player has claimed. A new player may claim 3 tiers, and must not already be the maximum tier.
+	 * @param player - the player who is claiming a tier
+	 * @param profession - the profession in which a player wishes to claim a tier.
+	 */
 	private void claimTier(Player player, String profession) 
 	{
 		UUID uuid = player.getUniqueId();
