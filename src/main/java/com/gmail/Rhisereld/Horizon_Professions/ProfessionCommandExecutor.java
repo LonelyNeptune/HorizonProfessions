@@ -501,6 +501,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		player.sendMessage("View your professions.");
 		player.sendMessage(ChatColor.YELLOW + "/profession forget [profession]");
 		player.sendMessage("Lose a tier in a profession.");
+		player.sendMessage(ChatColor.YELLOW + "/profession claim [profession]");
+		player.sendMessage("Claim a free tier in a profession.");
 	}
 	
 	/*
@@ -515,5 +517,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		sender.sendMessage("View the professions of a player.");
 		sender.sendMessage(ChatColor.YELLOW + "/profession forget [profession] [optional:player]");
 		sender.sendMessage("Force a player to lose a tier in a profession.");
+		sender.sendMessage(ChatColor.YELLOW + "/profession givetier [profession] [player]");
+		sender.sendMessage("Give a tier to a player in the specified profession.");
+		sender.sendMessage(ChatColor.YELLOW + "/profession claim [profession]");
+		sender.sendMessage("Claim a free tier in a profession.");
 	}
 }
