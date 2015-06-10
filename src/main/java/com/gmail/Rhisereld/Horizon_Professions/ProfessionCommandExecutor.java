@@ -365,7 +365,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param - player - the player for whom to increase the tier.
 	 * @param - profession - the profession for which to increase the tier.
 	 */
-	private void giveTier(CommandSender sender, String playerString, String profession) 
+	private void giveTier(CommandSender sender, String profession, String playerString) 
 	{
 		Player player = Bukkit.getServer().getPlayer(playerString);
 		OfflinePlayer offlinePlayer;
