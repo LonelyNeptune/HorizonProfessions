@@ -402,14 +402,10 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * level and experience to zero for each profession.
 	 * @param player - the player who is having their stats reset to 0.
 	 */
-	private void resetPlayerStats(Player player)
-	{		
-		UUID uuid = player.getUniqueId();
-		
+	void resetPlayerStats(UUID uuid)
+	{
 		for (String profession: PROFESSIONS)
 		{
-			perms.playerRemove(null, player, "horizon_professions." + profession);
-			
 			setExp(uuid, profession, 0);
 			setLevel(uuid, profession, 0);
 			setPracticeFatigue(uuid, profession, 0);

@@ -16,7 +16,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	private final int PROGRESS_BAR_BLOCKS = 33; //The number of blocks that appear in the progress bar for command /profession view
 	private final int CHATBOX_WIDTH = 44; 	//The number of spaces in one line of the chatbox. May be unreliable for custom
 											//fonts
-	private final int HEADER_WIDTH = 32; 	//The width of the header for each profession when viewing stats.
+	private final int HEADER_WIDTH = 31; 	//The width of the header for each profession when viewing stats.
 	
 	Main main;									//A reference to main.
 	
@@ -208,6 +208,49 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					}
 
 					claimTier((Player) sender, args[1]);
+				}
+			}
+			
+			//profession reset [player]
+			if (args[0].equalsIgnoreCase("reset"))
+			{
+				//Player provided too many arguments
+				if (args.length > 2)
+				{
+					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession reset [profession] [optional:player]");
+					return false;
+				}
+				
+				//Player is attempting to force another player to reset.
+				if (args.length == 2)
+				{
+					//Console or admin-only command.
+					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.reset.admin"))
+						resetStats(sender, args[1]);
+					//Nope
+					else
+						sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to reset their professions.");
+				}
+				
+				//Player is attempting to reset.
+				if (args.length == 1)
+				{
+					//Permission required
+					if (!sender.hasPermission("horizon_professions.reset"))
+					{
+						sender.sendMessage(ChatColor.RED + "You don't have permission to reset.");
+						return false;
+					}
+					
+					//Player-only command
+					if (!(sender instanceof Player))
+					{
+						sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+						return false;
+					}
+					
+					player = (Player) sender;
+					resetStats(sender, player.getName());
 				}
 			}
 		}
@@ -490,12 +533,39 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	}
 
 	/*
+	 * resetStats() removes all experience, levels and tiers from the player.
+	 * @param playerString - the player who is having their stats reset to 0.
+	 */
+	private void resetStats(CommandSender sender, String playerString) 
+	{
+		Player player = Bukkit.getServer().getPlayer(playerString);
+		OfflinePlayer offlinePlayer;
+		UUID uuid;
+		
+		//Player is offline.
+		if (player == null)
+		{
+			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
+			uuid = offlinePlayer.getUniqueId();
+		}
+		//Player is online.
+		else
+			uuid = player.getUniqueId();
+		
+		main.resetPlayerStats(uuid);
+
+		sender.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
+		if (sender instanceof Player && (Player) sender != player)
+			player.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
+	}
+
+	/*
 	 * giveCommandsGuide() displays a list of the available commands.
 	 * @param player - the player to display the commands to.
 	 */
 	private void giveCommandsGuide(Player player) 
 	{
-		player.sendMessage("-----<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">-----");
+		player.sendMessage("----------------<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">----------------");
 		player.sendMessage(ChatColor.GOLD + "Horizon Professions allows you to keep track of your trade skills!");
 		player.sendMessage(ChatColor.YELLOW + "/profession view");
 		player.sendMessage("View your professions.");
@@ -503,6 +573,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		player.sendMessage("Lose a tier in a profession.");
 		player.sendMessage(ChatColor.YELLOW + "/profession claim [profession]");
 		player.sendMessage("Claim a free tier in a profession.");
+		player.sendMessage(ChatColor.YELLOW + "/profession reset");
+		player.sendMessage("Resets all of your progress to zero.");
 	}
 	
 	/*
@@ -521,5 +593,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		sender.sendMessage("Give a tier to a player in the specified profession.");
 		sender.sendMessage(ChatColor.YELLOW + "/profession claim [profession]");
 		sender.sendMessage("Claim a free tier in a profession.");
+		sender.sendMessage(ChatColor.YELLOW + "/profession reset [optional:player]");
+		sender.sendMessage("Resets all of the player's progress to zero.");
 	}
 }
