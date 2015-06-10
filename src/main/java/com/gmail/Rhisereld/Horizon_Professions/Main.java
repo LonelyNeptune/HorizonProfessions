@@ -527,8 +527,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		
 		if ((newTier = tier + 1) > 3)
 			newTier = 3;
-		
-		setLevel(uuid, profession, getLevel(uuid, profession) - MAX_LEVEL[tier]);
+
 		setTier(uuid, profession, newTier);
 		return newTier;
 	}
