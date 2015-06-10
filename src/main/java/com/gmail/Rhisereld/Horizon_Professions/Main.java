@@ -24,7 +24,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 {
 	static Plugin plugin;						//Some functions require a reference to the plugin in args.
 	public static Permission perms = null;		//Reference to permission object from Vault.
-	private final int MAX_EXP = 100;			//Maximum experience before level-up.
+	final int MAX_EXP = 100;			//Maximum experience before level-up.
 	private final int UNSKILLED = 0;			
 	private final int NOVICE = 1;				//Tiers progress as unskilled -> novice -> adept -> expert
 	private final int ADEPT = 2;				//Tiers correlate with numbers 0-3 for simplicity and fetching 

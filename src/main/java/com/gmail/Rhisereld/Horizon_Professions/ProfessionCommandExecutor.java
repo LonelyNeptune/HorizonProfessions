@@ -13,7 +13,10 @@ import org.bukkit.entity.Player;
 
 public class ProfessionCommandExecutor implements CommandExecutor
 {
-	private final int PROGRESS_BAR_BLOCKS = 20; //The number of blocks that appear in the progress bar for command /profession view
+	private final int PROGRESS_BAR_BLOCKS = 33; //The number of blocks that appear in the progress bar for command /profession view
+	private final int CHATBOX_WIDTH = 44; 	//The number of spaces in one line of the chatbox. May be unreliable for custom
+											//fonts
+	private final int HEADER_WIDTH = 32; 	//The width of the header for each profession when viewing stats.
 	
 	Main main;									//A reference to main.
 	
@@ -186,15 +189,14 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		int level;
 		int experience;
 		int maxLevel;
-		int whitespace;
 		int practiceFatigue;
 		int instructionFatigue;
 		String professionCapitalised;
 		String tierCapitalised;
-		String message;
+		String message = null;
 		
-		sender.sendMessage("------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">------");
-		sender.sendMessage("        " + ChatColor.GOLD + " Viewing " + name);
+		sender.sendMessage("----------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">----------------");
+		sender.sendMessage(ChatColor.GOLD + centreText(" Viewing " + name, CHATBOX_WIDTH));
 		
 		for (int i = 0; i < 5; i++)
 		{
@@ -211,23 +213,16 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			professionCapitalised = main.PROFESSIONS[i].substring(0, 1).toUpperCase() + main.PROFESSIONS[i].substring(1);
 			tierCapitalised = main.TIERS[tier].substring(0, 1).toUpperCase() + main.TIERS[tier].substring(1);
 			
-			//Figure out how many spaces to add to make everything line up all pretty.
-			whitespace = (int) (25 - (tierCapitalised + professionCapitalised).length()*1.5);
 			
-			if (whitespace < 0)
-				whitespace = 0;
 			
 			//Build profession header for each profession.
-			message = ChatColor.YELLOW + "    " + tierCapitalised + " " + professionCapitalised;
-			
-			for (int i1 = 0; i1 <= whitespace; i1++)
-				message = message + " ";
+			message = ChatColor.YELLOW + "  " + alignText(tierCapitalised + " " + professionCapitalised, HEADER_WIDTH);
 			
 			//If the player has hit max tier, don't even show the level progression
 			if (maxLevel == 0)
-				message = message + "    Level " + "[Maximum]";
+				message += " Level " + "[Maximum]";
 			else
-				message = message + "    Level " + "[" + level + "/" + maxLevel + "]";
+				message += " Level " + "[" + level + "/" + maxLevel + "]";
 			
 			//Send it.
 			sender.sendMessage(message);
@@ -243,14 +238,14 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			for (int i2 = 0; i2 < PROGRESS_BAR_BLOCKS; i2++)
 			{
 				if (practiceFatigue > 0)
-					message = message + "█";
-				else if (i2 < experience / 5)
-					message = message + "█";
+					message += "█";
+				else if (i2 < experience / (main.MAX_EXP/PROGRESS_BAR_BLOCKS))
+					message += "█";
 				else
-					message = message + ChatColor.DARK_GRAY + "█";
+					message += ChatColor.DARK_GRAY + "█";
 			}
 			
-			message = message + ChatColor.YELLOW + " XP";
+			message += ChatColor.YELLOW + " XP";
 			
 			//Send it.
 			sender.sendMessage(message);
@@ -278,6 +273,59 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		//Player is online.
 		else
 			viewStats(playerString, player.getUniqueId(), admin);
+	}
+	
+	private static String alignText(String string, int size) 
+	{
+	    String alignedString = string;
+	    int numSpaces;
+	 
+	    if (string != null) 
+	    {
+	        numSpaces = (size - string.length())*2;
+	        
+	        for (int i = 0; i < alignedString.length(); i++)
+	        {
+	        	if (alignedString.charAt(i) == 'i' || alignedString.charAt(i) == 'l') 
+	            	numSpaces++;
+	        	if (alignedString.charAt(i) == 'c' || alignedString.charAt(i) == 'p' || alignedString.charAt(i) == 'v')
+	        		numSpaces--;
+	        }
+	        
+	        for (int i2 = 0; i2 < numSpaces; i2++) 
+	        	alignedString += " ";
+	    }
+	    
+	    return alignedString;
+	}
+	
+	private static String centreText(String string, int size) 
+	{
+	    String alignedString = " ";
+	    int numSpaces;
+	 
+	    if (string != null) 
+	    {
+	        numSpaces = (size - string.length())*2;
+	        
+	        for (int i = 0; i < alignedString.length(); i++)
+	        {
+	        	if (alignedString.charAt(i) == 'i' || alignedString.charAt(i) == 'l') 
+	            	numSpaces++;
+	        	if (alignedString.charAt(i) == 'c' || alignedString.charAt(i) == 'p' || alignedString.charAt(i) == 'v')
+	        		numSpaces--;
+	        }
+	        
+	        for (int i2 = 0; i2 < numSpaces/2; i2++) 
+	        	alignedString += " ";
+	        
+	        alignedString += string;
+	        
+	        for (int i2 = 0; i2 < numSpaces/2; i2++) 
+	        	alignedString += " ";
+	    }
+	    
+	    return alignedString;
 	}
 
 	/*
