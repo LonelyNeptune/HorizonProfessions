@@ -29,7 +29,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	private final int NOVICE = 1;				//Tiers progress as unskilled -> novice -> adept -> expert
 	private final int ADEPT = 2;				//Tiers correlate with numbers 0-3 for simplicity and fetching 
 	private final int EXPERT = 3;				//from TIERS String array.
-	private final int FATIGUE_TIME = 86400000;	//Daily cooldown for level-up in milliseconds.
+	final int FATIGUE_TIME = 86400000;	//Daily cooldown for level-up in milliseconds.
 	final String[] PROFESSIONS = {"medic", "hunter", "labourer", "engineer", "pilot"}; 	//Names of professions.
 	final String[] TIERS = {"unskilled", "novice", "adept", "expert"};						//Names of tiers.
 	final int[] MAX_LEVEL = {1, 20, 40, 0};		//Maximum level before progressing to the next tier
@@ -436,18 +436,6 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	}
 	
 	/*
-	 * giveInstruction() allows a trainer to train another player in a profession, awarding them 2 levels in the profession
-	 * but also activating instruction fatigue.
-	 * @param trainer - the player who is doing the training
-	 * @param trainee - the player who is being trained
-	 * @param profession - the profession that the trainee is being trained in.
-	 */
-	public void giveInstruction(Player trainer, Player trainee, String profession)
-	{
-		//TODO
-	}
-	
-	/*
 	 * gainExperience() increases the experience of a player, detects whether the player has reached MAX_EXP
 	 * and calls gainLevel() and sets daily cap if this is the case. Also guards against daily cap (player will not
 	 * gain experience if they are "fatigued").
@@ -457,23 +445,25 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	public void gainExperience(Player player, String profession, int exp)
 	{
+		UUID uuid = player.getUniqueId();
+		
 		//Expert is the maximum tier, player cannot progress past that point.
-		if (player.hasPermission("horizon_profession." + profession + ".expert"))
+		if (getTier(uuid, profession) == 3)
 			return;
 		
 		//If player is fatigued, return.
-		if (getPracticeFatigue(player.getUniqueId(), profession) > 0)
+		if (getPracticeFatigue(uuid, profession) > 0)
 			return;
 		
-		int newExp = exp + getExp(player.getUniqueId(), profession);
+		int newExp = exp + getExp(uuid, profession);
 
 		//If player has reached maximum experience, level them up, set the daily cap and set exp to 0.
 		if (newExp >= MAX_EXP)
 		{
 			player.sendMessage("You feel more knowledgeable as a " + profession + ". You will need to rest and "
 					+ "reflect on what you have learned, as you cannot benefit from any more practice today.");
-			player.setMetadata(profession + "_practicefatigue", new FixedMetadataValue(plugin, FATIGUE_TIME));
-			gainLevel(player, profession, 1);
+			setPracticeFatigue(uuid, profession, FATIGUE_TIME);
+			gainLevel(uuid, profession, 1);
 			newExp = 0;
 		}
 		
@@ -488,25 +478,22 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param profession - the profession for which the player is gaining the levels.
 	 * @param level - the number of levels the player is gaining.
 	 */
-	public void gainLevel(Player player, String profession, int level)
-	{
-		UUID uuid = player.getUniqueId();
-		
+	public void gainLevel(UUID uuid, String profession, int level)
+	{		
 		int newLevel = level + getLevel(uuid, profession);
 		setLevel(uuid, profession, level + newLevel);
-		setPracticeFatigue(uuid, profession, FATIGUE_TIME);
 		
-		if (!player.hasPermission("horizon_professions." + profession))
+		if (getTier(uuid, profession) == 0)
 		{
 			gainTier(uuid, profession);
 			setLevel(uuid, profession, level - MAX_LEVEL[0]);
 		}
-		else if (player.hasPermission("horizon_professions." + profession + ".novice") && newLevel >= MAX_LEVEL[1])
+		else if (getTier(uuid, profession) == 1 && newLevel >= MAX_LEVEL[1])
 		{
 			gainTier(uuid, profession);
 			setLevel(uuid, profession, level - MAX_LEVEL[1]);	
 		}
-		else if	(player.hasPermission("horizon_professions." + profession + ".adept") && newLevel >= MAX_LEVEL[2])
+		else if	(getTier(uuid, profession) == 2 && newLevel >= MAX_LEVEL[2])
 		{
 			gainTier(uuid, profession);
 			setLevel(uuid, profession, level - MAX_LEVEL[2]);

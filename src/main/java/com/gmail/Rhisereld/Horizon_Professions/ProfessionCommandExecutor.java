@@ -1,5 +1,6 @@
 package com.gmail.Rhisereld.Horizon_Professions;
 
+import java.util.Collection;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -253,6 +254,37 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					resetStats(sender, player.getName());
 				}
 			}
+			
+			//profession train [profession] [player]
+			if (args[0].equalsIgnoreCase("train"))
+			{
+				//Player provided too many arguments
+				if (args.length > 3)
+				{
+					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession train [profession] [player]");
+					return false;
+				}
+				
+				//Player is attempting to train someone
+				if (args.length == 3)
+				{
+					//Player-only command
+					if (!(sender instanceof Player))
+					{
+						sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+						return false;
+					}
+
+					trainPlayer((Player) sender, args[1], args[2]);
+				}
+				
+				//Player did not provide enough arguments
+				if (args.length < 3)
+				{
+					sender.sendMessage(ChatColor.RED + "Too few arguments! Correct usage: /profession train [profession] [player]");
+					return false;
+				}
+			}
 		}
 		return false;
 	}
@@ -435,23 +467,32 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		UUID uuid;
 		int newTier;
 		
-		//Player is offline.
-		if (player == null)
-		{
-			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
-			uuid = offlinePlayer.getUniqueId();
-		}
-		else 
-			uuid = player.getUniqueId();
+		//Check that the profession argument is one of the professions.
+		for (String existingProfession: main.PROFESSIONS)
+			if (profession.equalsIgnoreCase(existingProfession))
+			{
+				//Player is offline.
+				if (player == null)
+				{
+					offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
+					uuid = offlinePlayer.getUniqueId();
+				}
+				else 
+					uuid = player.getUniqueId();
 
-		main.setExp(uuid, profession, 0);
-		main.setLevel(uuid,  profession,  0);
-		newTier = main.forgetTier(uuid, profession);
+				main.setExp(uuid, profession, 0);
+				main.setLevel(uuid,  profession,  0);
+				newTier = main.forgetTier(uuid, profession);
+				
+				sender.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+				if (sender instanceof Player && (Player) sender != player && player != null)
+					player.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+			
+				return;
+			}
 		
-		sender.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
-		if (sender instanceof Player && (Player) sender != player)
-			player.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
-	}
+		sender.sendMessage(ChatColor.YELLOW + "That profession does not exist!");
+}
 	
 	/*
 	 * giveTier() increases the tier of the player in a certain profession by one.
@@ -466,27 +507,36 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		UUID uuid;
 		int newTier;
 		
-		//Player is offline.
-		if (player == null)
-		{
-			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
-			uuid = offlinePlayer.getUniqueId();
-		}
-		//Player is online.
-		else
-			uuid = player.getUniqueId();
-		
-		main.setExp(uuid, profession, 0);
-		main.setLevel(uuid, profession, 0);
-		if ((newTier = main.gainTier(uuid, profession)) == -1)
-		{
-			sender.sendMessage("Error giving tier. Please contact an Administrator.");
-			return;
-		}
+		//Check that the profession argument is one of the professions.
+		for (String existingProfession: main.PROFESSIONS)
+			if (profession.equalsIgnoreCase(existingProfession))
+			{
+				//Player is offline.
+				if (player == null)
+				{
+					offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
+					uuid = offlinePlayer.getUniqueId();
+				}
+				//Player is online.
+				else
+					uuid = player.getUniqueId();
+				
+				main.setExp(uuid, profession, 0);
+				main.setLevel(uuid, profession, 0);
+				if ((newTier = main.gainTier(uuid, profession)) == -1)
+				{
+					sender.sendMessage("Error giving tier. Please contact an Administrator.");
+					return;
+				}
 
-		sender.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
-		if (sender instanceof Player && (Player) sender != player)
-			player.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+				sender.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+				if (sender instanceof Player && (Player) sender != player && player != null)
+					player.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+		
+				return;
+			}
+		
+		sender.sendMessage(ChatColor.YELLOW + "That profession does not exist!");
 	}
 	
 	/*
@@ -555,8 +605,86 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		main.resetPlayerStats(uuid);
 
 		sender.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
-		if (sender instanceof Player && (Player) sender != player)
+		if (sender instanceof Player && (Player) sender != player && player != null)
 			player.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
+	}
+	
+	/*
+	 * trainPlayer() allows one player to train another in a specified profession. The trainer must be Expert tier in that
+	 * profession and the trainee must not be. The trainee will gain two levels in the profession, but will suffer 
+	 * instruction fatigue which serves as a cooldown.
+	 */
+	@SuppressWarnings("unused")
+	private void trainPlayer(Player trainer, String profession, String traineeString) 
+	{
+		Player trainee = Bukkit.getServer().getPlayer(traineeString);
+		UUID trainerUuid = trainer.getUniqueId();
+		UUID traineeUuid;
+		String trainerString = trainer.getName();
+		double distance;
+		
+		//Check that the trainer is an expert
+		if (main.getTier(trainer.getUniqueId(), profession) < 3)
+		{
+			trainer.sendMessage(ChatColor.YELLOW + "You cannot train yet because you are not an Expert " + profession + "!");
+			return;
+		}
+		
+		//Check that the trainee is online
+		if (trainee == null)
+		{
+			trainer.sendMessage(ChatColor.YELLOW + "You cannot train " + traineeString + " because they are not online!");
+			return;
+		}
+		
+		//Safe to do this since the trainee is online.
+		traineeUuid = trainee.getUniqueId();
+		
+		//Trying to train yourself is funny, but not allowed.
+		if (trainerUuid == traineeUuid)
+		{
+			trainer.sendMessage(ChatColor.YELLOW + "You cannot train yourself, silly!");
+			return;
+		}
+		
+		//Check that the trainee is not already an expert
+		if (main.getTier(trainee.getUniqueId(), profession) >= 3)
+		{
+			trainer.sendMessage(ChatColor.YELLOW + "You cannot train " + traineeString + " because they are already an Expert!");
+			return;
+		}
+		
+		//Check that the trainee is not suffering from instruction fatigue.
+		if (main.getInstructionFatigue(traineeUuid, profession) > 0)
+		{
+			trainer.sendMessage(ChatColor.YELLOW + traineeString + " has already benefitted from instruction today.");
+			return;
+		}
+		
+		//Check that the trainer and trainee are reasonably close together and in the same world.
+		distance = trainer.getLocation().distance(trainee.getLocation());
+		
+		if (trainer.getWorld().equals(trainee.getWorld()) || Double.isNaN(distance) || distance > 20)
+		{
+			trainer.sendMessage("You are too far away to train " + traineeString + "!");
+			return;
+		}
+		
+		//Give levels
+		main.gainLevel(traineeUuid, profession, 2);
+		
+		//Set fatigue
+		main.setInstructionFatigue(traineeUuid,  profession,  main.FATIGUE_TIME);
+		
+		//Notify trainer, trainee and any moderators.
+		trainer.sendMessage("You have trained " + traineeString + " in the " + profession + " profession.");
+		trainee.sendMessage(trainerString + " has trained you in the " + profession + " profession.");
+		
+		Collection<? extends Player> playerCollection = Bukkit.getServer().getOnlinePlayers();
+		
+		for (Player player : playerCollection) 
+			if (player.hasPermission("horizon_profession.train.admin"))
+				player.sendMessage(ChatColor.YELLOW + trainerString + " just trained " + traineeString + " in " + profession + "!");
 	}
 
 	/*

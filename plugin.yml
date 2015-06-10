@@ -21,6 +21,8 @@ permissions:
       horizon_professions.claimtier: true
       horizon_professions.reset: true
       horizon_professions.reset.admin: true
+      horizon_professions.train: true
+      horizon_professions.train.admin: true
       
   horizon_professions.admin:
     description: Gives access to all Horizon Profession commands for admins and normal players.
@@ -35,6 +37,8 @@ permissions:
       horizon_professions.claimtier: true
       horizon_professions.reset: true
       horizon_professions.reset.admin: true
+      horizon_professions.train: true
+      horizon_professions.train.admin: true
 
   horizon_professions.common:
     description: Access to Horizon Profession for normal players.
@@ -44,3 +48,4 @@ permissions:
       horizon_professions.forget: true
       horizon_professions.claimtier: true
       horizon_professions.reset: true
+      horizon_professions.train: true
