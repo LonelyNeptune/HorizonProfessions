@@ -2,7 +2,6 @@ package com.gmail.Rhisereld.Horizon_Professions;
 
 import java.util.Set;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -70,8 +69,6 @@ public class ProfessionListener implements Listener
 			return;
 		
 		player = (Player) dEvent.getDamager();
-		
-		Bukkit.getLogger().info(entity.getType().toString());
 		
 		//See if options are specified in the configuration file.
     	Set <String> monsters = main.config.getConfig().getConfigurationSection("slaying.").getKeys(false);
