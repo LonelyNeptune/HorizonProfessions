@@ -23,11 +23,13 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	static Plugin plugin;						//Some functions require a reference to the plugin in args.
 	static JavaPlugin javaPlugin;
 	public static Permission perms = null;		//Reference to permission object from Vault.
-	final int MAX_EXP = 100;					//Maximum experience before level-up.
 	final int FATIGUE_TIME = 86400000;	//Daily cooldown for level-up in milliseconds.
 	final String[] PROFESSIONS = {"medic", "hunter", "labourer", "engineer", "pilot"}; 	//Names of professions.
 	final String[] TIERS = {"unskilled", "novice", "adept", "expert"};						//Names of tiers.
 	final int[] MAX_LEVEL = {1, 20, 40, 0};		//Maximum level before progressing to the next tier
+	final int MAX_EXP = 100;					//Maximum experience before level-up.
+	final int EXP_REWARD_CRAFT[] = {5, 5, 1, 5, 5};	//Amount of experience rewarded by crafting corresponding to each
+														//profession.
 	final int CLAIMABLE_TIERS = 3;				//The number of free tiers a new player may claim.
 	
 	long time = 0;	//Time of last fatigue update.
