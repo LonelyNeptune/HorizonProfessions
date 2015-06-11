@@ -15,7 +15,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	private final int PROGRESS_BAR_BLOCKS = 33; //The number of blocks that appear in the progress bar for command /profession view
 	private final int CHATBOX_WIDTH = 44; 	//The number of spaces in one line of the chatbox. May be unreliable for custom
 											//fonts
+	private final int CONSOLE_WIDTH = 35;	//The number of spaces in one line of the console.
 	private final int HEADER_WIDTH = 31; 	//The width of the header for each profession when viewing stats.
+	private final int CONSOLE_HEADER_WIDTH = 25;	//The width of the header for the console.
 	
 	Main main;									//A reference to main.
 	
@@ -306,9 +308,22 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		String professionCapitalised;
 		String tierCapitalised;
 		String message = null;
+		int chatboxWidth;
+		int headerWidth;
 		
+		if (sender instanceof ConsoleCommandSender)
+		{
+			chatboxWidth = CONSOLE_WIDTH;
+			headerWidth = CONSOLE_HEADER_WIDTH;
+		}
+		else
+		{
+			chatboxWidth = CHATBOX_WIDTH;
+			headerWidth = HEADER_WIDTH;
+		}
+
 		sender.sendMessage("----------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">----------------");
-		sender.sendMessage(ChatColor.GOLD + centreText(" Viewing " + name, CHATBOX_WIDTH));
+		sender.sendMessage(ChatColor.GOLD + centreText(" Viewing " + name, chatboxWidth));
 		
 		for (int i = 0; i < 5; i++)
 		{
@@ -328,7 +343,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			
 			
 			//Build profession header for each profession.
-			message = ChatColor.YELLOW + "  " + alignText(tierCapitalised + " " + professionCapitalised, HEADER_WIDTH);
+			message = ChatColor.YELLOW + "  " + alignText(tierCapitalised + " " + professionCapitalised, headerWidth);
 			
 			//If the player has hit max tier, don't even show the level progression
 			if (maxLevel == 0)
@@ -383,9 +398,22 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		String professionCapitalised;
 		String tierCapitalised;
 		String message = null;
+		int chatboxWidth;
+		int headerWidth;
+		
+		if (sender instanceof ConsoleCommandSender)
+		{
+			chatboxWidth = CONSOLE_WIDTH;
+			headerWidth = CONSOLE_HEADER_WIDTH;
+		}
+		else
+		{
+			chatboxWidth = CHATBOX_WIDTH;
+			headerWidth = HEADER_WIDTH;
+		}
 		
 		sender.sendMessage("----------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">----------------");
-		sender.sendMessage(ChatColor.GOLD + centreText(" Viewing " + name, CHATBOX_WIDTH));
+		sender.sendMessage(ChatColor.GOLD + centreText(" Viewing " + name, chatboxWidth));
 		
 		for (int i = 0; i < 5; i++)
 		{
@@ -402,10 +430,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			professionCapitalised = main.PROFESSIONS[i].substring(0, 1).toUpperCase() + main.PROFESSIONS[i].substring(1);
 			tierCapitalised = main.TIERS[tier].substring(0, 1).toUpperCase() + main.TIERS[tier].substring(1);
 			
-			
-			
 			//Build profession header for each profession.
-			message = ChatColor.YELLOW + "  " + alignText(tierCapitalised + " " + professionCapitalised, HEADER_WIDTH);
+			message = ChatColor.YELLOW + "  " + alignText(tierCapitalised + " " + professionCapitalised, headerWidth);
 			
 			//If the player has hit max tier, don't even show the level progression
 			if (maxLevel == 0)
