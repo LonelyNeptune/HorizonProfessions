@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.Player;
@@ -52,8 +53,8 @@ public final class Main extends JavaPlugin implements CommandExecutor
     	config = new ConfigAccessor(this, "config.yml");
     	data = new ConfigAccessor(this, "data.yml");
     	
-    	config.saveDefaultConfig();
-    	data.saveDefaultConfig();
+    	//config.saveDefaultConfig();
+    	//data.saveDefaultConfig();
 
     	//Vault integration for permissions
         if (!setupPermissions()) 
@@ -314,7 +315,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		
 		for (Player player : playerCollection) 
 			savePlayerStats(player);
-    	saveConfig();
+    	data.saveConfig();
 	}
 	
     /*
@@ -511,7 +512,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		//If player has reached maximum experience, level them up, set the daily cap and set exp to 0.
 		if (newExp >= MAX_EXP)
 		{
-			player.sendMessage("You feel more knowledgeable as a " + profession + ". You will need to rest and "
+			player.sendMessage(ChatColor.YELLOW + "You feel more knowledgeable as a " + profession + ". You will need to rest and "
 					+ "reflect on what you have learned, as you cannot benefit from any more practice today.");
 			setPracticeFatigue(player, profession, FATIGUE_TIME);
 			gainLevel(player, profession, 1);

@@ -685,8 +685,6 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		//Player is online.
 		else
 			main.resetPlayerStats(player);
-		
-		main.resetPlayerStats(player);
 
 		sender.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
 		if (sender instanceof Player && (Player) sender != player && player != null)
