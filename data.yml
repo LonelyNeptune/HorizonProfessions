@@ -1,0 +1,16 @@
+54bc9e05-8105-4490-b1cd-557189ca9b66:
+  medic:
+    level: 5
+    exp: 54
+    instructionfatigue: 86400000
+    practicefatigue: 86400000
+    tier: 3
+  hunter:
+    level: 34
+    exp: 9
+    tier: 2
+  engineer:
+    level: 2
+    exp: 95
+    tier: 1
+  unclaimed: 3

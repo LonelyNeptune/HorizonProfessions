@@ -21,6 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class Main extends JavaPlugin implements CommandExecutor 
 {
 	static Plugin plugin;						//Some functions require a reference to the plugin in args.
+	static JavaPlugin javaPlugin;
 	public static Permission perms = null;		//Reference to permission object from Vault.
 	final int MAX_EXP = 100;					//Maximum experience before level-up.
 	final int FATIGUE_TIME = 86400000;	//Daily cooldown for level-up in milliseconds.
@@ -30,6 +31,9 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	final int CLAIMABLE_TIERS = 3;				//The number of free tiers a new player may claim.
 	
 	long time = 0;	//Time of last fatigue update.
+	
+	ConfigAccessor config;
+	ConfigAccessor data;
 	
 	/*
 	 * onEnable() is called when the server is started or the plugin is enabled.
@@ -41,7 +45,13 @@ public final class Main extends JavaPlugin implements CommandExecutor
     public void onEnable() 
     {
     	plugin = this;
-    	saveDefaultConfig();
+    	
+    	//Setup files for configuration and data storage.
+    	config = new ConfigAccessor(this, "config.yml");
+    	data = new ConfigAccessor(this, "data.yml");
+    	
+    	config.saveDefaultConfig();
+    	data.saveDefaultConfig();
 
     	//Vault integration for permissions
         if (!setupPermissions()) 
@@ -120,7 +130,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
     	
     	//Try loading from config
     	if (time == 0)
-    		time = getConfig().getLong("lasttimeupdated");
+    		time = data.getConfig().getLong("lasttimeupdated");
     	
     	//If no previous time available set to current time.
     	if (time == 0)
@@ -129,7 +139,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
     	timeDifference = System.currentTimeMillis() - time;
     	
     	//Get all saved players
-		Set<String> savedPlayers = plugin.getConfig().getConfigurationSection("data.").getKeys(false);
+		Set<String> savedPlayers = data.getConfig().getKeys(false);
 		
     	//Update fatigue for players
 		for (String playerString: savedPlayers)
@@ -180,7 +190,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
     	
     	//New time
 		time = System.currentTimeMillis();
-		getConfig().set("lasttimeupdated", time);
+		data.getConfig().set("lasttimeupdated", time);
 	}
     
 	/*
@@ -220,7 +230,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
      */
 	private void loadExp(Player player, String profession)
 	{
-		int exp = getConfig().getInt("data." + player.getUniqueId() + "." + profession + ".exp");
+		int exp = data.getConfig().getInt(player.getUniqueId() + "." + profession + ".exp");
 		player.setMetadata(profession + "_exp", new FixedMetadataValue(plugin, exp));
 	}
 	
@@ -232,7 +242,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
      */
 	private void loadLevel(Player player, String profession)
 	{
-		int level = getConfig().getInt("data." + player.getUniqueId() + "." + profession + ".level");
+		int level = data.getConfig().getInt(player.getUniqueId() + "." + profession + ".level");
 		player.setMetadata(profession + "_level", new FixedMetadataValue(plugin, level));
 	}
 	
@@ -244,7 +254,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	private void loadPracticeFatigue(Player player, String profession)
 	{
-		int fatigue = getConfig().getInt("data." + player.getUniqueId() + "." + profession + ".practicefatigue");
+		int fatigue = data.getConfig().getInt(player.getUniqueId() + "." + profession + ".practicefatigue");
 		player.setMetadata(profession + "_practicefatigue", new FixedMetadataValue(plugin, fatigue));
 	}
 	
@@ -256,7 +266,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	private void loadInstructionFatigue(Player player, String profession)
 	{
-		int fatigue = getConfig().getInt("data." + player.getUniqueId() + "." + profession + ".instructionfatigue");
+		int fatigue = data.getConfig().getInt(player.getUniqueId() + "." + profession + ".instructionfatigue");
 		player.setMetadata(profession + "_instructionfatigue", new FixedMetadataValue(plugin, fatigue));
 	}
 	
@@ -267,7 +277,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	private void loadClaimed(Player player) 
 	{
-		 int claims = getConfig().getInt("data." + player.getUniqueId() + ".claimed");
+		 int claims = data.getConfig().getInt(player.getUniqueId() + ".claimed");
 		 player.setMetadata("claimed", new FixedMetadataValue(plugin, claims));	
 	}
 	
@@ -278,7 +288,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	private void loadTier(Player player, String profession) 
 	{
-		 int tier = getConfig().getInt("data." + player.getUniqueId() + "." + profession + ".tier");
+		 int tier = data.getConfig().getInt(player.getUniqueId() + "." + profession + ".tier");
 		 player.setMetadata(profession + "_tier", new FixedMetadataValue(plugin, tier));	
 	}
 	
@@ -291,6 +301,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		
 		for (Player player : playerCollection) 
 			savePlayerStats(player);
+    	saveConfig();
 	}
 	
     /*
@@ -309,7 +320,6 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		}
 
 		saveClaimed(player);
-    	saveConfig();
 	}
 	
 	/*
@@ -319,7 +329,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	private void saveExp(Player player, String profession)
 	{
-		getConfig().set("data." + player.getUniqueId() + "." + profession + ".exp", getExp(player, profession));
+		data.getConfig().set(player.getUniqueId() + "." + profession + ".exp", getExp(player, profession));
 	}
 
 	/*
@@ -329,7 +339,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	private void saveLevel(Player player, String profession)
 	{
-		getConfig().set("data." + player.getUniqueId() + "." + profession + ".level", getLevel(player, profession));
+		data.getConfig().set(player.getUniqueId() + "." + profession + ".level", getLevel(player, profession));
 	}
 	
 	/*
@@ -342,7 +352,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	{
 		UUID uuid = player.getUniqueId();
 		
-		getConfig().set("data." + uuid + "." + profession + ".practicefatigue", getPracticeFatigue(player, profession));
+		data.getConfig().set(uuid + "." + profession + ".practicefatigue", getPracticeFatigue(player, profession));
 	}
 	
 	/*
@@ -355,7 +365,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	{
 		UUID uuid = player.getUniqueId();
 		
-		getConfig().set("data." + uuid + "." + profession + ".instructionfatigue", getInstructionFatigue(player, profession));
+		data.getConfig().set(uuid + "." + profession + ".instructionfatigue", getInstructionFatigue(player, profession));
 	}
 	
 	/*
@@ -366,7 +376,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	private void saveClaimed(Player player)
 	{
 		UUID uuid = player.getUniqueId();
-		getConfig().set("data." + uuid + ".claimed", getClaimed(player));
+		data.getConfig().set(uuid + ".claimed", getClaimed(player));
 	}
 	
 	/*
@@ -378,7 +388,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	{
 		UUID uuid = player.getUniqueId();
 		
-		getConfig().set("data." + uuid + "." + profession + ".tier", getTier(player, profession));
+		data.getConfig().set(uuid + "." + profession + ".tier", getTier(player, profession));
 	}
 
 	/*
@@ -613,7 +623,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	public void setExp(OfflinePlayer player, String profession, int exp)
 	{
 		UUID uuid = player.getUniqueId();
-		getConfig().set("data." + uuid + "." + profession + ".exp", exp);
+		data.getConfig().set(uuid + "." + profession + ".exp", exp);
 	}
 	
 	/*
@@ -634,7 +644,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	public void setLevel(OfflinePlayer player, String profession, int level)
 	{
 		UUID uuid = player.getUniqueId();
-		getConfig().set("data." + uuid + "." + profession + ".level", level);
+		data.getConfig().set(uuid + "." + profession + ".level", level);
 	}
 		
 	/*
@@ -655,7 +665,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	public void setPracticeFatigue(OfflinePlayer player, String profession, int fatigue)
 	{
 		UUID uuid = player.getUniqueId();
-		getConfig().set("data." + uuid + "." + profession + ".practicefatigue", fatigue);
+		data.getConfig().set(uuid + "." + profession + ".practicefatigue", fatigue);
 	}
 	
 	/*
@@ -677,7 +687,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	public void setInstructionFatigue(OfflinePlayer player, String profession, int fatigue)
 	{
 		UUID uuid = player.getUniqueId();
-		getConfig().set("data." + uuid + "." + profession + ".instructionfatigue", fatigue);
+		data.getConfig().set(uuid + "." + profession + ".instructionfatigue", fatigue);
 	}
 	
 	/*
@@ -735,7 +745,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 			perms.playerAdd(null, player, "horizon_professions." + profession + "." + TIERS[tier]);
 		}
 
-		getConfig().set("data." + uuid + "." + profession + ".tier", tier);
+		data.getConfig().set(uuid + "." + profession + ".tier", tier);
 	}
 	
 	/*
@@ -757,7 +767,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	{
 		UUID uuid = player.getUniqueId();
 		
-		return getConfig().getInt("data." + uuid + "." + profession + ".exp");
+		return data.getConfig().getInt(uuid + "." + profession + ".exp");
 	}
 	
 	/*
@@ -777,7 +787,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	public int getLevel(OfflinePlayer player, String profession)
 	{
-		return getConfig().getInt("data." + player + "." + profession + ".level");
+		return data.getConfig().getInt(player + "." + profession + ".level");
 	}
 
 	/*
@@ -801,7 +811,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	{
 		UUID uuid = player.getUniqueId();
 		
-			return getConfig().getInt("data." + uuid + "." + profession + ".practicefatigue");
+			return data.getConfig().getInt(uuid + "." + profession + ".practicefatigue");
 	}
 
 	/*
@@ -825,7 +835,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	{
 		UUID uuid = player.getUniqueId();
 		
-			return getConfig().getInt("data." + uuid + "." + profession + ".instructionfatigue");
+			return data.getConfig().getInt(uuid + "." + profession + ".instructionfatigue");
 	}
 	
 	/*
@@ -859,7 +869,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	{
 		UUID uuid = player.getUniqueId();
 
-		return getConfig().getInt("data." + uuid + "." + profession + ".tier");
+		return data.getConfig().getInt(uuid + "." + profession + ".tier");
 	}
 }
 
