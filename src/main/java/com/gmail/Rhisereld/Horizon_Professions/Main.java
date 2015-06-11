@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.xml.crypto.Data;
-
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandExecutor;
@@ -25,10 +23,6 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	static Plugin plugin;						//Some functions require a reference to the plugin in args.
 	public static Permission perms = null;		//Reference to permission object from Vault.
 	final int MAX_EXP = 100;					//Maximum experience before level-up.
-	private final int UNSKILLED = 0;			
-	private final int NOVICE = 1;				//Tiers progress as unskilled -> novice -> adept -> expert
-	private final int ADEPT = 2;				//Tiers correlate with numbers 0-3 for simplicity and fetching 
-	private final int EXPERT = 3;				//from TIERS String array.
 	final int FATIGUE_TIME = 86400000;	//Daily cooldown for level-up in milliseconds.
 	final String[] PROFESSIONS = {"medic", "hunter", "labourer", "engineer", "pilot"}; 	//Names of professions.
 	final String[] TIERS = {"unskilled", "novice", "adept", "expert"};						//Names of tiers.
@@ -116,11 +110,13 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * For online players the fatigue is updated in their metadata. For offline players the fatigue is updated
 	 * in the configuration file.
 	 */
+	@SuppressWarnings("deprecation")
 	private void updateFatigue() 
     {    	
-    	UUID uuid;
     	long timeDifference;
     	int practiceFatigue, instructionFatigue;
+    	Player player;
+    	OfflinePlayer offlinePlayer;
     	
     	//Try loading from config
     	if (time == 0)
@@ -138,29 +134,47 @@ public final class Main extends JavaPlugin implements CommandExecutor
     	//Update fatigue for players
 		for (String playerString: savedPlayers)
 		{
-			Player player = getServer().getPlayer(playerString);		
+			player = getServer().getPlayer(playerString);
 			
+			//Player is offline
 			if (player == null)
 			{
-				uuid = Bukkit.getServer().getOfflinePlayer(playerString).getUniqueId();
-			}
-			else
-				uuid = player.getUniqueId();
-			
-			for (String profession: PROFESSIONS)
-			{
-				practiceFatigue = (int) (getPracticeFatigue(uuid, profession) - timeDifference);
-				instructionFatigue = (int) (getInstructionFatigue(uuid, profession) - timeDifference);
-					
-				if (practiceFatigue < 0)
-					setPracticeFatigue(uuid, profession, 0);
-				else
-					setPracticeFatigue(uuid, profession, practiceFatigue);
+				offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
 				
-				if (instructionFatigue < 0)
-					setInstructionFatigue(uuid, profession, 0);
-				else
-					setInstructionFatigue(uuid, profession, instructionFatigue);
+				for (String profession: PROFESSIONS)
+				{
+					practiceFatigue = (int) (getPracticeFatigue(offlinePlayer, profession) - timeDifference);
+					instructionFatigue = (int) (getInstructionFatigue(offlinePlayer, profession) - timeDifference);
+						
+					if (practiceFatigue < 0)
+						setPracticeFatigue(offlinePlayer, profession, 0);
+					else
+						setPracticeFatigue(offlinePlayer, profession, practiceFatigue);
+					
+					if (instructionFatigue < 0)
+						setInstructionFatigue(offlinePlayer, profession, 0);
+					else
+						setInstructionFatigue(offlinePlayer, profession, instructionFatigue);
+				}
+			}
+			//Player is online
+			else
+			{
+				for (String profession: PROFESSIONS)
+				{
+					practiceFatigue = (int) (getPracticeFatigue(player, profession) - timeDifference);
+					instructionFatigue = (int) (getInstructionFatigue(player, profession) - timeDifference);
+						
+					if (practiceFatigue < 0)
+						setPracticeFatigue(player, profession, 0);
+					else
+						setPracticeFatigue(player, profession, practiceFatigue);
+					
+					if (instructionFatigue < 0)
+						setInstructionFatigue(player, profession, 0);
+					else
+						setInstructionFatigue(player, profession, instructionFatigue);
+				}
 			}
 		}
     	
@@ -305,7 +319,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	private void saveExp(Player player, String profession)
 	{
-		getConfig().set("data." + player.getUniqueId() + "." + profession + ".exp", getExp(player.getUniqueId(), profession));
+		getConfig().set("data." + player.getUniqueId() + "." + profession + ".exp", getExp(player, profession));
 	}
 
 	/*
@@ -315,7 +329,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	private void saveLevel(Player player, String profession)
 	{
-		getConfig().set("data." + player.getUniqueId() + "." + profession + ".level", getLevel(player.getUniqueId(), profession));
+		getConfig().set("data." + player.getUniqueId() + "." + profession + ".level", getLevel(player, profession));
 	}
 	
 	/*
@@ -328,7 +342,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	{
 		UUID uuid = player.getUniqueId();
 		
-		getConfig().set("data." + uuid + "." + profession + ".practicefatigue", getPracticeFatigue(uuid, profession));
+		getConfig().set("data." + uuid + "." + profession + ".practicefatigue", getPracticeFatigue(player, profession));
 	}
 	
 	/*
@@ -341,7 +355,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	{
 		UUID uuid = player.getUniqueId();
 		
-		getConfig().set("data." + uuid + "." + profession + ".instructionfatigue", getInstructionFatigue(uuid, profession));
+		getConfig().set("data." + uuid + "." + profession + ".instructionfatigue", getInstructionFatigue(player, profession));
 	}
 	
 	/*
@@ -352,8 +366,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	private void saveClaimed(Player player)
 	{
 		UUID uuid = player.getUniqueId();
-		
-		getConfig().set("data." + uuid + ".claimed", getClaimed(uuid));
+		getConfig().set("data." + uuid + ".claimed", getClaimed(player));
 	}
 	
 	/*
@@ -365,7 +378,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	{
 		UUID uuid = player.getUniqueId();
 		
-		getConfig().set("data." + uuid + "." + profession + ".tier", getTier(uuid, profession));
+		getConfig().set("data." + uuid + "." + profession + ".tier", getTier(player, profession));
 	}
 
 	/*
@@ -402,15 +415,32 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * level and experience to zero for each profession.
 	 * @param player - the player who is having their stats reset to 0.
 	 */
-	void resetPlayerStats(UUID uuid)
+	void resetPlayerStats(Player player)
 	{
 		for (String profession: PROFESSIONS)
 		{
-			setExp(uuid, profession, 0);
-			setLevel(uuid, profession, 0);
-			setPracticeFatigue(uuid, profession, 0);
-			setInstructionFatigue(uuid, profession, 0);
-			setTier(uuid, profession, 0);
+			setExp(player, profession, 0);
+			setLevel(player, profession, 0);
+			setPracticeFatigue(player, profession, 0);
+			setInstructionFatigue(player, profession, 0);
+			setTier(player, profession, 0);
+		}
+	}
+	
+	/*
+	 * resetPlayerStats() removes all tiers from the player (by removing relevant permissions) and sets the 
+	 * level and experience to zero for each profession.
+	 * @param player - the player who is having their stats reset to 0.
+	 */
+	void resetPlayerStats(OfflinePlayer player)
+	{
+		for (String profession: PROFESSIONS)
+		{
+			setExp(player, profession, 0);
+			setLevel(player, profession, 0);
+			setPracticeFatigue(player, profession, 0);
+			setInstructionFatigue(player, profession, 0);
+			setTier(player, profession, 0);
 		}
 	}
 	
@@ -444,31 +474,29 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param exp - the amount of experience the player is gaining.
 	 */
 	public void gainExperience(Player player, String profession, int exp)
-	{
-		UUID uuid = player.getUniqueId();
-		
+	{		
 		//Expert is the maximum tier, player cannot progress past that point.
-		if (getTier(uuid, profession) == 3)
+		if (getTier(player, profession) == 3)
 			return;
 		
 		//If player is fatigued, return.
-		if (getPracticeFatigue(uuid, profession) > 0)
+		if (getPracticeFatigue(player, profession) > 0)
 			return;
 		
-		int newExp = exp + getExp(uuid, profession);
+		int newExp = exp + getExp(player, profession);
 
 		//If player has reached maximum experience, level them up, set the daily cap and set exp to 0.
 		if (newExp >= MAX_EXP)
 		{
 			player.sendMessage("You feel more knowledgeable as a " + profession + ". You will need to rest and "
 					+ "reflect on what you have learned, as you cannot benefit from any more practice today.");
-			setPracticeFatigue(uuid, profession, FATIGUE_TIME);
-			gainLevel(uuid, profession, 1);
+			setPracticeFatigue(player, profession, FATIGUE_TIME);
+			gainLevel(player, profession, 1);
 			newExp = 0;
 		}
 		
 		//Set new experience.
-		setExp(player.getUniqueId(), profession, newExp);
+		setExp(player, profession, newExp);
 	}
 	
 	/*
@@ -478,26 +506,17 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param profession - the profession for which the player is gaining the levels.
 	 * @param level - the number of levels the player is gaining.
 	 */
-	public void gainLevel(UUID uuid, String profession, int level)
+	public void gainLevel(Player player, String profession, int level)
 	{		
-		int newLevel = level + getLevel(uuid, profession);
-		setLevel(uuid, profession, level + newLevel);
+		int newLevel = level + getLevel(player, profession);
+		setLevel(player, profession, level + newLevel);
 		
-		if (getTier(uuid, profession) == 0)
-		{
-			gainTier(uuid, profession);
-			setLevel(uuid, profession, level - MAX_LEVEL[0]);
-		}
-		else if (getTier(uuid, profession) == 1 && newLevel >= MAX_LEVEL[1])
-		{
-			gainTier(uuid, profession);
-			setLevel(uuid, profession, level - MAX_LEVEL[1]);	
-		}
-		else if	(getTier(uuid, profession) == 2 && newLevel >= MAX_LEVEL[2])
-		{
-			gainTier(uuid, profession);
-			setLevel(uuid, profession, level - MAX_LEVEL[2]);
-		}
+		for (int i = 0; i < (MAX_LEVEL.length - 1); i++)
+			if (getTier(player, profession) == i && newLevel >= MAX_LEVEL[i])
+			{
+				gainTier(player, profession);
+				setLevel(player, profession, level - MAX_LEVEL[i]);
+			}
 	}
 	
 	/*
@@ -507,15 +526,34 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param profession - the profession for which the player is gaining the tier.
 	 * @return  - new tier of the player.
 	 */
-	public int gainTier(UUID uuid, String profession)
+	public int gainTier(Player player, String profession)
 	{		
-		int tier = getTier(uuid, profession);
+		int tier = getTier(player, profession);
 		int newTier;
 		
 		if ((newTier = tier + 1) > 3)
 			newTier = 3;
 
-		setTier(uuid, profession, newTier);
+		setTier(player, profession, newTier);
+		return newTier;
+	}
+	
+	/*
+	 * gainTier() increases the tier of the offline player (unskilled -> novice -> adept -> expert)
+	 * Note that permissions is used rather than metadata to keep track of tiers.
+	 * @param player - the player who is gaining the tier.
+	 * @param profession - the profession for which the player is gaining the tier.
+	 * @return  - new tier of the player.
+	 */
+	public int gainTier(OfflinePlayer player, String profession)
+	{		
+		int tier = getTier(player, profession);
+		int newTier;
+		
+		if ((newTier = tier + 1) > 3)
+			newTier = 3;
+
+		setTier(player, profession, newTier);
 		return newTier;
 	}
 	
@@ -525,16 +563,35 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param profession - the profession for which the player is losing the tier.
 	 * @return  - new tier of the player.
 	 */
-	public int forgetTier(UUID uuid, String profession)
+	public int forgetTier(Player player, String profession)
 	{
 		int newTier;
 		
-		if ((newTier = getTier(uuid, profession) - 1) < 0)
+		if ((newTier = getTier(player, profession) - 1) < 0)
 			newTier = 0;
 		
-		setExp(uuid, profession, 0);
-		setLevel(uuid, profession, 0);
-		setTier(uuid, profession, newTier);
+		setExp(player, profession, 0);
+		setLevel(player, profession, 0);
+		setTier(player, profession, newTier);
+		return newTier;
+	}
+	
+	/*
+	 * forgetTier() reduces the tier of the offline player (expert -> adept -> novice -> unskilled)
+	 * @param player - the player who is losing the tier.
+	 * @param profession - the profession for which the player is losing the tier.
+	 * @return  - new tier of the player.
+	 */
+	public int forgetTier(OfflinePlayer player, String profession)
+	{
+		int newTier;
+		
+		if ((newTier = getTier(player, profession) - 1) < 0)
+			newTier = 0;
+		
+		setExp(player, profession, 0);
+		setLevel(player, profession, 0);
+		setTier(player, profession, newTier);
 		return newTier;
 	}
 	
@@ -543,16 +600,20 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param player - the player for whom the experience is being set.
 	 * @param profession - the profession for which the experience is being set.
 	 */
-	public void setExp(UUID uuid, String profession, int exp)
+	public void setExp(Player player, String profession, int exp)
 	{
-		Player player = getServer().getPlayer(uuid);
-		
-		//Player is offline.
-		if (player == null)
-			getConfig().set("data." + uuid + "." + profession + ".exp", exp);
-		//Player is online.
-		else
 			player.setMetadata(profession + "_exp", new FixedMetadataValue(plugin, exp));
+	}
+	
+	/*
+	 * setExp() sets the experience of an offline player for the specified profession.
+	 * @param player - the player for whom the experience is being set.
+	 * @param profession - the profession for which the experience is being set.
+	 */
+	public void setExp(OfflinePlayer player, String profession, int exp)
+	{
+		UUID uuid = player.getUniqueId();
+		getConfig().set("data." + uuid + "." + profession + ".exp", exp);
 	}
 	
 	/*
@@ -560,16 +621,20 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param player - the player for whom the level is being set.
 	 * @param profession - the profession for which the level is being set.
 	 */
-	public void setLevel(UUID uuid, String profession, int level)
+	public void setLevel(Player player, String profession, int level)
 	{
-		Player player = getServer().getPlayer(uuid);
-		
-		//Player is offline.
-		if (player == null)
-			getConfig().set("data." + uuid + "." + profession + ".level", level);
-		//Player is online.
-		else
 			player.setMetadata(profession + "_level", new FixedMetadataValue(plugin, level));
+	}
+	
+	/*
+	 * setLevel() sets the level of a player for the specified profession.
+	 * @param player - the player for whom the level is being set.
+	 * @param profession - the profession for which the level is being set.
+	 */
+	public void setLevel(OfflinePlayer player, String profession, int level)
+	{
+		UUID uuid = player.getUniqueId();
+		getConfig().set("data." + uuid + "." + profession + ".level", level);
 	}
 		
 	/*
@@ -577,16 +642,20 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param player - the player for whom the fatigue value is being set.
 	 * @param profession - the profession for which the fatigue value is being set.
 	 */
-	public void setPracticeFatigue(UUID uuid, String profession, int fatigue)
+	public void setPracticeFatigue(Player player, String profession, int fatigue)
 	{
-		Player player = getServer().getPlayer(uuid);
-		
-		//Player is offline.
-		if (player == null)
-			getConfig().set("data." + uuid + "." + profession + ".practicefatigue", fatigue);
-		//Player is online.
-		else
 			player.setMetadata(profession + "_practicefatigue", new FixedMetadataValue(plugin, fatigue));
+	}
+	
+	/*
+	 * setPracticeFatigue() sets the practice fatigue value of an offline player for the specified profession in their metadata.
+	 * @param player - the player for whom the fatigue value is being set.
+	 * @param profession - the profession for which the fatigue value is being set.
+	 */
+	public void setPracticeFatigue(OfflinePlayer player, String profession, int fatigue)
+	{
+		UUID uuid = player.getUniqueId();
+		getConfig().set("data." + uuid + "." + profession + ".practicefatigue", fatigue);
 	}
 	
 	/*
@@ -594,16 +663,21 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param player - the player for whom the fatigue value is being set.
 	 * @param profession - the profession for which the fatigue value is being set.
 	 */
-	public void setInstructionFatigue(UUID uuid, String profession, int fatigue)
+	public void setInstructionFatigue(Player player, String profession, int fatigue)
 	{
-		Player player = getServer().getPlayer(uuid);
-		
-		//Player is offline.
-		if (player == null)
-			getConfig().set("data." + uuid + "." + profession + ".instructionfatigue", fatigue);
-		//Player is online.
-		else
 			player.setMetadata(profession + "_instructionfatigue", new FixedMetadataValue(plugin, fatigue));
+	}
+	
+	/*
+	 * setInstructionFatigue() sets the practice fatigue value of an offline player for the specified profession in their 
+	 * metadata. 
+	 * @param player - the player for whom the fatigue value is being set.
+	 * @param profession - the profession for which the fatigue value is being set.
+	 */
+	public void setInstructionFatigue(OfflinePlayer player, String profession, int fatigue)
+	{
+		UUID uuid = player.getUniqueId();
+		getConfig().set("data." + uuid + "." + profession + ".instructionfatigue", fatigue);
 	}
 	
 	/*
@@ -611,10 +685,8 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param uuid - the uuid of the player.
 	 * @param claimed - the number of free tiers a player has claimed.
 	 */
-	public void setClaimed(UUID uuid, int claimed)
+	public void setClaimed(Player player, int claimed)
 	{
-		Player player = getServer().getPlayer(uuid);
-		
 		player.setMetadata("claimed", new FixedMetadataValue(plugin, claimed));
 	}
 	
@@ -624,46 +696,46 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param profession - the profession for which to set the tier.
 	 * @param tier - the value of the tier.
 	 */
-	public void setTier(UUID uuid, String profession, int tier)
-	{
-		Player player = getServer().getPlayer(uuid);
-		OfflinePlayer offlinePlayer;
+	public void setTier(Player player, String profession, int tier)
+	{	
+		//Remove all previously held permissions.
+		for (String previousTier: TIERS)
+			perms.playerRemove(null, player, "horizon_professions." + profession + "." + previousTier);
+		perms.playerRemove(null, player, "horizon_professions." + profession);
 		
-		//Player is offline.
-		if (player == null)
+		//Re-add relevant ones.
+		if (tier != 0)
 		{
-			offlinePlayer = getServer().getOfflinePlayer(uuid);
-			
-			//Remove all previously held permissions.
-			for (String previousTier: TIERS)
-				perms.playerRemove(null, offlinePlayer, "horizon_professions." + profession + "." + previousTier);
-			perms.playerRemove(null, offlinePlayer, "horizon_professions." + profession);
-			
-			//Re-add relevant ones.
-			if (tier != 0)
-			{
-				perms.playerAdd(null, offlinePlayer, "horizon_professions." + profession);
-				perms.playerAdd(null, offlinePlayer, "horizon_professions." + profession + "." + TIERS[tier]);
-			}
+			perms.playerAdd(null, player, "horizon_professions." + profession);
+			perms.playerAdd(null, player, "horizon_professions." + profession + "." + TIERS[tier]);
+		}
+		
+		player.setMetadata(profession + "_tier", new FixedMetadataValue(plugin, tier));
+	}
+	
+	/*
+	 * setTier() sets the tier that a player has in the profession specified.
+	 * @param uuid - the uuid of the player.
+	 * @param profession - the profession for which to set the tier.
+	 * @param tier - the value of the tier.
+	 */
+	public void setTier(OfflinePlayer player, String profession, int tier)
+	{
+		UUID uuid = player.getUniqueId();
+		
+		//Remove all previously held permissions.
+		for (String previousTier: TIERS)
+			perms.playerRemove(null, player, "horizon_professions." + profession + "." + previousTier);
+		perms.playerRemove(null, player, "horizon_professions." + profession);
+		
+		//Re-add relevant ones.
+		if (tier != 0)
+		{
+			perms.playerAdd(null, player, "horizon_professions." + profession);
+			perms.playerAdd(null, player, "horizon_professions." + profession + "." + TIERS[tier]);
+		}
 
-			getConfig().set("data." + uuid + "." + profession + ".tier", tier);
-		}
-		//Player is online.
-		else
-		{
-			//Remove all previously held permissions.
-			for (String previousTier: TIERS)
-				perms.playerRemove(null, player, "horizon_professions." + profession + "." + previousTier);
-			perms.playerRemove(null, player, "horizon_professions." + profession);
-			
-			//Re-add relevant ones.
-			if (tier != 0)
-			{
-				perms.playerAdd(null, player, "horizon_professions." + profession);
-				perms.playerAdd(null, player, "horizon_professions." + profession + "." + TIERS[tier]);
-			}
-			player.setMetadata(profession + "_tier", new FixedMetadataValue(plugin, tier));
-		}
+		getConfig().set("data." + uuid + "." + profession + ".tier", tier);
 	}
 	
 	/*
@@ -671,16 +743,21 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param player - the player for whom the experience is being retrieved.
 	 * @param profession - the profession for which the experience is being retrieved.
 	 */
-	public int getExp(UUID uuid, String profession)
+	public int getExp(Player player, String profession)
 	{
-		Player player = getServer().getPlayer(uuid);
-		
-		//Player is offline.
-		if (player == null)
-			return getConfig().getInt("data." + uuid + "." + profession + ".exp");
-		//Player is online.
-		else
 			return getMetadataInt(player, profession + "_exp", plugin);
+	}
+	
+	/*
+	 * getExp() retrieves the experience of an offline player for the specified profession.
+	 * @param player - the player for whom the experience is being retrieved.
+	 * @param profession - the profession for which the experience is being retrieved.
+	 */
+	public int getExp(OfflinePlayer player, String profession)
+	{
+		UUID uuid = player.getUniqueId();
+		
+		return getConfig().getInt("data." + uuid + "." + profession + ".exp");
 	}
 	
 	/*
@@ -688,16 +765,19 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param player - the player for whom the level is being retrieved.
 	 * @param profession - the profession for which the level is being retrieved.
 	 */
-	public int getLevel(UUID uuid, String profession)
+	public int getLevel(Player player, String profession)
+	{		
+		return getMetadataInt(player, profession + "_level", plugin);
+	}
+	
+	/*
+	 * getLevel() retrieves the level of an offline player for the specified profession.
+	 * @param player - the player for whom the level is being retrieved.
+	 * @param profession - the profession for which the level is being retrieved.
+	 */
+	public int getLevel(OfflinePlayer player, String profession)
 	{
-		Player player = getServer().getPlayer(uuid);
-		
-		//Player is offline.
-		if (player == null)
-			return getConfig().getInt("data." + uuid + "." + profession + ".level");
-		//Player is online.
-		else
-			return getMetadataInt(player, profession + "_level", plugin);
+		return getConfig().getInt("data." + player + "." + profession + ".level");
 	}
 
 	/*
@@ -706,16 +786,22 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param player - the player for whom the fatigue value is being retrieved.
 	 * @param profession - the profession for which the fatigue value is being retrieved.
 	 */
-	public int getPracticeFatigue(UUID uuid, String profession)
+	public int getPracticeFatigue(Player player, String profession)
 	{
-		Player player = getServer().getPlayer(uuid);
-		
-		//Player is offline.
-		if (player == null)
-			return getConfig().getInt("data." + uuid + "." + profession + ".practicefatigue");
-		//Player is online.
-		else	
 			return getMetadataInt(player, profession + "_practicefatigue", plugin);
+	}
+	
+	/*
+	 * getPracticeFatigue() retrieves the practice fatigue value of an offline player for the specified profession from 
+	 * their metadata.
+	 * @param player - the player for whom the fatigue value is being retrieved.
+	 * @param profession - the profession for which the fatigue value is being retrieved.
+	 */
+	public int getPracticeFatigue(OfflinePlayer player, String profession)
+	{
+		UUID uuid = player.getUniqueId();
+		
+			return getConfig().getInt("data." + uuid + "." + profession + ".practicefatigue");
 	}
 
 	/*
@@ -724,16 +810,22 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param player - the player for whom the fatigue value is being retrieved.
 	 * @param profession - the profession for which the fatigue value is being retrieved.
 	 */
-	public int getInstructionFatigue(UUID uuid, String profession) 
+	public int getInstructionFatigue(Player player, String profession) 
 	{
-		Player player = getServer().getPlayer(uuid);
-		
-		//Player is offline.
-		if (player == null)
-			return getConfig().getInt("data." + uuid + "." + profession + ".instructionfatigue");
-		//Player is online.
-		else	
 			return getMetadataInt(player, profession + "_instructionfatigue", plugin);
+	}
+	
+	/*
+	 * getInstructionFatigue() retrieves the instruction fatigue value of an offline player for the specified profession 
+	 * from their metadata.
+	 * @param player - the player for whom the fatigue value is being retrieved.
+	 * @param profession - the profession for which the fatigue value is being retrieved.
+	 */
+	public int getInstructionFatigue(OfflinePlayer player, String profession)
+	{
+		UUID uuid = player.getUniqueId();
+		
+			return getConfig().getInt("data." + uuid + "." + profession + ".instructionfatigue");
 	}
 	
 	/*
@@ -741,29 +833,33 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 * @param uuid - the uuid of the player.
 	 * @return the number of the free tiers a player has claimed.
 	 */
-	public int getClaimed(UUID uuid)
+	public int getClaimed(Player player)
 	{
-		Player player = getServer().getPlayer(uuid);
-		
 		return getMetadataInt(player, "claimed", plugin);
 	}
 	
 	/*
-	 * getTier() gets the tier the player currently has in a profession.
+	 * getTier() gets the tier the player currently has in a profession. Use getTierOffline() for offline players!
 	 * @param player - the player for whom to get the tier name.
 	 * @param profession - the profession for which to get the tier name.
 	 * @return - the tier the player has in the profession.
 	 */
-	public int getTier(UUID uuid, String profession) 
+	public int getTier(Player player, String profession) 
 	{
-		Player player = getServer().getPlayer(uuid);
-		
-		//Player is offline.
-		if (player == null)
-			return getConfig().getInt("data." + uuid + "." + profession + ".tier");
-		//Player is online.
-		else
 			return getMetadataInt(player, profession + "_tier", plugin);
+	}
+	
+	/*
+	 * getTierOffline() gets the tier the offline player currently has in a profession.
+	 * @param player - the player for whom to get the tier name.
+	 * @param profession - the profession for which to get the tier name.
+	 * @return - the tier the player has in the profession.
+	 */
+	public int getTier(OfflinePlayer player, String profession) 
+	{
+		UUID uuid = player.getUniqueId();
+
+		return getConfig().getInt("data." + uuid + "." + profession + ".tier");
 	}
 }
 

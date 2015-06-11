@@ -1,8 +1,6 @@
 package com.gmail.Rhisereld.Horizon_Professions;
 
 import java.util.Collection;
-import java.util.UUID;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -91,7 +89,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					}
 					
 					player = (Player) sender;
-					viewStats(player.getName(), player.getUniqueId(), sender);
+					viewStats(player, sender);
 				}
 				
 				return true;
@@ -292,11 +290,13 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	/*
 	 * viewStats() displays all current stats to the player including tiers, levels, experience and fatigue level
 	 * for each profession. Only use for players that are online! Use viewStatsOffline() for offline players.
-	 * @param uuid - the uuid of the player's stats being displayed.
+	 * @param player - the player for whom the stats are being displayed.
 	 * @param sender - the viewer to display the stats to.
 	 */
-	private void viewStats(String name, UUID uuid, CommandSender sender) 
+	private void viewStats(Player player, CommandSender sender) 
 	{
+		String name = player.getName();
+		
 		int tier;
 		int level;
 		int experience;
@@ -312,16 +312,16 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		
 		for (int i = 0; i < 5; i++)
 		{
-			if ((tier = main.getTier(uuid, main.PROFESSIONS[i])) == -1)
+			if ((tier = main.getTier(player, main.PROFESSIONS[i])) == -1)
 			{
 				sender.sendMessage("Error fetching tier. Please contact an Administrator.");
 				return;
 			}
-			level = main.getLevel(uuid, main.PROFESSIONS[i]);
-			experience = main.getExp(uuid, main.PROFESSIONS[i]);
+			level = main.getLevel(player, main.PROFESSIONS[i]);
+			experience = main.getExp(player, main.PROFESSIONS[i]);
 			maxLevel = main.MAX_LEVEL[tier];
-			practiceFatigue = main.getPracticeFatigue(uuid, main.PROFESSIONS[i]);
-			instructionFatigue = main.getInstructionFatigue(uuid, main.PROFESSIONS[i]);
+			practiceFatigue = main.getPracticeFatigue(player, main.PROFESSIONS[i]);
+			instructionFatigue = main.getInstructionFatigue(player, main.PROFESSIONS[i]);
 			professionCapitalised = main.PROFESSIONS[i].substring(0, 1).toUpperCase() + main.PROFESSIONS[i].substring(1);
 			tierCapitalised = main.TIERS[tier].substring(0, 1).toUpperCase() + main.TIERS[tier].substring(1);
 			
@@ -365,11 +365,89 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	}
 	
 	/*
-	 * viewStatsAdmin() is the admin version of viewStats(). It displays all current stats of any player including 
+	 * viewStatsOffline() displays all current stats to the player including tiers, levels, experience and fatigue level
+	 * for each profession. Only use for players that are online!
+	 * @param player - the player for whom the stats are being displayed.
+	 * @param sender - the viewer to display the stats to.
+	 */
+	private void viewStatsOffline(OfflinePlayer player, CommandSender sender)
+	{
+		String name = player.getName();
+		
+		int tier;
+		int level;
+		int experience;
+		int maxLevel;
+		int practiceFatigue;
+		int instructionFatigue;
+		String professionCapitalised;
+		String tierCapitalised;
+		String message = null;
+		
+		sender.sendMessage("----------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">----------------");
+		sender.sendMessage(ChatColor.GOLD + centreText(" Viewing " + name, CHATBOX_WIDTH));
+		
+		for (int i = 0; i < 5; i++)
+		{
+			if ((tier = main.getTier(player, main.PROFESSIONS[i])) == -1)
+			{
+				sender.sendMessage("Error fetching tier. Please contact an Administrator.");
+				return;
+			}
+			level = main.getLevel(player, main.PROFESSIONS[i]);
+			experience = main.getExp(player, main.PROFESSIONS[i]);
+			maxLevel = main.MAX_LEVEL[tier];
+			practiceFatigue = main.getPracticeFatigue(player, main.PROFESSIONS[i]);
+			instructionFatigue = main.getInstructionFatigue(player, main.PROFESSIONS[i]);
+			professionCapitalised = main.PROFESSIONS[i].substring(0, 1).toUpperCase() + main.PROFESSIONS[i].substring(1);
+			tierCapitalised = main.TIERS[tier].substring(0, 1).toUpperCase() + main.TIERS[tier].substring(1);
+			
+			
+			
+			//Build profession header for each profession.
+			message = ChatColor.YELLOW + "  " + alignText(tierCapitalised + " " + professionCapitalised, HEADER_WIDTH);
+			
+			//If the player has hit max tier, don't even show the level progression
+			if (maxLevel == 0)
+				message += " Level " + "[Maximum]";
+			else
+				message += " Level " + "[" + level + "/" + maxLevel + "]";
+			
+			//Send it.
+			sender.sendMessage(message);
+			
+			//Build progress bar for each profession.
+			if (practiceFatigue > 0 && instructionFatigue > 0)
+				message = "" + ChatColor.RED;
+			else if (practiceFatigue > 0 || instructionFatigue > 0)
+					message = "" + ChatColor.GOLD;
+			else 
+				message = "" + ChatColor.GREEN;
+			
+			for (int i2 = 0; i2 < PROGRESS_BAR_BLOCKS; i2++)
+			{
+				if (practiceFatigue > 0)
+					message += "█";
+				else if (i2 < experience / (main.MAX_EXP/PROGRESS_BAR_BLOCKS))
+					message += "█";
+				else
+					message += ChatColor.DARK_GRAY + "█";
+			}
+			
+			message += ChatColor.YELLOW + " XP";
+			
+			//Send it.
+			sender.sendMessage(message);
+		}
+	}
+	
+	/*
+	 * viewStatsAdmin() controls viewing the stats of another player. It displays all current stats of any player including 
 	 * tiers, levels, experience and fatigue level for each profession.
 	 * @param admin - the sender to display the stats to.
 	 * @param player - the player to display the stats of.
 	 */
+	@SuppressWarnings("deprecation")
 	private void viewStatsAdmin(CommandSender admin, String playerString) 
 	{
 		Player player = Bukkit.getServer().getPlayer(playerString);
@@ -379,12 +457,12 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		if (player == null)
 		{
 			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
-			viewStats(playerString, offlinePlayer.getUniqueId(), admin);
+			viewStatsOffline(offlinePlayer, admin);
 		}
 
 		//Player is online.
 		else
-			viewStats(playerString, player.getUniqueId(), admin);
+			viewStats(player, admin);
 	}
 	
 	/*
@@ -460,11 +538,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param profession - the profession for which to reduce a tier.
 	 * @param playerString - the player of whom to reduce the tier of.
 	 */
+	@SuppressWarnings("deprecation")
 	private void forgetTier(CommandSender sender, String profession, String playerString) 
 	{
 		Player player = Bukkit.getServer().getPlayer(playerString);
 		OfflinePlayer offlinePlayer;
-		UUID uuid;
 		int newTier;
 		
 		//Check that the profession argument is one of the professions.
@@ -475,23 +553,24 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				if (player == null)
 				{
 					offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
-					uuid = offlinePlayer.getUniqueId();
+					main.setExp(offlinePlayer, profession, 0);
+					main.setLevel(offlinePlayer,  profession,  0);
+					newTier = main.forgetTier(offlinePlayer, profession);
 				}
+				//Player is online.
 				else 
-					uuid = player.getUniqueId();
-
-				main.setExp(uuid, profession, 0);
-				main.setLevel(uuid,  profession,  0);
-				newTier = main.forgetTier(uuid, profession);
+				{
+					main.setExp(player, profession, 0);
+					main.setLevel(player,  profession,  0);
+					newTier = main.forgetTier(player, profession);
+				}
 				
 				sender.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
 				if (sender instanceof Player && (Player) sender != player && player != null)
 					player.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
-			
-				return;
 			}
-		
-		sender.sendMessage(ChatColor.YELLOW + "That profession does not exist!");
+			else
+				sender.sendMessage(ChatColor.YELLOW + "That profession does not exist!");
 }
 	
 	/*
@@ -500,11 +579,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param - player - the player for whom to increase the tier.
 	 * @param - profession - the profession for which to increase the tier.
 	 */
+	@SuppressWarnings("deprecation")
 	private void giveTier(CommandSender sender, String profession, String playerString) 
 	{
 		Player player = Bukkit.getServer().getPlayer(playerString);
 		OfflinePlayer offlinePlayer;
-		UUID uuid;
 		int newTier;
 		
 		//Check that the profession argument is one of the professions.
@@ -515,18 +594,24 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				if (player == null)
 				{
 					offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
-					uuid = offlinePlayer.getUniqueId();
+					main.setExp(offlinePlayer, profession, 0);
+					main.setLevel(offlinePlayer, profession, 0);
+					if ((newTier = main.gainTier(offlinePlayer, profession)) == -1)
+					{
+						sender.sendMessage("Error giving tier. Please contact an Administrator.");
+						return;
+					}
 				}
 				//Player is online.
 				else
-					uuid = player.getUniqueId();
-				
-				main.setExp(uuid, profession, 0);
-				main.setLevel(uuid, profession, 0);
-				if ((newTier = main.gainTier(uuid, profession)) == -1)
 				{
-					sender.sendMessage("Error giving tier. Please contact an Administrator.");
-					return;
+					main.setExp(player, profession, 0);
+					main.setLevel(player, profession, 0);
+					if ((newTier = main.gainTier(player, profession)) == -1)
+					{
+						sender.sendMessage("Error giving tier. Please contact an Administrator.");
+						return;
+					}
 				}
 
 				sender.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
@@ -547,9 +632,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 */
 	private void claimTier(Player player, String profession) 
 	{
-		UUID uuid = player.getUniqueId();
 		int newTier;
-		int claimed = main.getClaimed(uuid);
+		int claimed = main.getClaimed(player);
 		
 		//Check if they have reached the maximum number of claimable tiers.
 		if (claimed >= main.CLAIMABLE_TIERS)
@@ -559,25 +643,25 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		}
 		
 		//Check if they are already maximum tier in that profession.
-		if (main.getTier(uuid, profession) == 3)
+		if (main.getTier(player, profession) == 3)
 		{
 			player.sendMessage(ChatColor.RED + "You are already the maximum tier in that profession!");
 			return;
 		}
 			
 		//Give them a tier.
-		if ((newTier = main.gainTier(uuid, profession)) == -1)
+		if ((newTier = main.gainTier(player, profession)) == -1)
 		{
 			player.sendMessage("Error claiming tier. Please contact an Administrator.");
 			return;
 		}
 		
 		//Reset level and exp
-		main.setExp(uuid, profession, 0);
-		main.setLevel(uuid, profession, 0);
+		main.setExp(player, profession, 0);
+		main.setLevel(player, profession, 0);
 		
 		//Increment the number of tiers they have claimed.
-		main.setClaimed(uuid, claimed + 1);
+		main.setClaimed(player, claimed + 1);
 		
 		player.sendMessage(ChatColor.YELLOW + player.getName() + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
 	}
@@ -586,23 +670,23 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * resetStats() removes all experience, levels and tiers from the player.
 	 * @param playerString - the player who is having their stats reset to 0.
 	 */
+	@SuppressWarnings("deprecation")
 	private void resetStats(CommandSender sender, String playerString) 
 	{
 		Player player = Bukkit.getServer().getPlayer(playerString);
 		OfflinePlayer offlinePlayer;
-		UUID uuid;
 		
 		//Player is offline.
 		if (player == null)
 		{
 			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
-			uuid = offlinePlayer.getUniqueId();
+			main.resetPlayerStats(offlinePlayer);
 		}
 		//Player is online.
 		else
-			uuid = player.getUniqueId();
+			main.resetPlayerStats(player);
 		
-		main.resetPlayerStats(uuid);
+		main.resetPlayerStats(player);
 
 		sender.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
 		if (sender instanceof Player && (Player) sender != player && player != null)
@@ -614,17 +698,14 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * profession and the trainee must not be. The trainee will gain two levels in the profession, but will suffer 
 	 * instruction fatigue which serves as a cooldown.
 	 */
-	@SuppressWarnings("unused")
 	private void trainPlayer(Player trainer, String profession, String traineeString) 
 	{
 		Player trainee = Bukkit.getServer().getPlayer(traineeString);
-		UUID trainerUuid = trainer.getUniqueId();
-		UUID traineeUuid;
 		String trainerString = trainer.getName();
 		double distance;
 		
 		//Check that the trainer is an expert
-		if (main.getTier(trainer.getUniqueId(), profession) < 3)
+		if (main.getTier(trainer, profession) < 3)
 		{
 			trainer.sendMessage(ChatColor.YELLOW + "You cannot train yet because you are not an Expert " + profession + "!");
 			return;
@@ -637,25 +718,22 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			return;
 		}
 		
-		//Safe to do this since the trainee is online.
-		traineeUuid = trainee.getUniqueId();
-		
 		//Trying to train yourself is funny, but not allowed.
-		if (trainerUuid == traineeUuid)
+		if (trainer.getUniqueId() == trainee.getUniqueId())
 		{
 			trainer.sendMessage(ChatColor.YELLOW + "You cannot train yourself, silly!");
 			return;
 		}
 		
 		//Check that the trainee is not already an expert
-		if (main.getTier(trainee.getUniqueId(), profession) >= 3)
+		if (main.getTier(trainee, profession) >= 3)
 		{
 			trainer.sendMessage(ChatColor.YELLOW + "You cannot train " + traineeString + " because they are already an Expert!");
 			return;
 		}
 		
 		//Check that the trainee is not suffering from instruction fatigue.
-		if (main.getInstructionFatigue(traineeUuid, profession) > 0)
+		if (main.getInstructionFatigue(trainee, profession) > 0)
 		{
 			trainer.sendMessage(ChatColor.YELLOW + traineeString + " has already benefitted from instruction today.");
 			return;
@@ -671,10 +749,10 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		}
 		
 		//Give levels
-		main.gainLevel(traineeUuid, profession, 2);
+		main.gainLevel(trainee, profession, 2);
 		
 		//Set fatigue
-		main.setInstructionFatigue(traineeUuid,  profession,  main.FATIGUE_TIME);
+		main.setInstructionFatigue(trainee,  profession,  main.FATIGUE_TIME);
 		
 		//Notify trainer, trainee and any moderators.
 		trainer.sendMessage("You have trained " + traineeString + " in the " + profession + " profession.");
