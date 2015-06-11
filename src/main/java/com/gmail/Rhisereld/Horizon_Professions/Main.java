@@ -32,8 +32,8 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	
 	long time = 0;	//Time of last fatigue update.
 	
-	ConfigAccessor config;
-	ConfigAccessor data;
+	ConfigAccessor config;						//Configuration file.
+	ConfigAccessor data;						//Data file.
 	
 	/*
 	 * onEnable() is called when the server is started or the plugin is enabled.
@@ -59,6 +59,17 @@ public final class Main extends JavaPlugin implements CommandExecutor
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
             return;
+        }
+        
+        //RecipeManager integration for recipes.
+        if (getServer().getPluginManager().isPluginEnabled("RecipeManager"))
+        {
+        	getLogger().info("RecipeManager hooked, recipe support enabled.");
+            getServer().getPluginManager().registerEvents(new CraftListener(this), this);
+        }
+        else
+        {
+        	getLogger().severe(String.format("Recipe support disabled due to no RecipeManager dependency found!", getDescription().getName()));
         }
         
         //Listeners and commands.
