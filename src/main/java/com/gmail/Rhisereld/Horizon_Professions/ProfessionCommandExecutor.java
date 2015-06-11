@@ -703,6 +703,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		player.sendMessage("Claim a free tier in a profession.");
 		player.sendMessage(ChatColor.YELLOW + "/profession reset");
 		player.sendMessage("Resets all of your progress to zero.");
+		player.sendMessage(ChatColor.YELLOW + "/profession train [profession] [player]");
+		player.sendMessage("Trains another player in a specified profession. They will gain two levels.");
 	}
 	
 	/*
@@ -723,5 +725,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		sender.sendMessage("Claim a free tier in a profession.");
 		sender.sendMessage(ChatColor.YELLOW + "/profession reset [optional:player]");
 		sender.sendMessage("Resets all of the player's progress to zero.");
+		sender.sendMessage(ChatColor.YELLOW + "/profession train [profession] [player]");
+		sender.sendMessage("Trains another player in a specified profession. They will gain two levels.");
 	}
 }
