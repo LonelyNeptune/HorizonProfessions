@@ -42,7 +42,7 @@ public class CraftListener implements Listener
 
 		//Find the profession of the permission required, award experience for that profession.
 		for (Map.Entry <String, Boolean> permission : Permissions.entrySet())
-		{		
+		{
 			splitPermission = permission.getKey().split("\\.");
 			
 			//Check that the permission being examined belongs to this plugin.

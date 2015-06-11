@@ -71,14 +71,13 @@ public final class Main extends JavaPlugin implements CommandExecutor
             getServer().getPluginManager().registerEvents(new CraftListener(this), this);
         }
         else
-        {
         	getLogger().severe(String.format("Recipe support disabled due to no RecipeManager dependency found!", getDescription().getName()));
-        }
         
         //Listeners and commands.
         getServer().getPluginManager().registerEvents(new ProfessionListener(this), this);
     	this.getCommand("profession").setExecutor(new ProfessionCommandExecutor(this));
     	
+    	//Load player stats
     	loadAllStats();
     	
     	//Save every 30 minutes.
@@ -102,7 +101,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		} , 100, 12000);
     }
 
-    /*
+	/*
      * onDisable() is called when the server shuts down or the plugin is disabled.
      * It should contain all the cleanup and data saving that the plugin needs to do before it is disabled.
      * 

@@ -1,9 +1,15 @@
 package com.gmail.Rhisereld.Horizon_Professions;
 
+import java.util.Set;
+
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
@@ -41,5 +47,47 @@ public class ProfessionListener implements Listener
 		//Save player stats
 		main.savePlayerStats(player);
 		main.removePlayerStats(player);
+	}
+	
+	//Called when a monster or player dies.
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onMonsterDeath(EntityDeathEvent event)
+	{
+		Entity entity = event.getEntity();
+		EntityDamageByEntityEvent dEvent;
+		Player player;
+		String profession;
+		int exp;
+		
+		//Check that it was killed by another entity
+		if(!(entity.getLastDamageCause() instanceof EntityDamageByEntityEvent))
+			return;
+		
+		dEvent = (EntityDamageByEntityEvent) entity.getLastDamageCause();
+		
+		//Check that it was killed by a player
+		if(!(dEvent.getDamager() instanceof Player))
+			return;
+		
+		player = (Player) dEvent.getDamager();
+		
+		Bukkit.getLogger().info(entity.getType().toString());
+		
+		//See if options are specified in the configuration file.
+    	Set <String> monsters = main.config.getConfig().getConfigurationSection("slaying.").getKeys(false);
+    	
+    	for (String monster: monsters)
+    		//It's in the config
+    		if (entity.getType().toString().equalsIgnoreCase(monster))
+    		{
+    			profession = main.config.getConfig().getString("slaying." + monster + ".profession");
+    			exp = main.config.getConfig().getInt("slaying." + monster + ".exp");
+    			
+    			//Check that the player doesn't have practice fatigue.
+    			if (main.getPracticeFatigue(player, profession ) > 0)
+    				return;
+    			
+    			main.gainExperience(player, profession, exp);
+    		}
 	}
 }
