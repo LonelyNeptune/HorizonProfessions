@@ -65,3 +65,11 @@ slaying:
   villager:
     profession: hunter
     exp: 1
+healing:
+  paper:
+    profession: medic
+    exp: 5
+    tier:
+      novice: 2
+      adept: 4
+      expert: 6
