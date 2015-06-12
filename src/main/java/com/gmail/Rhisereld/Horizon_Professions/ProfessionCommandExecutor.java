@@ -112,7 +112,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				{
 					//Console or admin-only command.
 					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.forget.admin"))
-						forgetTier(sender, args[1].toLowerCase(), args[2].toLowerCase());
+						forgetTier(sender, args[1].toLowerCase(), args[2]);
 					//Nope
 					else
 						sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to forget a tier.");
