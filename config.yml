@@ -73,3 +73,27 @@ healing:
       novice: 2
       adept: 4
       expert: 6
+recipes:
+  engineer:
+    diode: 5
+professions:
+  - engineer
+  - medic
+  - labourer
+  - pilot
+  - hunter
+tiers:
+  0:
+    name: unskilled
+    maxlevel: 1
+  1:
+    name: novice
+    maxlevel: 20
+  2:
+    name: adept
+    maxlevel: 40
+  3:
+    name: expert
+fatigue_time: 86400000
+max_exp: 100
+claimable_tiers: 3

@@ -24,16 +24,14 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	static Plugin plugin;						//Some functions require a reference to the plugin in args.
 	static JavaPlugin javaPlugin;
 	public static Permission perms = null;		//Reference to permission object from Vault.
-	final int FATIGUE_TIME = 86400000;	//Daily cooldown for level-up in milliseconds.
-	final String[] PROFESSIONS = {"medic", "hunter", "labourer", "engineer", "pilot"}; 	//Names of professions.
-	final String[] TIERS = {"unskilled", "novice", "adept", "expert"};						//Names of tiers.
-	final int[] MAX_LEVEL = {1, 20, 40, 0};		//Maximum level before progressing to the next tier
-	final int MAX_EXP = 100;					//Maximum experience before level-up.
-	final int EXP_REWARD_CRAFT[] = {5, 5, 1, 5, 5};	//Amount of experience rewarded by crafting corresponding to each
-														//profession.
-	final int CLAIMABLE_TIERS = 3;				//The number of free tiers a new player may claim.
+	int FATIGUE_TIME;			//Daily cooldown for level-up in milliseconds.
+	List<String> PROFESSIONS = null;			//Names of professions.
+	String TIERS[];								//Names of tiers.
+	int[] MAX_LEVEL;				//Maximum level before progressing to the next tier
+	int MAX_EXP = 100;							//Maximum experience before level-up.
+	int CLAIMABLE_TIERS = 3;					//The number of free tiers a new player may claim.
 	
-	long time = 0;	//Time of last fatigue update.
+	long time = 0;								//Time of last fatigue update.
 	
 	ConfigAccessor config;						//Configuration file.
 	ConfigAccessor data;						//Data file.
@@ -55,6 +53,38 @@ public final class Main extends JavaPlugin implements CommandExecutor
     	
     	//Load configuration
     	config.saveDefaultConfig();
+    	
+    	//Load all profession names.
+    	if (config.getConfig().getStringList("professions") == null)
+    		getLogger().severe("No professions specified in configuration - plugin have unexpected behavior.");
+    	else
+    	{
+        	PROFESSIONS = config.getConfig().getStringList("professions");
+        	for (String profession: PROFESSIONS)
+        		getLogger().info(profession);
+    	}
+    	
+    	//Load all tier names.
+    	if (config.getConfig().getConfigurationSection("tiers") == null)
+    		getLogger().severe("No tiers specified in configuration - plugin have unexpected behavior.");
+    	else
+    	{
+    		Set <String> configTiers = config.getConfig().getConfigurationSection("tiers").getKeys(false);
+    		
+			TIERS = new String[configTiers.size()];
+			MAX_LEVEL = new int[configTiers.size()];
+    		
+    		for (String configTier: configTiers)
+    		{
+    			TIERS[Integer.parseInt(configTier)] = config.getConfig().getString("tiers." + configTier + ".name");
+    			MAX_LEVEL[Integer.parseInt(configTier)] = config.getConfig().getInt("tiers." + configTier + ".maxlevel");
+    		}
+    	}
+    	
+    	//Load other options.
+    	FATIGUE_TIME = config.getConfig().getInt("fatigue_time");
+    	MAX_EXP = config.getConfig().getInt("max_exp");
+    	CLAIMABLE_TIERS = config.getConfig().getInt("claimable_tiers");
 
     	//Vault integration for permissions
         if (!setupPermissions()) 
@@ -224,13 +254,13 @@ public final class Main extends JavaPlugin implements CommandExecutor
      */
 	void loadPlayerStats(Player player)
     {
-		for (int i = 0; i < 5; i++)
+		for (String profession: PROFESSIONS)
 		{
-			loadExp(player, PROFESSIONS[i]);
-			loadLevel(player, PROFESSIONS[i]);
-			loadPracticeFatigue(player, PROFESSIONS[i]);
-			loadInstructionFatigue(player, PROFESSIONS[i]);
-			loadTier(player, PROFESSIONS[i]);
+			loadExp(player, profession);
+			loadLevel(player, profession);
+			loadPracticeFatigue(player, profession);
+			loadInstructionFatigue(player, profession);
+			loadTier(player, profession);
 		}
 		
 		loadClaimed(player);
