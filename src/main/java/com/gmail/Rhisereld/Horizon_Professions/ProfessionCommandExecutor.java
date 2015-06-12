@@ -1,6 +1,13 @@
 package com.gmail.Rhisereld.Horizon_Professions;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.Timestamp;
 import java.util.Collection;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -571,6 +578,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		OfflinePlayer offlinePlayer;
 		String profession = null;
 		int newTier;
+		String message;
 		
 		//Check that the profession argument is one of the professions.
 		for (String existingProfession: main.PROFESSIONS)
@@ -604,16 +612,25 @@ public class ProfessionCommandExecutor implements CommandExecutor
 							getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
 		//If the sender isn't the receiver, notify the receiver too.
 		if (sender instanceof Player && (Player) sender != player && player != null)
+		{
 			player.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now " + 
-							getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");	
+					getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
+			
+			//If the sender is the receiver there isn't any need to notify further or create logs.
+			return;
+		}
+
+		message = ChatColor.GOLD + sender.getName() + " has forced " + playerString + " to forget a level in " 
+				+ profession + ".";
 		
 		//Notify all online moderators.
 		Collection<? extends Player> onlinePlayers = main.getServer().getOnlinePlayers();
 		
 		for (Player onlinePlayer: onlinePlayers)
 			if (onlinePlayer.hasPermission("horizon_profession.forget.admin"))
-				onlinePlayer.sendMessage(ChatColor.GOLD + sender.getName() + " has forced " + playerString + " to forget a level in " 
-											+ profession);
+				onlinePlayer.sendMessage(message);
+		
+		createLog(message, "log.txt");
 	}
 	
 	/*
@@ -628,6 +645,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		Player player = Bukkit.getServer().getPlayer(playerString);
 		OfflinePlayer offlinePlayer;
 		int newTier;
+		String message;
 		
 		//Check that the profession argument is one of the professions.
 		for (String existingProfession: main.PROFESSIONS)
@@ -662,16 +680,24 @@ public class ProfessionCommandExecutor implements CommandExecutor
 								getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
 				//If the sender isn't the receiver, notify the receiver too.
 				if (sender instanceof Player && (Player) sender != player && player != null)
+				{
 					player.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now " + 
-								getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
+							getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
+					
+					//If the sender is the receiver there isn't any need to notify further or create logs.
+					return;
+				}
 				
+				message = ChatColor.GOLD + sender.getName() + " has given a tier in " + profession + " to " + playerString;
+
 				//Notify all online moderators.
 				Collection<? extends Player> onlinePlayers = main.getServer().getOnlinePlayers();
 				
 				for (Player onlinePlayer: onlinePlayers)
 					if (onlinePlayer.hasPermission("horizon_profession.forget.admin"))
-						onlinePlayer.sendMessage(ChatColor.GOLD + sender.getName() + " has given a tier in " + profession 
-								+ " to " + playerString);
+						onlinePlayer.sendMessage(message);
+				
+				createLog(message, "log.txt");
 		
 				return;
 			}
@@ -731,6 +757,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	{
 		Player player = Bukkit.getServer().getPlayer(playerString);
 		OfflinePlayer offlinePlayer;
+		String message;
 		
 		//Player is offline.
 		if (player == null)
@@ -746,14 +773,23 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		sender.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
 		//If the sender is not the receiver, notify the receiver too.
 		if (sender instanceof Player && (Player) sender != player && player != null)
+		{
 			player.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
+			
+			//If the sender is the receiver there isn't any need to notify further or create logs.
+			return;
+		}
+
+		message = ChatColor.GOLD + sender.getName() + " has forced " + playerString + " to reset.";
 		
 		//Notify all online moderators.
 		Collection<? extends Player> onlinePlayers = main.getServer().getOnlinePlayers();
 		
 		for (Player onlinePlayer: onlinePlayers)
 			if (onlinePlayer.hasPermission("horizon_profession.forget.admin"))
-				onlinePlayer.sendMessage(ChatColor.GOLD + sender.getName() + " has forced " + playerString + " to reset.");
+				onlinePlayer.sendMessage(message);
+		
+		createLog(message, "log.txt");
 	}
 	
 	/*
@@ -766,6 +802,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		Player trainee = Bukkit.getServer().getPlayer(traineeString);
 		String trainerString = trainer.getName();
 		double distance;
+		String message;
 		
 		//Check that the trainer is an expert
 		if (main.getTier(trainer, profession) < 3)
@@ -821,11 +858,15 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		trainer.sendMessage("You have trained " + traineeString + " in the " + profession + " profession.");
 		trainee.sendMessage(trainerString + " has trained you in the " + profession + " profession.");
 		
+		message = ChatColor.YELLOW + trainerString + " just trained " + traineeString + " in the " + profession + " profession!";
+		
 		Collection<? extends Player> onlinePlayers = Bukkit.getServer().getOnlinePlayers();
 		
 		for (Player player : onlinePlayers) 
 			if (player.hasPermission("horizon_profession.train.admin"))
-				player.sendMessage(ChatColor.YELLOW + trainerString + " just trained " + traineeString + " in the " + profession + " profession!");
+				player.sendMessage(message);
+		
+		createLog(message, "trainlog.txt");
 	}
 
 	/*
@@ -883,4 +924,35 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		else
 			return "a";
 	}
+	
+	/*
+	 * createLog() saves the string provided to the file log.txt.
+	 * @param String - the message to be logged.
+	 * @param time - the time the message was logged.
+	 */
+	private void createLog(String message, String filename)
+    {
+		File file = new File("plugins/horizon_professions/" + filename);
+		long time = System.currentTimeMillis();
+		Timestamp timestamp = new Timestamp(time);
+		PrintWriter out = null;
+		
+		//Add timestamp to the message.
+		message = timestamp.toString() + " - " + message;
+
+		try 
+		{
+		    out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)));
+		    out.println(message);
+		}
+		catch (IOException e) 
+		{
+			e.printStackTrace();
+		}
+		finally
+		{
+		    if(out != null)
+		        out.close();
+		} 
+    }
 }
