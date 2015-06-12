@@ -67,7 +67,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				{
 					//Console or admin-only command.
 					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.view.admin"))
-						viewStatsAdmin(sender, args[1]);
+						viewStatsAdmin(sender, args[1].toLowerCase());
 					//Nope
 					else
 						sender.sendMessage(ChatColor.RED + "You don't have permission to view another player's professions.");
@@ -112,7 +112,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				{
 					//Console or admin-only command.
 					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.forget.admin"))
-						forgetTier(sender, args[1], args[2]);
+						forgetTier(sender, args[1].toLowerCase(), args[2].toLowerCase());
 					//Nope
 					else
 						sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to forget a tier.");
@@ -136,7 +136,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					}
 					
 					player = (Player) sender;
-					forgetTier(sender, args[1], player.getName());
+					forgetTier(sender, args[1].toLowerCase(), player.getName());
 				}
 				
 				//Player did not provide enough arguments
@@ -168,7 +168,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				{
 					//Console or admin-only command.
 					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.givetier.admin"))
-						giveTier(sender, args[1], args[2]);
+						giveTier(sender, args[1].toLowerCase(), args[2].toLowerCase());
 					//Nope
 					else
 						sender.sendMessage(ChatColor.RED + "You don't have permission to give tiers to players.");
@@ -208,7 +208,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 						return false;
 					}
 
-					claimTier((Player) sender, args[1]);
+					claimTier((Player) sender, args[1].toLowerCase());
 				}
 			}
 			
@@ -227,7 +227,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				{
 					//Console or admin-only command.
 					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.reset.admin"))
-						resetStats(sender, args[1]);
+						resetStats(sender, args[1].toLowerCase());
 					//Nope
 					else
 						sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to reset their professions.");
@@ -275,7 +275,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 						return false;
 					}
 
-					trainPlayer((Player) sender, args[1], args[2]);
+					trainPlayer((Player) sender, args[1].toLowerCase(), args[2].toLowerCase());
 				}
 				
 				//Player did not provide enough arguments
@@ -325,19 +325,19 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		sender.sendMessage("----------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">----------------");
 		sender.sendMessage(ChatColor.GOLD + centreText(" Viewing " + name, chatboxWidth));
 		
-		for (int i = 0; i < 5; i++)
+		for (String profession: main.PROFESSIONS)
 		{
-			if ((tier = main.getTier(player, main.PROFESSIONS[i])) == -1)
+			if ((tier = main.getTier(player, profession)) == -1)
 			{
 				sender.sendMessage("Error fetching tier. Please contact an Administrator.");
 				return;
 			}
-			level = main.getLevel(player, main.PROFESSIONS[i]);
-			experience = main.getExp(player, main.PROFESSIONS[i]);
+			level = main.getLevel(player, profession);
+			experience = main.getExp(player, profession);
 			maxLevel = main.MAX_LEVEL[tier];
-			practiceFatigue = main.getPracticeFatigue(player, main.PROFESSIONS[i]);
-			instructionFatigue = main.getInstructionFatigue(player, main.PROFESSIONS[i]);
-			professionCapitalised = main.PROFESSIONS[i].substring(0, 1).toUpperCase() + main.PROFESSIONS[i].substring(1);
+			practiceFatigue = main.getPracticeFatigue(player, profession);
+			instructionFatigue = main.getInstructionFatigue(player, profession);
+			professionCapitalised = profession.substring(0, 1).toUpperCase() + profession.substring(1);
 			tierCapitalised = main.TIERS[tier].substring(0, 1).toUpperCase() + main.TIERS[tier].substring(1);
 			
 			
@@ -415,19 +415,19 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		sender.sendMessage("----------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">----------------");
 		sender.sendMessage(ChatColor.GOLD + centreText(" Viewing " + name, chatboxWidth));
 		
-		for (int i = 0; i < 5; i++)
+		for (String profession: main.PROFESSIONS)
 		{
-			if ((tier = main.getTier(player, main.PROFESSIONS[i])) == -1)
+			if ((tier = main.getTier(player, profession)) == -1)
 			{
 				sender.sendMessage("Error fetching tier. Please contact an Administrator.");
 				return;
 			}
-			level = main.getLevel(player, main.PROFESSIONS[i]);
-			experience = main.getExp(player, main.PROFESSIONS[i]);
+			level = main.getLevel(player, profession);
+			experience = main.getExp(player, profession);
 			maxLevel = main.MAX_LEVEL[tier];
-			practiceFatigue = main.getPracticeFatigue(player, main.PROFESSIONS[i]);
-			instructionFatigue = main.getInstructionFatigue(player, main.PROFESSIONS[i]);
-			professionCapitalised = main.PROFESSIONS[i].substring(0, 1).toUpperCase() + main.PROFESSIONS[i].substring(1);
+			practiceFatigue = main.getPracticeFatigue(player, profession);
+			instructionFatigue = main.getInstructionFatigue(player, profession);
+			professionCapitalised = profession.substring(0, 1).toUpperCase() + profession.substring(1);
 			tierCapitalised = main.TIERS[tier].substring(0, 1).toUpperCase() + main.TIERS[tier].substring(1);
 			
 			//Build profession header for each profession.
@@ -565,39 +565,44 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param playerString - the player of whom to reduce the tier of.
 	 */
 	@SuppressWarnings("deprecation")
-	private void forgetTier(CommandSender sender, String profession, String playerString) 
+	private void forgetTier(CommandSender sender, String professionArg, String playerString) 
 	{
 		Player player = Bukkit.getServer().getPlayer(playerString);
 		OfflinePlayer offlinePlayer;
+		String profession = null;
 		int newTier;
 		
 		//Check that the profession argument is one of the professions.
 		for (String existingProfession: main.PROFESSIONS)
-			if (profession.equalsIgnoreCase(existingProfession))
-			{
-				//Player is offline.
-				if (player == null)
-				{
-					offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
-					main.setExp(offlinePlayer, profession, 0);
-					main.setLevel(offlinePlayer,  profession,  0);
-					newTier = main.forgetTier(offlinePlayer, profession);
-				}
-				//Player is online.
-				else 
-				{
-					main.setExp(player, profession, 0);
-					main.setLevel(player,  profession,  0);
-					newTier = main.forgetTier(player, profession);
-				}
-				
-				sender.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
-				if (sender instanceof Player && (Player) sender != player && player != null)
-					player.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
-			}
-			else
-				sender.sendMessage(ChatColor.YELLOW + "That profession does not exist!");
-}
+			if (professionArg.equalsIgnoreCase(existingProfession))
+				profession = professionArg;
+		
+		if (profession == null)
+		{
+			player.sendMessage(ChatColor.RED + "That profession does not exist!");
+			return;
+		}
+		
+		//Player is offline.
+		if (player == null)
+		{
+			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
+			main.setExp(offlinePlayer, profession, 0);
+			main.setLevel(offlinePlayer,  profession,  0);
+			newTier = main.forgetTier(offlinePlayer, profession);
+		}
+		//Player is online.
+		else 
+		{
+			main.setExp(player, profession, 0);
+			main.setLevel(player,  profession,  0);
+			newTier = main.forgetTier(player, profession);
+		}
+		
+		sender.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+		if (sender instanceof Player && (Player) sender != player && player != null)
+			player.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");	
+	}
 	
 	/*
 	 * giveTier() increases the tier of the player in a certain profession by one.
@@ -765,8 +770,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		
 		//Check that the trainer and trainee are reasonably close together and in the same world.
 		distance = trainer.getLocation().distance(trainee.getLocation());
-		
-		if (trainer.getWorld().equals(trainee.getWorld()) || Double.isNaN(distance) || distance > 20)
+
+		if (!trainer.getWorld().equals(trainee.getWorld()) || Double.isNaN(distance) || distance > 20)
 		{
 			trainer.sendMessage("You are too far away to train " + traineeString + "!");
 			return;
@@ -815,7 +820,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 */
 	private void giveCommandsGuideAdmin(CommandSender sender) 
 	{
-		sender.sendMessage("-----<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">-----");
+		sender.sendMessage("------------<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">------------");
 		sender.sendMessage(ChatColor.GOLD + "Horizon Professions allows you to keep track of your trade skills!");
 		sender.sendMessage(ChatColor.YELLOW + "/profession view [optional:player]");
 		sender.sendMessage("View the professions of a player.");
