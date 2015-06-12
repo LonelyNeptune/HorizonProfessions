@@ -227,7 +227,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				{
 					//Console or admin-only command.
 					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.reset.admin"))
-						resetStats(sender, args[1].toLowerCase());
+						resetStats(sender, args[1]);
 					//Nope
 					else
 						sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to reset their professions.");
@@ -599,11 +599,21 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			newTier = main.forgetTier(player, profession);
 		}
 		
+		//Notify sender.
 		sender.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now " + 
 							getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
+		//If the sender isn't the receiver, notify the receiver too.
 		if (sender instanceof Player && (Player) sender != player && player != null)
 			player.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now " + 
 							getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");	
+		
+		//Notify all online moderators.
+		Collection<? extends Player> onlinePlayers = main.getServer().getOnlinePlayers();
+		
+		for (Player onlinePlayer: onlinePlayers)
+			if (onlinePlayer.hasPermission("horizon_profession.forget.admin"))
+				onlinePlayer.sendMessage(ChatColor.GOLD + sender.getName() + " has forced " + playerString + " to forget a level in " 
+											+ profession);
 	}
 	
 	/*
@@ -647,11 +657,21 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					}
 				}
 
+				//Notify the sender.
 				sender.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now " + 
 								getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
+				//If the sender isn't the receiver, notify the receiver too.
 				if (sender instanceof Player && (Player) sender != player && player != null)
 					player.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now " + 
 								getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
+				
+				//Notify all online moderators.
+				Collection<? extends Player> onlinePlayers = main.getServer().getOnlinePlayers();
+				
+				for (Player onlinePlayer: onlinePlayers)
+					if (onlinePlayer.hasPermission("horizon_profession.forget.admin"))
+						onlinePlayer.sendMessage(ChatColor.GOLD + sender.getName() + " has given a tier in " + profession 
+								+ " to " + playerString);
 		
 				return;
 			}
@@ -722,9 +742,18 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		else
 			main.resetPlayerStats(player);
 
+		//Notify sender.
 		sender.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
+		//If the sender is not the receiver, notify the receiver too.
 		if (sender instanceof Player && (Player) sender != player && player != null)
 			player.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
+		
+		//Notify all online moderators.
+		Collection<? extends Player> onlinePlayers = main.getServer().getOnlinePlayers();
+		
+		for (Player onlinePlayer: onlinePlayers)
+			if (onlinePlayer.hasPermission("horizon_profession.forget.admin"))
+				onlinePlayer.sendMessage(ChatColor.GOLD + sender.getName() + " has forced " + playerString + " to reset.");
 	}
 	
 	/*
@@ -792,9 +821,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		trainer.sendMessage("You have trained " + traineeString + " in the " + profession + " profession.");
 		trainee.sendMessage(trainerString + " has trained you in the " + profession + " profession.");
 		
-		Collection<? extends Player> playerCollection = Bukkit.getServer().getOnlinePlayers();
+		Collection<? extends Player> onlinePlayers = Bukkit.getServer().getOnlinePlayers();
 		
-		for (Player player : playerCollection) 
+		for (Player player : onlinePlayers) 
 			if (player.hasPermission("horizon_profession.train.admin"))
 				player.sendMessage(ChatColor.YELLOW + trainerString + " just trained " + traineeString + " in the " + profession + " profession!");
 	}
