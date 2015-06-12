@@ -168,7 +168,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				{
 					//Console or admin-only command.
 					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.givetier.admin"))
-						giveTier(sender, args[1].toLowerCase(), args[2].toLowerCase());
+						giveTier(sender, args[1].toLowerCase(), args[2]);
 					//Nope
 					else
 						sender.sendMessage(ChatColor.RED + "You don't have permission to give tiers to players.");
@@ -599,9 +599,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			newTier = main.forgetTier(player, profession);
 		}
 		
-		sender.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+		sender.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now " + 
+							getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
 		if (sender instanceof Player && (Player) sender != player && player != null)
-			player.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");	
+			player.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now " + 
+							getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");	
 	}
 	
 	/*
@@ -645,9 +647,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					}
 				}
 
-				sender.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+				sender.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now " + 
+								getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
 				if (sender instanceof Player && (Player) sender != player && player != null)
-					player.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+					player.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now " + 
+								getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
 		
 				return;
 			}
@@ -694,7 +698,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		//Increment the number of tiers they have claimed.
 		main.setClaimed(player, claimed + 1);
 		
-		player.sendMessage(ChatColor.YELLOW + player.getName() + " has gained some knowledge. They are now a " + main.TIERS[newTier] + " " + profession + ".");
+		player.sendMessage(ChatColor.YELLOW + player.getName() + " has gained some knowledge. They are now " + 
+							getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
 	}
 
 	/*
@@ -791,7 +796,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		
 		for (Player player : playerCollection) 
 			if (player.hasPermission("horizon_profession.train.admin"))
-				player.sendMessage(ChatColor.YELLOW + trainerString + " just trained " + traineeString + " in " + profession + "!");
+				player.sendMessage(ChatColor.YELLOW + trainerString + " just trained " + traineeString + " in the " + profession + " profession!");
 	}
 
 	/*
@@ -834,5 +839,19 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		sender.sendMessage("Resets all of the player's progress to zero.");
 		sender.sendMessage(ChatColor.YELLOW + "/profession train [profession] [player]");
 		sender.sendMessage("Trains another player in a specified profession. They will gain two levels.");
+	}
+	
+	/*
+	 * getDeterminer() returns the determiner that should occur before a noun.
+	 * @param string - the noun.
+	 * @return - "an" if the noun begins with a vowel, "a" otherwise.
+	 */
+	private String getDeterminer(String string)
+	{
+		if (string.charAt(0) == 'a' || string.charAt(0) == 'e' || string.charAt(0) == 'i' || string.charAt(0) == 'o'
+				|| string.charAt(0) == 'u')
+			return "an";
+		else
+			return "a";
 	}
 }
