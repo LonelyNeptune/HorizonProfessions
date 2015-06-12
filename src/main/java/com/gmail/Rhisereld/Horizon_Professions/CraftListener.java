@@ -1,10 +1,11 @@
 package com.gmail.Rhisereld.Horizon_Professions;
 
 import haveric.recipeManager.api.events.RecipeManagerCraftEvent;
-import haveric.recipeManager.flags.FlagPermission;
+import haveric.recipeManager.recipes.WorkbenchRecipe;
 
-import java.util.Map;
+import java.util.Set;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,12 +20,14 @@ public class CraftListener implements Listener
 	static Plugin plugin = Main.plugin;	//A reference to this plugin.
 	Main main;							//A reference to main.
 	String[] splitPermission;			//Permission string split into base/profession/tier.
-	FlagPermission flag;
+	Set <String> configRecipes;			//A list of recipes in the configuration file.
+	FileConfiguration config; //Configuration file.
 	
 	//Constructor passing a reference to main.
 	public CraftListener(Main main) 
 	{
 		this.main = main;
+		config = main.config.getConfig();
 	}
 
 	//Called when a player crafts a custom recipe.
@@ -32,25 +35,18 @@ public class CraftListener implements Listener
 	public void RecipeManagerCraftEvent(final RecipeManagerCraftEvent event)
 	{
 		Player player = event.getPlayer();
+		WorkbenchRecipe recipe = event.getRecipe();
 		
-		//No permissions required for recipe.
-		if ((flag = event.getRecipe().getFlag(FlagPermission.class)) == null)
-			return;
-		
-		//List of permissions where at least one is required to craft the recipe.
-		Map<String, Boolean> Permissions = flag.getPermissions();
-
-		//Find the profession of the permission required, award experience for that profession.
-		for (Map.Entry <String, Boolean> permission : Permissions.entrySet())
+		//Go through configuration file, if a recipe matches add the corresponding experience.
+		for (String profession: main.PROFESSIONS)
 		{
-			splitPermission = permission.getKey().split("\\.");
+			if (config.getConfigurationSection("recipes." + profession) != null)
+				configRecipes = config.getConfigurationSection("recipes." + profession).getKeys(false);
 			
-			//Check that the permission being examined belongs to this plugin.
-			if (splitPermission[0].equalsIgnoreCase("horizon_professions"))
-
-			for (int i = 0; i < main.PROFESSIONS.length; i++)
-				if (main.PROFESSIONS[i].equalsIgnoreCase(splitPermission[1]))
-					main.gainExperience(player, main.PROFESSIONS[i], main.EXP_REWARD_CRAFT[i]);					
+			if (configRecipes != null)
+				for (String configRecipe: configRecipes)
+					if (recipe.getName().equalsIgnoreCase(configRecipe))
+						main.gainExperience(player, profession, config.getInt("recipes." + profession + "." + configRecipe));			
 		}
 	}
 }

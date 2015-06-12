@@ -52,6 +52,9 @@ public final class Main extends JavaPlugin implements CommandExecutor
     	//Setup files for configuration and data storage.
     	config = new ConfigAccessor(this, "config.yml");
     	data = new ConfigAccessor(this, "data.yml");
+    	
+    	//Load configuration
+    	config.saveDefaultConfig();
 
     	//Vault integration for permissions
         if (!setupPermissions()) 
@@ -73,9 +76,6 @@ public final class Main extends JavaPlugin implements CommandExecutor
         //Listeners and commands.
         getServer().getPluginManager().registerEvents(new ProfessionListener(this), this);
     	this.getCommand("profession").setExecutor(new ProfessionCommandExecutor(this));
-    	
-    	//Load configuration
-    	config.saveDefaultConfig();;
     	
     	//Load player stats
     	loadAllStats();
