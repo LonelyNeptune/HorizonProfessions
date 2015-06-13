@@ -2,6 +2,8 @@ package com.gmail.Rhisereld.Horizon_Professions;
 
 import java.util.Set;
 
+import net.md_5.bungee.api.ChatColor;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -102,8 +104,6 @@ public class ProfessionListener implements Listener
 		
 		player.sendMessage("PlayerInteractEntityEvent");
 		
-    	player.sendMessage(Double.toString(player.getVelocity().length()));
-		
 		//Check that the player right-clicked on another player.
 		if (!(event.getRightClicked() instanceof Player))
 			return;
@@ -139,18 +139,18 @@ public class ProfessionListener implements Listener
     	    	//If it isn't in the config just stop.
     	    	if (playerTier == -1)
     	    	{
-    	    		player.sendMessage("playerTier is null");
+    	    		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
     	    		return;
     	    	}
     	    	
     			//Check that the recipient has missing health.
     			if (recipient.getHealth() >= recipient.getMaxHealth())
     			{
-    				player.sendMessage(recipient.getName() + "does not need bandaging!");
+    				player.sendMessage(ChatColor.YELLOW + recipient.getName() + " does not need bandaging!");
     				return;
     			}  
     			
-    			player.sendMessage("Bandaging...");
+    			player.sendMessage(ChatColor.YELLOW + "Bandaging...");
     			
     			//Schedule the task in one second.
     			makeDelayedTask(player, recipient, playerTier, item, profession, player.getLocation(),  recipient.getLocation());
@@ -174,7 +174,7 @@ public class ProfessionListener implements Listener
 						|| Math.abs(player.getLocation().getY() - playerLoc.getY()) > 1
 						|| Math.abs(player.getLocation().getZ() - playerLoc.getZ()) > 1)
 				{
-					player.sendMessage("You cannot move while bandaging!");
+					player.sendMessage(ChatColor.YELLOW + "You cannot move while bandaging!");
 					return;
 				}
 				
@@ -183,16 +183,18 @@ public class ProfessionListener implements Listener
 						|| Math.abs(recipient.getLocation().getY() - recipientLoc.getY()) > 1
 						|| Math.abs(recipient.getLocation().getZ() - recipientLoc.getZ()) > 1)
 				{
-					player.sendMessage("You cannot bandage your patient while they are moving!");
+					player.sendMessage(ChatColor.YELLOW + "You cannot bandage your patient while they are moving!");
 					return;
 				}
 				
 				//Remove item from player's inventory.
-	    		player.getInventory().removeItem(new ItemStack(Material.getMaterial(item), 1));
+	    		player.getInventory().removeItem(new ItemStack(Material.getMaterial(item.toUpperCase()), 1));
 	    		player.updateInventory();
 	    			
 	    		//Heal the other player.
 	    		addHp = main.config.getConfig().getDouble("healing." + item + ".tier" + playerTier);
+	    		player.sendMessage(Double.toString(addHp));
+	    		player.sendMessage(Double.toString(recipient.getHealth()));
 	    		recipient.setHealth(recipient.getHealth() + addHp);
 
 	    		//Award experience.
@@ -202,8 +204,8 @@ public class ProfessionListener implements Listener
 	    			main.gainExperience(player,  profession, exp);
 	    			
 	    		//Notify both parties.
-	    		player.sendMessage("You bandaged " + recipient.getName() + "'s wounds.");
-	    		recipient.sendMessage(player.getName() + " bandaged your wounds.");
+	    		player.sendMessage(ChatColor.YELLOW + "You bandaged " + recipient.getName() + "'s wounds.");
+	    		recipient.sendMessage(ChatColor.YELLOW + player.getName() + " bandaged your wounds.");
 			  }
 			}, 20);
 	}

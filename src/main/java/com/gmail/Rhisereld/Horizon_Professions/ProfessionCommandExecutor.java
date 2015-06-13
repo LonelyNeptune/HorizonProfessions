@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -395,6 +396,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	private void viewStatsOffline(OfflinePlayer player, CommandSender sender)
 	{
 		String name = player.getName();
+		UUID uuid = player.getUniqueId();
 		
 		int tier;
 		int level;
@@ -424,16 +426,16 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		
 		for (String profession: main.PROFESSIONS)
 		{
-			if ((tier = main.getTier(player, profession)) == -1)
+			if ((tier = main.getTier(uuid, profession)) == -1)
 			{
 				sender.sendMessage("Error fetching tier. Please contact an Administrator.");
 				return;
 			}
-			level = main.getLevel(player, profession);
-			experience = main.getExp(player, profession);
+			level = main.getLevel(uuid, profession);
+			experience = main.getExp(uuid, profession);
 			maxLevel = main.MAX_LEVEL[tier];
-			practiceFatigue = main.getPracticeFatigue(player, profession);
-			instructionFatigue = main.getInstructionFatigue(player, profession);
+			practiceFatigue = main.getPracticeFatigue(uuid, profession);
+			instructionFatigue = main.getInstructionFatigue(uuid, profession);
 			professionCapitalised = profession.substring(0, 1).toUpperCase() + profession.substring(1);
 			tierCapitalised = main.TIERS[tier].substring(0, 1).toUpperCase() + main.TIERS[tier].substring(1);
 			
@@ -575,10 +577,10 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	private void forgetTier(CommandSender sender, String professionArg, String playerString) 
 	{
 		Player player = Bukkit.getServer().getPlayer(playerString);
-		OfflinePlayer offlinePlayer;
 		String profession = null;
 		int newTier;
 		String message;
+		UUID uuid;
 		
 		//Check that the profession argument is one of the professions.
 		for (String existingProfession: main.PROFESSIONS)
@@ -594,10 +596,10 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		//Player is offline.
 		if (player == null)
 		{
-			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
-			main.setExp(offlinePlayer, profession, 0);
-			main.setLevel(offlinePlayer,  profession,  0);
-			newTier = main.forgetTier(offlinePlayer, profession);
+			uuid = Bukkit.getServer().getOfflinePlayer(playerString).getUniqueId();
+			main.setExp(uuid, profession, 0);
+			main.setLevel(uuid,  profession,  0);
+			newTier = main.forgetTier(uuid, profession);
 		}
 		//Player is online.
 		else 
@@ -643,9 +645,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	private void giveTier(CommandSender sender, String profession, String playerString) 
 	{
 		Player player = Bukkit.getServer().getPlayer(playerString);
-		OfflinePlayer offlinePlayer;
 		int newTier;
 		String message;
+		UUID uuid;
 		
 		//Check that the profession argument is one of the professions.
 		for (String existingProfession: main.PROFESSIONS)
@@ -654,10 +656,10 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				//Player is offline.
 				if (player == null)
 				{
-					offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
-					main.setExp(offlinePlayer, profession, 0);
-					main.setLevel(offlinePlayer, profession, 0);
-					if ((newTier = main.gainTier(offlinePlayer, profession)) == -1)
+					uuid = Bukkit.getServer().getOfflinePlayer(playerString).getUniqueId();
+					main.setExp(uuid, profession, 0);
+					main.setLevel(uuid, profession, 0);
+					if ((newTier = main.gainTier(uuid, profession)) == -1)
 					{
 						sender.sendMessage("Error giving tier. Please contact an Administrator.");
 						return;
@@ -756,14 +758,14 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	private void resetStats(CommandSender sender, String playerString) 
 	{
 		Player player = Bukkit.getServer().getPlayer(playerString);
-		OfflinePlayer offlinePlayer;
 		String message;
+		UUID uuid;
 		
 		//Player is offline.
 		if (player == null)
 		{
-			offlinePlayer = Bukkit.getServer().getOfflinePlayer(playerString);
-			main.resetPlayerStats(offlinePlayer);
+			uuid = Bukkit.getServer().getOfflinePlayer(playerString).getUniqueId();
+			main.resetPlayerStats(uuid);
 		}
 		//Player is online.
 		else
