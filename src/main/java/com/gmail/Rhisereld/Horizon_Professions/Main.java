@@ -24,12 +24,13 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	static Plugin plugin;						//Some functions require a reference to the plugin in args.
 	static JavaPlugin javaPlugin;
 	public static Permission perms = null;		//Reference to permission object from Vault.
-	int FATIGUE_TIME;			//Daily cooldown for level-up in milliseconds.
+	int FATIGUE_TIME;							//Daily cooldown for level-up in milliseconds.
 	List<String> PROFESSIONS = null;			//Names of professions.
 	String TIERS[];								//Names of tiers.
-	int[] MAX_LEVEL;				//Maximum level before progressing to the next tier
-	int MAX_EXP = 100;							//Maximum experience before level-up.
-	int CLAIMABLE_TIERS = 3;					//The number of free tiers a new player may claim.
+	int[] MAX_LEVEL;							//Maximum level before progressing to the next tier
+	int MAX_EXP;								//Maximum experience before level-up.
+	int CLAIMABLE_TIERS;						//The number of free tiers a new player may claim.
+	int TIER_CAP;								//The total nubmer of tiers a player may have in all professions
 	
 	long time = 0;								//Time of last fatigue update.
 	
@@ -81,6 +82,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
     	FATIGUE_TIME = config.getConfig().getInt("fatigue_time");
     	MAX_EXP = config.getConfig().getInt("max_exp");
     	CLAIMABLE_TIERS = config.getConfig().getInt("claimable_tiers");
+    	TIER_CAP = config.getConfig().getInt("tier_cap");
 
     	//Vault integration for permissions
         if (!setupPermissions()) 
@@ -525,8 +527,12 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	public void gainExperience(Player player, String profession, int exp)
 	{		
-		//Expert is the maximum tier, player cannot progress past that point.
-		if (getTier(player, profession) == 3)
+		//Player cannot progress past maximum tier.
+		if (getTier(player, profession) >= TIERS.length-1)
+			return;
+		
+		//Player cannot progress past tier cap
+		if (getTotalTiers(player) >= TIER_CAP)
 			return;
 		
 		//If player is fatigued, return.
@@ -558,6 +564,14 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	 */
 	public void gainLevel(Player player, String profession, int level)
 	{		
+		//Player cannot progress past maximum tier.
+		if (getTier(player, profession) >= TIERS.length-1)
+			return;
+		
+		//Player cannot progress past tier cap
+		if (getTotalTiers(player) >= TIER_CAP)
+			return;
+		
 		int newLevel = level + getLevel(player, profession);
 		setLevel(player, profession, level + newLevel);
 		
@@ -581,8 +595,15 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		int tier = getTier(player, profession);
 		int newTier;
 		
-		if ((newTier = tier + 1) > 3)
-			newTier = 3;
+		//Player cannot progress past maximum tier.
+		if (tier >= TIERS.length-1)
+			return tier;
+		
+		//Player cannot progress past tier cap
+		if (getTotalTiers(player) >= TIER_CAP)
+			return tier;
+		
+		newTier = tier + 1;
 
 		setTier(player, profession, newTier);
 		return newTier;
@@ -600,8 +621,15 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		int tier = getTier(uuid, profession);
 		int newTier;
 		
-		if ((newTier = tier + 1) > 3)
-			newTier = 3;
+		//Player cannot progress past maximum tier.
+		if (tier >= TIERS.length-1)
+			return tier;
+		
+		//Player cannot progress past tier cap
+		if (getTotalTiers(uuid) >= TIER_CAP)
+			return tier;
+		
+		newTier = tier + 1;
 
 		setTier(uuid, profession, newTier);
 		return newTier;
@@ -628,7 +656,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	
 	/*
 	 * forgetTier() reduces the tier of the offline player (expert -> adept -> novice -> unskilled)
-	 * @param player - the player who is losing the tier.
+	 * @param uuid - the uuid of player who is losing the tier.
 	 * @param profession - the profession for which the player is losing the tier.
 	 * @return  - new tier of the player.
 	 */
@@ -657,7 +685,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	
 	/*
 	 * setExp() sets the experience of an offline player for the specified profession.
-	 * @param player - the player for whom the experience is being set.
+	 * @param uuid - the uuid of the player for whom the experience is being set.
 	 * @param profession - the profession for which the experience is being set.
 	 */
 	public void setExp(UUID uuid, String profession, int exp)
@@ -677,7 +705,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	
 	/*
 	 * setLevel() sets the level of a player for the specified profession.
-	 * @param player - the player for whom the level is being set.
+	 * @param uuid - the uuid of the player for whom the level is being set.
 	 * @param profession - the profession for which the level is being set.
 	 */
 	public void setLevel(UUID uuid, String profession, int level)
@@ -697,7 +725,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	
 	/*
 	 * setPracticeFatigue() sets the practice fatigue value of an offline player for the specified profession in their metadata.
-	 * @param player - the player for whom the fatigue value is being set.
+	 * @param uuid - the uuid of the player for whom the fatigue value is being set.
 	 * @param profession - the profession for which the fatigue value is being set.
 	 */
 	public void setPracticeFatigue(UUID uuid, String profession, int fatigue)
@@ -718,7 +746,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	/*
 	 * setInstructionFatigue() sets the practice fatigue value of an offline player for the specified profession in their 
 	 * metadata. 
-	 * @param player - the player for whom the fatigue value is being set.
+	 * @param uuid - the uuid of the player for whom the fatigue value is being set.
 	 * @param profession - the profession for which the fatigue value is being set.
 	 */
 	public void setInstructionFatigue(UUID uuid, String profession, int fatigue)
@@ -806,7 +834,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	
 	/*
 	 * getExp() retrieves the experience of an offline player for the specified profession.
-	 * @param player - the player for whom the experience is being retrieved.
+	 * @param uuid - the uuid of the player for whom the experience is being retrieved.
 	 * @param profession - the profession for which the experience is being retrieved.
 	 */
 	public int getExp(UUID uuid, String profession)
@@ -826,7 +854,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	
 	/*
 	 * getLevel() retrieves the level of an offline player for the specified profession.
-	 * @param player - the player for whom the level is being retrieved.
+	 * @param uuid - the uuid of the player for whom the level is being retrieved.
 	 * @param profession - the profession for which the level is being retrieved.
 	 */
 	public int getLevel(UUID uuid, String profession)
@@ -848,7 +876,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	/*
 	 * getPracticeFatigue() retrieves the practice fatigue value of an offline player for the specified profession from 
 	 * their metadata.
-	 * @param player - the player for whom the fatigue value is being retrieved.
+	 * @param uuid - the uuid of the player for whom the fatigue value is being retrieved.
 	 * @param profession - the profession for which the fatigue value is being retrieved.
 	 */
 	public int getPracticeFatigue(UUID uuid, String profession)
@@ -870,7 +898,7 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	/*
 	 * getInstructionFatigue() retrieves the instruction fatigue value of an offline player for the specified profession 
 	 * from their metadata.
-	 * @param player - the player for whom the fatigue value is being retrieved.
+	 * @param uuid - the uuid of the player for whom the fatigue value is being retrieved.
 	 * @param profession - the profession for which the fatigue value is being retrieved.
 	 */
 	public int getInstructionFatigue(UUID uuid, String profession)
@@ -911,13 +939,43 @@ public final class Main extends JavaPlugin implements CommandExecutor
 	
 	/*
 	 * getTierOffline() gets the tier the offline player currently has in a profession.
-	 * @param player - the player for whom to get the tier name.
+	 * @param uuid - the uuid of the player for whom to get the tier name.
 	 * @param profession - the profession for which to get the tier name.
 	 * @return - the tier the player has in the profession.
 	 */
 	public int getTier(UUID uuid, String profession) 
 	{
 		return data.getConfig().getInt("data." + uuid + "." + profession + ".tier");
+	}
+	
+	/*
+	 * getTotalTiers() gets the total number of tiers a player has in all professions.
+	 * @param player - the player for whom to get the total number of tiers
+	 * @return - the total number of tiers a player has in all professions.
+	 */
+	private int getTotalTiers(Player player)
+	{
+		int total = 0;
+		
+		for (String profession: PROFESSIONS)
+			total += getTier(player, profession);
+		
+		return total;
+	}
+	
+	/*
+	 * getTotalTiers() gets the total number of tiers an offline player has in all professions.
+	 * @param uuid - the uuid of the player for whom to get the total number of tiers
+	 * @return - the total number of tiers a player has in all professions.
+	 */
+	private int getTotalTiers(UUID uuid)
+	{
+		int total = 0;
+		
+		for (String profession: PROFESSIONS)
+			total += getTier(uuid, profession);
+		
+		return total;
 	}
 }
 

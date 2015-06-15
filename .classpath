@@ -33,5 +33,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="D:/My Documents/Project Horizon/Updated Server/plugins/Vault.jar"/>
+	<classpathentry kind="lib" path="D:/My Documents/Project Horizon/Updated Server/plugins/RecipeManager.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

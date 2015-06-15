@@ -869,8 +869,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		double distance;
 		String message;
 		
-		//Check that the trainer is an expert
-		if (main.getTier(trainer, profession) < 3)
+		//Check that the trainer is the top tier
+		if (main.getTier(trainer, profession) < main.TIERS.length-1)
 		{
 			trainer.sendMessage(ChatColor.YELLOW + "You cannot train yet because you are not an Expert " + profession + "!");
 			return;
