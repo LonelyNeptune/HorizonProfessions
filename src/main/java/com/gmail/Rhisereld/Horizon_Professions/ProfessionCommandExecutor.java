@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
@@ -29,6 +30,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	
 	Main main;									//A reference to main.
 	
+	HashMap<String, String> confirmForget = new HashMap<String, String>();	//Used to confirm commands
+	HashMap<String, String> confirmReset = new HashMap<String, String>();
+	
 	//Constructor that passes a reference to main.
     public ProfessionCommandExecutor(Main main) 
     {
@@ -44,7 +48,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
 	{
 		Player player;
-		
+		String name = sender.getName();
+		String[] arguments;
+
 		//All commands that fall under /profession [additional arguments]
 		if (commandLabel.equalsIgnoreCase("profession"))
 		{
@@ -59,6 +65,45 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					sender.sendMessage(ChatColor.RED + "You don't have permission to use this command!");
 				return true;
 			}	
+			
+			//profession confirm 
+			if (args[0].equalsIgnoreCase("confirm"))
+			{
+				if (args.length != 2)
+				{
+					sender.sendMessage(ChatColor.YELLOW + "Incorrect format.");
+					return true;
+				}
+				
+				//profession confirm forget
+				if (args[1].equalsIgnoreCase("forget"))
+				{
+					arguments = confirmForget.get(name).split(" ");
+					
+					if (arguments == null)
+					{
+						sender.sendMessage(ChatColor.YELLOW + "What are you confirming?");
+						return true;
+					}
+
+					forgetTier(sender, arguments[0], arguments[1]);
+					confirmForget.remove(name);
+					return true;
+				}
+				//profession confirm reset
+				else if (args[1].equalsIgnoreCase("reset"))
+				{
+					if (confirmReset.get(name) == null)
+					{
+						sender.sendMessage(ChatColor.YELLOW + "What are you confirming?");
+						return true;
+					}
+					
+					resetStats(sender, confirmReset.get(name));
+					confirmReset.remove(name);
+					return true;
+				}
+			}
 			
 			//profession view [player]
 			if (args[0].equalsIgnoreCase("view"))
@@ -120,7 +165,12 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				{
 					//Console or admin-only command.
 					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.forget.admin"))
-						forgetTier(sender, args[1].toLowerCase(), args[2]);
+					{
+						sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to force " + args[2] + " to forget a tier?"
+											+ " Type '/profession confirm forget' to confirm.");
+						confirmForget.put(name, args[1] + " " + args[2]);
+						return true;
+					}
 					//Nope
 					else
 						sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to forget a tier.");
@@ -143,8 +193,10 @@ public class ProfessionCommandExecutor implements CommandExecutor
 						return false;
 					}
 					
-					player = (Player) sender;
-					forgetTier(sender, args[1].toLowerCase(), player.getName());
+					sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to forget a tier?"
+										+ " Type '/profession confirm forget' to confirm.");
+					confirmForget.put(name, args[1] + " " + name);
+					return true;
 				}
 				
 				//Player did not provide enough arguments
@@ -235,7 +287,12 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				{
 					//Console or admin-only command.
 					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.reset.admin"))
-						resetStats(sender, args[1]);
+					{
+						sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to force " + args[1] + " to reset?"
+								+ " Type '/profession confirm reset' to confirm.");
+						confirmReset.put(name, args[1]);
+						return true;
+					}
 					//Nope
 					else
 						sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to reset their professions.");
@@ -258,8 +315,10 @@ public class ProfessionCommandExecutor implements CommandExecutor
 						return false;
 					}
 					
-					player = (Player) sender;
-					resetStats(sender, player.getName());
+					sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to reset?"
+										+ " Type '/profession confirm reset' to confirm.");
+					confirmReset.put(name, name);
+					return true;
 				}
 			}
 			
@@ -617,10 +676,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		{
 			player.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now " + 
 					getDeterminer(main.TIERS[newTier]) + " " + main.TIERS[newTier] + " " + profession + ".");
-			
-			//If the sender is the receiver there isn't any need to notify further or create logs.
-			return;
 		}
+		else
+			return;
 
 		message = ChatColor.GOLD + sender.getName() + " has forced " + playerString + " to forget a level in " 
 				+ profession + ".";
@@ -777,10 +835,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		if (sender instanceof Player && (Player) sender != player && player != null)
 		{
 			player.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
-			
-			//If the sender is the receiver there isn't any need to notify further or create logs.
-			return;
 		}
+		else
+			return;
 
 		message = ChatColor.GOLD + sender.getName() + " has forced " + playerString + " to reset.";
 		
