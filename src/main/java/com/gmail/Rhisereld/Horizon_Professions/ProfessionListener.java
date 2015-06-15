@@ -4,6 +4,7 @@ import java.util.Set;
 
 import net.md_5.bungee.api.ChatColor;
 
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
@@ -11,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -108,8 +110,6 @@ public class ProfessionListener implements Listener
 		if (!(event.getRightClicked() instanceof Player))
 			return;
 		
-		player.sendMessage("Right-clicked on player");
-		
 		recipient = (Player) event.getRightClicked();
 		
 		//See if options are specified in the configuration file.
@@ -117,14 +117,11 @@ public class ProfessionListener implements Listener
 
     	for (final String item: items)
     	{
-    		player.sendMessage("In config: " + item);
         	
     		//Check if the item in hand fits any of the items specified in the configuration file.
     		if (player.getItemInHand().getType().toString().equalsIgnoreCase(item))
     		{
     			profession = main.config.getConfig().getString("healing." + item + ".profession");
-    			
-        		player.sendMessage("Item match");
     			
     			//Check if the amount to heal is in the config
     	    	Set <String> tiers = main.config.getConfig().getConfigurationSection("healing." + item + ".tier").getKeys(false);
@@ -156,6 +153,56 @@ public class ProfessionListener implements Listener
     			makeDelayedTask(player, recipient, playerTier, item, profession, player.getLocation(),  recipient.getLocation());
     		}
     	}
+	}
+	
+	@EventHandler(priority = EventPriority.HIGH)
+	void onBreakBlock(BlockBreakEvent event)
+	{
+		Player player = event.getPlayer();
+		Set<String> list;
+		int exp = 0;
+		String professionReq = null;
+		String tierReq = null;
+		
+		//If the player is in creative mode don't mess with the event
+		if (player.getGameMode().equals(GameMode.CREATIVE))
+			return;
+		
+		//Check if the block is contained within the config
+		for (String profession: main.PROFESSIONS)
+		{
+			for (String tier: main.TIERS)
+				if (main.config.getConfig().getConfigurationSection("blocks." + profession + "." + tier) != null)
+				{
+					list = main.config.getConfig().getConfigurationSection("blocks." + profession + "." + tier).getKeys(false);
+					for (String block: list)
+					{
+						if (event.getBlock().getType().toString().equalsIgnoreCase(block))
+						{
+							exp = main.config.getConfig().getInt("blocks." + profession + "." + tier + "." + block);
+							professionReq = profession;
+							tierReq = tier;
+							break;
+						}	
+					}
+				}
+		}
+		
+		//If not found, don't mess with the event.
+		if (professionReq == null || tierReq == null)
+			return;
+
+		//If the player doesn't have permission, cancel the event.
+		if (!professionReq.equalsIgnoreCase("unskilled")
+				&& !player.hasPermission("horizon_professions." + professionReq + "." + tierReq))
+		{
+			player.sendMessage(ChatColor.RED + "You aren't skilled enough to break that!");
+			event.setCancelled(true);
+		}
+		//Otherwise award some experience
+		else
+			main.gainExperience(player, professionReq, exp);
+			
 	}
 	
 	void makeDelayedTask(final Player player, final Player recipient, final int playerTier, final String item, 

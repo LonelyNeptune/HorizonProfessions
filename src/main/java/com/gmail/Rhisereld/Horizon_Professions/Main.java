@@ -192,7 +192,6 @@ public final class Main extends JavaPlugin implements CommandExecutor
 		for (String savedPlayer: savedPlayers)
 		{
 			player = getServer().getPlayer(savedPlayer);
-			getLogger().info(savedPlayer);
 			
 			//Player is offline
 			if (player == null)
@@ -239,8 +238,6 @@ public final class Main extends JavaPlugin implements CommandExecutor
     	//New time
 		time = System.currentTimeMillis();
 		data.getConfig().set("lasttimeupdated", time);
-		
-		getLogger().info("Update successful.");
 	}
     
 	/*

@@ -97,3 +97,8 @@ tiers:
 fatigue_time: 86400000
 max_exp: 100
 claimable_tiers: 3
+blocks:
+  labourer:
+    novice:
+      dirt: 1
+      stone: 2
