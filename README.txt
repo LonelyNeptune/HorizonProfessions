@@ -56,17 +56,17 @@ All configuration files for Bukkit use YAML format: http://yaml.org/
 
 The following options in the configuration file are explained:
 
-professions:			< ---	List of profession names that you want on 
-  - engineer					the server
+professions:            < ---   List of profession names that you want on 
+  - engineer                    the server
   - medic
   - labourer
   - pilot
   - hunter
-tiers:					< ---	List of tiers and their names that you want
-  0:					< ---	Ensure that they are numbered 0 to maximum tier
-    name: unskilled		< ---	Name of the tier
-    maxlevel: 1			< ---	The number of levels a player will gain in this
-  1:							tier before they progress to the next one.
+tiers:                  < ---   List of tiers and their names that you want
+  0:                    < ---   Ensure that they are numbered 0 to maximum tier
+    name: unskilled     < ---   Name of the tier
+    maxlevel: 1         < ---   The number of levels a player will gain in this
+  1:                    < ---   tier before they progress to the next one.
     name: novice
     maxlevel: 20
   2:
@@ -74,44 +74,44 @@ tiers:					< ---	List of tiers and their names that you want
     maxlevel: 40
   3:
     name: expert
-fatigue_time: 86400000	< ---	Time of the level-up cooldown in ticks 
-								(20 ticks = 1 second)
-max_exp: 100			< ---	The amount of experience a player will gain in 
-								any level before levelling up
-claimable_tiers: 3		< ---	The amount of free tiers a new player can claim. 
-								Set to 0 to disable this.
-tier_cap: 6				< ---	The total amount of tiers a player may have in 
-								all professions.
-slaying:				< --- 	Configuration for slaying monsters
-  hunter:				< ---	The profession that you want these creatures to 
-  								apply to.
-    chicken: 1			< ---   The creature that you want this value to apply 
-    							to (chicken) and the experience to be awarded (1)
+fatigue_time: 86400000  < ---   Time of the level-up cooldown in ticks 
+                                (20 ticks = 1 second)
+max_exp: 100            < ---   The amount of experience a player will gain in 
+                                any level before levelling up
+claimable_tiers: 3      < ---   The amount of free tiers a new player can claim. 
+                                Set to 0 to disable this.
+tier_cap: 6             < ---   The total amount of tiers a player may have in 
+                                all professions.
+slaying:                < ---   Configuration for slaying monsters
+  hunter:               < ---   The profession that you want these creatures to 
+                                apply to.
+    chicken: 1          < ---   The creature that you want this value to apply 
+                                to (chicken) and the experience to be awarded (1)
     pig: 1
-  pilot:				< ---	Multiple professions can be specified
-    sheep: 1			< ---	Multiple creatures too
+  pilot:                < ---   Multiple professions can be specified
+    sheep: 1            < ---   Multiple creatures too
     cow: 1
-healing:				< ---	Configuration for healing other players
-  paper:				< ---	The item you want players to use to heal (this 
-  								will consume the item)
-    profession: medic	< ---	The profession you want to be required for this 
-    							item
-    exp: 5				< ---	The experience to be awarded
+healing:                < ---   Configuration for healing other players
+  paper:                < ---   The item you want players to use to heal (this 
+                                will consume the item)
+    profession: medic   < ---   The profession you want to be required for this 
+                                item
+    exp: 5              < ---   The experience to be awarded
     tier:				
-      novice: 2			< ---	The amount of HP to heal for each tier.
-      adept: 4			< ---	(Note: unlisted tiers will NOT be able to heal!)
+      novice: 2         < ---   The amount of HP to heal for each tier.
+      adept: 4          < ---   (Note: unlisted tiers will NOT be able to heal!)
       expert: 6
-recipes:				< ---	Configuration for RecipeManager integration
-  engineer:				< ---	Profession you want these recipes to apply to.
-    diode: 5			< ---	The name of the custom recipe (diode) and the 
-    							amount of experience to award (5).
-blocks:					< ---	Configuration for block breaking
-  labourer:				< ---	The profession you want to be required to break 
-  								the following blocks
-    novice:				< ---	The tier you want to be required to break the 
-    							following blocks
-      dirt: 1			< ---	The block you want to restrict (dirt) and the 
-      							amount of experience to award (1).
+recipes:                < ---   Configuration for RecipeManager integration
+  engineer:             < ---   Profession you want these recipes to apply to.
+    diode: 5            < ---   The name of the custom recipe (diode) and the 
+                                amount of experience to award (5).
+blocks:                 < ---   Configuration for block breaking
+  labourer:             < ---   The profession you want to be required to break 
+                                the following blocks
+    novice:             < ---   The tier you want to be required to break the 
+                                following blocks
+      dirt: 1           < ---   The block you want to restrict (dirt) and the 
+                                amount of experience to award (1).
     adept:
       stone: 2
       
