@@ -18,6 +18,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 public class ProfessionCommandExecutor implements CommandExecutor
 {
@@ -29,6 +30,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	private final int CONSOLE_HEADER_WIDTH = 25;	//The width of the header for the console.
 	
 	Main main;									//A reference to main.
+	Plugin plugin = Main.plugin;
 	
 	HashMap<String, String> confirmForget = new HashMap<String, String>();	//Used to confirm commands
 	HashMap<String, String> confirmReset = new HashMap<String, String>();
@@ -77,14 +79,14 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				
 				//profession confirm forget
 				if (args[1].equalsIgnoreCase("forget"))
-				{
-					arguments = confirmForget.get(name).split(" ");
-					
-					if (arguments == null)
+				{					
+					if (confirmForget.get(name) == null)
 					{
-						sender.sendMessage(ChatColor.YELLOW + "What are you confirming?");
+						sender.sendMessage(ChatColor.YELLOW + "There is nothing for you to confirm.");
 						return true;
 					}
+					
+					arguments = confirmForget.get(name).split(" ");
 
 					forgetTier(sender, arguments[0], arguments[1]);
 					confirmForget.remove(name);
@@ -95,7 +97,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				{
 					if (confirmReset.get(name) == null)
 					{
-						sender.sendMessage(ChatColor.YELLOW + "What are you confirming?");
+						sender.sendMessage(ChatColor.YELLOW + "There is nothing for you to confirm?");
 						return true;
 					}
 					
@@ -169,6 +171,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 						sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to force " + args[2] + " to forget a tier?"
 											+ " Type '/profession confirm forget' to confirm.");
 						confirmForget.put(name, args[1] + " " + args[2]);
+						confirmForgetTimeout(sender, name);
 						return true;
 					}
 					//Nope
@@ -196,6 +199,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to forget a tier?"
 										+ " Type '/profession confirm forget' to confirm.");
 					confirmForget.put(name, args[1] + " " + name);
+					confirmForgetTimeout(sender, name);
 					return true;
 				}
 				
@@ -291,6 +295,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 						sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to force " + args[1] + " to reset?"
 								+ " Type '/profession confirm reset' to confirm.");
 						confirmReset.put(name, args[1]);
+						confirmResetTimeout(sender, name);
 						return true;
 					}
 					//Nope
@@ -318,6 +323,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to reset?"
 										+ " Type '/profession confirm reset' to confirm.");
 					confirmReset.put(name, name);
+					confirmResetTimeout(sender, name);
 					return true;
 				}
 			}
@@ -1014,4 +1020,28 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		        out.close();
 		} 
     }
+	
+	private void confirmForgetTimeout(final CommandSender sender, final String key)
+	{
+		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(Main.plugin, new Runnable()
+		{
+			public void run() 
+			{
+				confirmForget.remove(key);
+				sender.sendMessage(ChatColor.YELLOW + "You timed out.");
+			}			
+		} , 200);
+	}
+	
+	private void confirmResetTimeout(final CommandSender sender, final String key)
+	{
+		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(Main.plugin, new Runnable()
+		{
+			public void run() 
+			{
+				confirmReset.remove(key);
+				sender.sendMessage(ChatColor.YELLOW + "You timed out.");
+			}			
+		} , 200);
+	}
 }
