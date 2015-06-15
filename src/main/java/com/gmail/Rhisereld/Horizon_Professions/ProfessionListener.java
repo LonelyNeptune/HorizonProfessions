@@ -50,7 +50,7 @@ public class ProfessionListener implements Listener
 	public void onPlayerQuit(PlayerQuitEvent event)
 	{
 		Player player = event.getPlayer();
-		
+
 		//Save player stats
 		main.savePlayerStats(player);
 		main.removePlayerStats(player);
@@ -63,8 +63,9 @@ public class ProfessionListener implements Listener
 		Entity entity = event.getEntity();
 		EntityDamageByEntityEvent dEvent;
 		Player player;
-		String profession;
-		int exp;
+		String profession = null;
+		int exp = 0;
+		Set<String> list;
 		
 		//Check that it was killed by another entity
 		if(!(entity.getLastDamageCause() instanceof EntityDamageByEntityEvent))
@@ -78,22 +79,25 @@ public class ProfessionListener implements Listener
 		
 		player = (Player) dEvent.getDamager();
 		
-		//See if options are specified in the configuration file.
-    	Set <String> monsters = main.config.getConfig().getConfigurationSection("slaying.").getKeys(false);
-    	
-    	for (String monster: monsters)
-    		//It's in the config
-    		if (entity.getType().toString().equalsIgnoreCase(monster))
-    		{
-    			profession = main.config.getConfig().getString("slaying." + monster + ".profession");
-    			exp = main.config.getConfig().getInt("slaying." + monster + ".exp");
-    			
-    			//Check that the player doesn't have practice fatigue.
-    			if (main.getPracticeFatigue(player, profession) > 0)
-    				continue;
-    			
-    			main.gainExperience(player, profession, exp);
-    		}
+		//Check if the monster is contained within the config
+		for (String professionConfig: main.PROFESSIONS)
+		{
+			if (main.config.getConfig().getConfigurationSection("slaying." + professionConfig) != null)
+			{
+				list = main.config.getConfig().getConfigurationSection("slaying." + professionConfig).getKeys(false);
+				for (String monster: list)
+				{
+					if (entity.getType().toString().equalsIgnoreCase(monster))
+					{
+		    			profession = professionConfig;
+		    			exp = main.config.getConfig().getInt("slaying." + profession + "." + monster);
+						break;
+					}	
+				}
+			}
+		}
+		
+    	main.gainExperience(player, profession, exp);
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
@@ -103,8 +107,6 @@ public class ProfessionListener implements Listener
 		final Player recipient;
 		String profession;
 		int playerTier = -1;
-		
-		player.sendMessage("PlayerInteractEntityEvent");
 		
 		//Check that the player right-clicked on another player.
 		if (!(event.getRightClicked() instanceof Player))

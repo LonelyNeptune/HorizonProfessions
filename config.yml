@@ -1,70 +1,27 @@
 slaying:
-  chicken:
-    profession: hunter
-    exp: 1
-  pig:
-    profession: hunter
-    exp: 1
-  sheep:
-    profession: hunter
-    exp: 1
-  cow:
-    profession: hunter
-    exp: 1
-  squid:
-    profession: hunter
-    exp: 1
-  mushroom_cow:
-    profession: hunter
-    exp: 1
-  spider:
-    profession: hunter
-    exp: 5
-  creeper:
-    profession: hunter
-    exp: 10
-  skeleton:
-    profession: hunter
-    exp: 10
-  giant:
-    profession: hunter
-    exp: 50
-  slime:
-    profession: hunter
-    exp: 5
-  ghast:
-    profession: hunter
-    exp: 50
-  pig_zombie:
-    profession: hunter
-    exp: 10
-  enderman:
-    profession: hunter
-    exp: 10
-  cave_spider:
-    profession: hunter
-    exp: 10
-  silverfish:
-    profession: hunter
-    exp: 5
-  blaze:
-    profession: hunter
-    exp: 10
-  magma_cube:
-    profession: hunter
-    exp: 10
-  ender_dragon:
-    profession: hunter
-    exp: 50
-  wolf:
-    profession: hunter
-    exp: 10
-  snowman:
-    profession: hunter
-    exp: 1
-  villager:
-    profession: hunter
-    exp: 1
+  hunter:
+    chicken: 1
+    pig: 1
+    sheep: 1
+    cow: 1
+    squid: 1
+    mushroom_cow: 1
+    spider: 1
+    creeper: 1
+    skeleton: 1
+    giant: 1
+    slime: 1
+    ghast: 1
+    pig_zombie: 1
+    enderman: 1
+    cave_spider: 1
+    silverfish: 1
+    blaze: 1
+    magma_cube: 1
+    ender_dragon: 1
+    wolf: 1
+    snowman: 1
+    villager: 1
 healing:
   paper:
     profession: medic
