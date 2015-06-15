@@ -10,7 +10,6 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
@@ -19,7 +18,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class Main extends JavaPlugin implements CommandExecutor 
+public final class Main extends JavaPlugin
 {
 	static Plugin plugin;						//Some functions require a reference to the plugin in args.
 	static JavaPlugin javaPlugin;
@@ -141,6 +140,12 @@ public final class Main extends JavaPlugin implements CommandExecutor
     	saveAllStats();
     	removeAllStats();
     	config.saveConfig();
+    	PROFESSIONS = null;
+    	MAX_LEVEL = null;
+    	config = null;
+    	data = null;
+    	perms = null;
+    	javaPlugin = null;
     	plugin = null;
     }
     
