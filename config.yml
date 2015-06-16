@@ -20,6 +20,7 @@ fatigue_time: 86400000
 max_exp: 100
 claimable_tiers: 3
 tier_cap: 6
+place_cooldown: 3600000
 slaying:
   hunter:
     chicken: 1

@@ -1,9 +1,9 @@
 package com.gmail.Rhisereld.Horizon_Professions;
 
+import java.util.List;
 import java.util.Set;
 
-import net.md_5.bungee.api.ChatColor;
-
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -13,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -20,6 +21,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
+import org.bukkit.metadata.Metadatable;
 import org.bukkit.plugin.Plugin;
 
 /*
@@ -101,6 +105,7 @@ public class ProfessionListener implements Listener
     	main.gainExperience(player, profession, exp);
 	}
 	
+	//Called when a player right clicks something
 	@EventHandler(priority = EventPriority.MONITOR)
 	void onPlayerInteract(PlayerInteractEntityEvent event)
 	{
@@ -155,6 +160,7 @@ public class ProfessionListener implements Listener
     	}
 	}
 	
+	//Called when a player right-clicks
 	@EventHandler(priority = EventPriority.MONITOR)
 	void onRightClick(PlayerInteractEvent event)
 	{
@@ -204,6 +210,7 @@ public class ProfessionListener implements Listener
     	}
 	}
 	
+	//Called when a block is broken
 	@EventHandler(priority = EventPriority.HIGH)
 	void onBreakBlock(BlockBreakEvent event)
 	{
@@ -263,9 +270,17 @@ public class ProfessionListener implements Listener
 			event.setCancelled(true);
 		}
 		//Otherwise award some experience
-		else
+		//But only do it if the block wasn't placed recently.
+		else if (event.getBlock().hasMetadata("timeplaced") 
+				&& (getMetadataLong(event.getBlock(), "timeupdated", plugin) - System.currentTimeMillis()) > main.PLACE_COOLDOWN)
 			main.gainExperience(player, professionReq, exp);
-			
+	}
+	
+	//Called when a block is placed.
+	@EventHandler (priority = EventPriority.MONITOR)
+	void onBlockPlace(BlockPlaceEvent event)
+	{
+		event.getBlock().setMetadata("timeplaced", new FixedMetadataValue(plugin, System.currentTimeMillis()));
 	}
 	
 	void makeDelayedTask(final Player player, final Player recipient, final int playerTier, final String item, 
@@ -323,5 +338,26 @@ public class ProfessionListener implements Listener
 	    			player.sendMessage(ChatColor.YELLOW + "You bandaged your wounds.");
 			  }
 			}, 20);
+	}
+	
+	/*
+	 * getMetadataLong() retrieves metadata from an object using a key.
+	 * @param object - the object the metadata is attached to.
+	 * @param key - the key the metadata is under.
+	 * @param plugin - a reference to this plugin
+	 * @return - the metadata attached to the player that is associated with the key given.
+	 */
+	private long getMetadataLong(Metadatable object, String key, Plugin plugin) 
+	{
+		List<MetadataValue> values = object.getMetadata(key);  
+		for (MetadataValue value : values) 
+		{
+			// Plugins are singleton objects, so using == is safe here
+			if (value.getOwningPlugin() == plugin) 
+			{
+				return value.asLong();
+			}
+		}
+		return 0;
 	}
 }

@@ -31,6 +31,7 @@ public final class Main extends JavaPlugin
 	int MAX_EXP;								//Maximum experience before level-up.
 	int CLAIMABLE_TIERS;						//The number of free tiers a new player may claim.
 	int TIER_CAP;								//The total nubmer of tiers a player may have in all professions
+	long PLACE_COOLDOWN = 0;					//Cooldown preventing experience gained from recently placed blocks.
 	
 	long time = 0;								//Time of last fatigue update.
 	
@@ -86,6 +87,7 @@ public final class Main extends JavaPlugin
     	MAX_EXP = config.getConfig().getInt("max_exp");
     	CLAIMABLE_TIERS = config.getConfig().getInt("claimable_tiers");
     	TIER_CAP = config.getConfig().getInt("tier_cap");
+    	PLACE_COOLDOWN = config.getConfig().getInt("place_cooldown");
 
     	//Vault integration for permissions
         if (!setupPermissions()) 
