@@ -212,6 +212,7 @@ public class ProfessionListener implements Listener
 		int exp = 0;
 		String professionReq = null;
 		String tierReq = null;
+		int tierInt = -1;
 		
 		//If the player is in creative mode don't mess with the event
 		if (player.getGameMode().equals(GameMode.CREATIVE))
@@ -240,10 +241,23 @@ public class ProfessionListener implements Listener
 		//If not found, don't mess with the event.
 		if (professionReq == null || tierReq == null)
 			return;
+		
+		//Check that the tier requirement is an actual tier.
+		for (int i = 0; i < main.TIERS.length - 1; i++)
+		{
+			if (tierReq.equalsIgnoreCase(main.TIERS[i]))
+				tierInt = i;
+		}
+		
+		//Be nice and let the administrator know that they messed up the config.
+		if (tierInt == -1)
+		{
+			main.getLogger().severe("Tier not found - " + tierReq);
+			return;
+		}
 
-		//If the player doesn't have permission, cancel the event.
-		if (!professionReq.equalsIgnoreCase("unskilled")
-				&& !player.hasPermission("horizon_professions." + professionReq + "." + tierReq))
+		//If the player doesn't have at least the tier, cancel the event.
+		if (main.getTier(player, professionReq) < tierInt)
 		{
 			player.sendMessage(ChatColor.RED + "You aren't skilled enough to break that!");
 			event.setCancelled(true);

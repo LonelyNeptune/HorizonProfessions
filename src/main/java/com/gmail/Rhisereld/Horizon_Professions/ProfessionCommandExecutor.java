@@ -395,7 +395,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			headerWidth = HEADER_WIDTH;
 		}
 
-		sender.sendMessage("----------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">----------------");
+		sender.sendMessage("--------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">--------------");
 		sender.sendMessage(ChatColor.GOLD + centreText(" Viewing " + name, chatboxWidth));
 		
 		for (String profession: main.PROFESSIONS)
