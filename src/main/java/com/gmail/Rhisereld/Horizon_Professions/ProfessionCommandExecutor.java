@@ -22,11 +22,11 @@ import org.bukkit.plugin.Plugin;
 
 public class ProfessionCommandExecutor implements CommandExecutor
 {
-	private final int PROGRESS_BAR_BLOCKS = 33; //The number of blocks that appear in the progress bar for command /profession view
-	private final int CHATBOX_WIDTH = 44; 	//The number of spaces in one line of the chatbox. May be unreliable for custom
+	private final int PROGRESS_BAR_BLOCKS = 30; //The number of blocks that appear in the progress bar for command /profession view
+	private final int CHATBOX_WIDTH = 40; 	//The number of spaces in one line of the chatbox. May be unreliable for custom
 											//fonts
 	private final int CONSOLE_WIDTH = 35;	//The number of spaces in one line of the console.
-	private final int HEADER_WIDTH = 31; 	//The width of the header for each profession when viewing stats.
+	private final int HEADER_WIDTH = 30; 	//The width of the header for each profession when viewing stats.
 	private final int CONSOLE_HEADER_WIDTH = 25;	//The width of the header for the console.
 	
 	Main main;									//A reference to main.
