@@ -33,6 +33,7 @@ public class ProfessionListener implements Listener
 {
 	static Plugin plugin = Main.plugin;	//A reference to this plugin.
 	Main main;							//A reference to main.
+	boolean isHealingOther;				//Used to cancel healing self if the player is healing another.
 	
 	//Constructor passing a reference to main.
 	public ProfessionListener(Main main) 
@@ -114,6 +115,8 @@ public class ProfessionListener implements Listener
 		String profession;
 		int playerTier = -1;
 		
+		isHealingOther = true;
+		
 		//Check that the player right-clicked on another player.
 		if (!(event.getRightClicked() instanceof Player))
 			return;
@@ -167,6 +170,13 @@ public class ProfessionListener implements Listener
 		Player player = event.getPlayer();
 		String profession;
 		int playerTier = -1;
+		
+		//If the player is healing another person, they're not healing themself.
+		if (isHealingOther)
+		{
+			isHealingOther = false;
+			return;
+		}
 		
 		//See if options are specified in the configuration file.
     	Set <String> items = main.config.getConfig().getConfigurationSection("healing.").getKeys(false);
