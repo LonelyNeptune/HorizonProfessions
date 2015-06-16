@@ -3,6 +3,8 @@ package com.gmail.Rhisereld.Horizon_Professions;
 import net.milkbowl.vault.permission.Permission;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -36,6 +38,8 @@ public final class Main extends JavaPlugin
 	ConfigAccessor config;						//Configuration file.
 	ConfigAccessor data;						//Data file.
 	
+	Set<UUID> claimNotified;
+	
 	/*
 	 * onEnable() is called when the server is started or the plugin is enabled.
 	 * It should contain everything that the plugin needs for its initial setup.
@@ -46,6 +50,7 @@ public final class Main extends JavaPlugin
     public void onEnable() 
     {
     	plugin = this;
+    	claimNotified = new HashSet<UUID>();
     	
     	//Setup files for configuration and data storage.
     	config = new ConfigAccessor(this, "config.yml");
@@ -144,6 +149,7 @@ public final class Main extends JavaPlugin
     	MAX_LEVEL = null;
     	config = null;
     	data = null;
+    	claimNotified = null;
     	perms = null;
     	javaPlugin = null;
     	plugin = null;
@@ -532,6 +538,8 @@ public final class Main extends JavaPlugin
 	 */
 	public void gainExperience(Player player, String profession, int exp)
 	{		
+		UUID uuid = player.getUniqueId();
+		
 		//Player cannot progress past maximum tier.
 		if (getTier(player, profession) >= TIERS.length-1)
 			return;
@@ -540,9 +548,23 @@ public final class Main extends JavaPlugin
 		if (getTotalTiers(player) >= TIER_CAP)
 			return;
 		
+		//Player cannot progress if they haven't allocated their tiers.
+		//Also, don't spam the player.
+		if (getClaimed(player) < CLAIMABLE_TIERS)
+		{
+			if (!claimNotified.contains(uuid))
+			{
+				player.sendMessage(ChatColor.RED + "You won't be able to use Professions until you allocate all your tiers!"
+						+ " Type /profession for more information.");	
+				claimNotified.add(uuid);
+			}
+			return;
+		}
+		
 		//If player is fatigued, return.
 		if (getPracticeFatigue(player, profession) > 0)
 			return;
+		
 		
 		int newExp = exp + getExp(player, profession);
 
