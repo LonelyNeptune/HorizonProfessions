@@ -1027,8 +1027,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		{
 			public void run() 
 			{
-				confirmForget.remove(key);
-				sender.sendMessage(ChatColor.YELLOW + "You timed out.");
+				if (confirmForget.containsKey(key))
+				{
+					confirmForget.remove(key);
+					sender.sendMessage(ChatColor.YELLOW + "You timed out.");
+				}
 			}			
 		} , 200);
 	}
@@ -1039,8 +1042,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		{
 			public void run() 
 			{
-				confirmReset.remove(key);
-				sender.sendMessage(ChatColor.YELLOW + "You timed out.");
+				if (confirmReset.containsKey(key))
+				{
+					confirmReset.remove(key);
+					sender.sendMessage(ChatColor.YELLOW + "You timed out.");
+				}
 			}			
 		} , 200);
 	}
