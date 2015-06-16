@@ -16,6 +16,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -37,7 +38,7 @@ public class ProfessionListener implements Listener
 
 	//Called when a player logs onto the server.
 	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerJoin(PlayerJoinEvent event)
+	void onPlayerJoin(PlayerJoinEvent event)
 	{
 		Player player = event.getPlayer();
 		
@@ -47,7 +48,7 @@ public class ProfessionListener implements Listener
 	
 	//Called when a player logs off the server.
 	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerQuit(PlayerQuitEvent event)
+	void onPlayerQuit(PlayerQuitEvent event)
 	{
 		Player player = event.getPlayer();
 
@@ -58,7 +59,7 @@ public class ProfessionListener implements Listener
 	
 	//Called when a monster or player dies.
 	@EventHandler(priority = EventPriority.MONITOR)
-	public void onMonsterDeath(EntityDeathEvent event)
+	void onMonsterDeath(EntityDeathEvent event)
 	{
 		Entity entity = event.getEntity();
 		EntityDamageByEntityEvent dEvent;
@@ -101,10 +102,10 @@ public class ProfessionListener implements Listener
 	}
 	
 	@EventHandler(priority = EventPriority.MONITOR)
-	public void onPlayerInteract(PlayerInteractEntityEvent event)
+	void onPlayerInteract(PlayerInteractEntityEvent event)
 	{
-		final Player player = event.getPlayer();
-		final Player recipient;
+		Player player = event.getPlayer();
+		Player recipient;
 		String profession;
 		int playerTier = -1;
 		
@@ -130,10 +131,7 @@ public class ProfessionListener implements Listener
     	    	
     	    	for (String tier: tiers)
     	    		if (main.TIERS[main.getTier(player, profession)].equalsIgnoreCase(tier))
-    	    		{
     	    			playerTier = main.config.getConfig().getInt("healing." + item + ".tier." + tier);
-    	    			player.sendMessage(Integer.toString(playerTier));
-    	    		}
 
     	    	//If it isn't in the config just stop.
     	    	if (playerTier == -1)
@@ -153,6 +151,55 @@ public class ProfessionListener implements Listener
     			
     			//Schedule the task in one second.
     			makeDelayedTask(player, recipient, playerTier, item, profession, player.getLocation(),  recipient.getLocation());
+    		}
+    	}
+	}
+	
+	@EventHandler(priority = EventPriority.MONITOR)
+	void onRightClick(PlayerInteractEvent event)
+	{
+		Player player = event.getPlayer();
+		String profession;
+		int playerTier = -1;
+		
+		//See if options are specified in the configuration file.
+    	Set <String> items = main.config.getConfig().getConfigurationSection("healing.").getKeys(false);
+
+    	for (final String item: items)
+    	{
+        	
+    		//Check if the item in hand fits any of the items specified in the configuration file.
+    		if (player.getItemInHand().getType().toString().equalsIgnoreCase(item))
+    		{
+    			profession = main.config.getConfig().getString("healing." + item + ".profession");
+    			
+    			//Check if the amount to heal is in the config
+    	    	Set <String> tiers = main.config.getConfig().getConfigurationSection("healing." + item + ".tier").getKeys(false);
+    	    	
+    	    	for (String tier: tiers)
+    	    		if (main.TIERS[main.getTier(player, profession)].equalsIgnoreCase(tier))
+    	    		{
+    	    			playerTier = main.config.getConfig().getInt("healing." + item + ".tier." + tier);
+    	    		}
+
+    	    	//If it isn't in the config just stop.
+    	    	if (playerTier == -1)
+    	    	{
+    	    		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
+    	    		return;
+    	    	}
+    	    	
+    			//Check that the player has missing health.
+    			if (player.getHealth() >= player.getMaxHealth())
+    			{
+    				player.sendMessage(ChatColor.YELLOW + "You do not need bandaging!");
+    				return;
+    			}  
+    			
+    			player.sendMessage(ChatColor.YELLOW + "Bandaging...");
+    			
+    			//Schedule the task in one second.
+    			makeDelayedTask(player, player, playerTier, item, profession, player.getLocation(),  player.getLocation());
     		}
     	}
 	}
@@ -228,13 +275,15 @@ public class ProfessionListener implements Listener
 				}
 				
 				//Check that the recipient is still in roughly the same location
-				if (Math.abs(recipient.getLocation().getX() - recipientLoc.getX()) > 1
+				//Skip if self-heal
+				if (!player.equals(recipient))
+					if (Math.abs(recipient.getLocation().getX() - recipientLoc.getX()) > 1
 						|| Math.abs(recipient.getLocation().getY() - recipientLoc.getY()) > 1
 						|| Math.abs(recipient.getLocation().getZ() - recipientLoc.getZ()) > 1)
-				{
-					player.sendMessage(ChatColor.YELLOW + "You cannot bandage your patient while they are moving!");
-					return;
-				}
+					{
+						player.sendMessage(ChatColor.YELLOW + "You cannot bandage your patient while they are moving!");
+						return;
+					}
 				
 				//Remove item from player's inventory.
 	    		player.getInventory().removeItem(new ItemStack(Material.getMaterial(item.toUpperCase()), 1));
@@ -242,8 +291,6 @@ public class ProfessionListener implements Listener
 	    			
 	    		//Heal the other player.
 	    		addHp = main.config.getConfig().getDouble("healing." + item + ".tier" + playerTier);
-	    		player.sendMessage(Double.toString(addHp));
-	    		player.sendMessage(Double.toString(recipient.getHealth()));
 	    		recipient.setHealth(recipient.getHealth() + addHp);
 
 	    		//Award experience.
@@ -253,8 +300,13 @@ public class ProfessionListener implements Listener
 	    			main.gainExperience(player,  profession, exp);
 	    			
 	    		//Notify both parties.
-	    		player.sendMessage(ChatColor.YELLOW + "You bandaged " + recipient.getName() + "'s wounds.");
-	    		recipient.sendMessage(ChatColor.YELLOW + player.getName() + " bandaged your wounds.");
+	    		if (!player.equals(recipient))
+	    		{	    		
+	    			player.sendMessage(ChatColor.YELLOW + "You bandaged " + recipient.getName() + "'s wounds.");
+	    			recipient.sendMessage(ChatColor.YELLOW + player.getName() + " bandaged your wounds.");
+	    		}
+	    		else
+	    			player.sendMessage(ChatColor.YELLOW + "You bandaged your wounds.");
 			  }
 			}, 20);
 	}

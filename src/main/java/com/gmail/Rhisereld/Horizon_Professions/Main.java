@@ -1,13 +1,12 @@
 package com.gmail.Rhisereld.Horizon_Professions;
 
-import net.milkbowl.vault.permission.Permission;
-
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
