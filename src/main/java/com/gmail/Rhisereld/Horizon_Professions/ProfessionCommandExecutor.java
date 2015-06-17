@@ -1,6 +1,5 @@
 package com.gmail.Rhisereld.Horizon_Professions;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -997,7 +996,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 */
 	private void createLog(String message, String filename)
     {
-		File file = new File("plugins/horizon_professions/" + filename);
+		File saveTo = new File("plugins\\horizon_professions\\" + filename);
 		long time = System.currentTimeMillis();
 		Timestamp timestamp = new Timestamp(time);
 		PrintWriter out = null;
@@ -1005,19 +1004,35 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		//Add timestamp to the message.
 		message = timestamp.toString() + " - " + message;
 
-		try 
+		try
 		{
-		    out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)));
-		    out.println(message);
-		}
-		catch (IOException e) 
+			File dataFolder = main.getDataFolder();
+			if(!dataFolder.exists())
+			{
+				dataFolder.mkdir();
+			}
+	 
+			if (!saveTo.exists())
+			{
+				saveTo.createNewFile();
+			}
+	 
+			FileWriter fw = new FileWriter(saveTo, true);
+			PrintWriter pw = new PrintWriter(fw);
+	 
+			pw.println(message);
+			pw.close();
+	 
+		} 
+		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
+	 
 		finally
 		{
 		    if(out != null)
-		        out.close();
+		    out.close();
 		} 
     }
 	
