@@ -239,14 +239,14 @@ public class ProfessionListener implements Listener
 		for (String profession: main.PROFESSIONS)
 		{
 			for (String tier: main.TIERS)
-				if (main.config.getConfig().getConfigurationSection("blocks." + profession + "." + tier) != null)
+				if (main.config.getConfig().getConfigurationSection("breakblocks." + profession + "." + tier) != null)
 				{
-					list = main.config.getConfig().getConfigurationSection("blocks." + profession + "." + tier).getKeys(false);
+					list = main.config.getConfig().getConfigurationSection("breakblocks." + profession + "." + tier).getKeys(false);
 					for (String block: list)
 					{
 						if (event.getBlock().getType().toString().equalsIgnoreCase(block))
 						{
-							exp = main.config.getConfig().getInt("blocks." + profession + "." + tier + "." + block);
+							exp = main.config.getConfig().getInt("breakblocks." + profession + "." + tier + "." + block);
 							professionReq = profession;
 							tierReq = tier;
 							break;
@@ -290,7 +290,63 @@ public class ProfessionListener implements Listener
 	@EventHandler (priority = EventPriority.MONITOR)
 	void onBlockPlace(BlockPlaceEvent event)
 	{
+		Player player = event.getPlayer();
+		Set<String> list;
+		int exp = 0;
+		String professionReq = null;
+		String tierReq = null;
+		int tierInt = -1;
+		
+		//Record the time placed so that placing cooldowns can be implemented.
 		event.getBlock().setMetadata("timeplaced", new FixedMetadataValue(plugin, System.currentTimeMillis()));
+		
+		//Check if the block is contained within the config
+		for (String profession: main.PROFESSIONS)
+		{
+			for (String tier: main.TIERS)
+				if (main.config.getConfig().getConfigurationSection("placeblocks." + profession + "." + tier) != null)
+				{
+					list = main.config.getConfig().getConfigurationSection("placeblocks." + profession + "." + tier).getKeys(false);
+					for (String block: list)
+					{
+						if (event.getBlock().getType().toString().equalsIgnoreCase(block))
+						{
+							exp = main.config.getConfig().getInt("placeblocks." + profession + "." + tier + "." + block);
+							professionReq = profession;
+							tierReq = tier;
+							break;
+						}
+					}
+				}
+		}
+		
+		//If not found, don't mess with the event.
+		if (professionReq == null || tierReq == null)
+			return;
+		
+		//Check that the tier requirement is an actual tier.
+		for (int i = 0; i < main.TIERS.length - 1; i++)
+		{
+			if (tierReq.equalsIgnoreCase(main.TIERS[i]))
+				tierInt = i;
+		}
+		
+		//Be nice and let the administrator know that they messed up the config.
+		if (tierInt == -1)
+		{
+			main.getLogger().severe("Tier not found - " + tierReq);
+			return;
+		}
+
+		//If the player doesn't have at least the tier, cancel the event.
+		if (main.getTier(player, professionReq) < tierInt)
+		{
+			player.sendMessage(ChatColor.RED + "You aren't skilled enough to place that!");
+			event.setCancelled(true);
+		}
+		//Otherwise award some experience
+		else
+			main.gainExperience(player, professionReq, exp);
 	}
 	
 	void makeDelayedTask(final Player player, final Player recipient, final int playerTier, final String item, 

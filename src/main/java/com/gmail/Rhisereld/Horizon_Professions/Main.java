@@ -128,7 +128,6 @@ public final class Main extends JavaPlugin
 		{
 			public void run() 
 			{
-				getLogger().info("Updating fatigue values.");
 				updateFatigue();
 			}			
 		} , 20, 12000);

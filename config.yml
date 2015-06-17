@@ -56,8 +56,13 @@ healing:
 recipes:
   engineer:
     diode: 5
-blocks:
+breakblocks:
   labourer:
     novice:
       dirt: 1
       stone: 2
+placeblocks:
+  labourer:
+    novice:
+      wheat: 1
+      melon_stem: 1
