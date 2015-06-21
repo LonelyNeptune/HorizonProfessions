@@ -177,12 +177,12 @@ DEVELOPER API
 It is possible for other plugins to interact with Horizon Professions. 
 
 - Add Horizon_Professions.jar to your build path as an external jar and import 
-	"com.gmail.Rhisereld.Horizon_Professions".
+	"com.gmail.Rhisereld.Horizon_Professions.ProfessionAPI".
 - If your plugin depends on Horizon Professions to function, you should add 
 	"depend: [Horizon_Professions]" to your plugin.yml.
 	Otherwise you may want to add softdepend: [Horizon_Professions] to ensure 
 	your plugin loads second.
-- Create a reference to Main of Horizon_Professions.
+- Create a ProfessionAPI object.
 - Use the public methods available.
 
 Methods available are documented at: 
@@ -198,11 +198,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.gmail.Rhisereld.Horizon_Professions.Main;
+import com.gmail.Rhisereld.Horizon_Professions.ProfessionAPI;
 
 public class Driver extends JavaPlugin implements CommandExecutor
 {
-	Main professions;
+	ProfessionAPI professions;
 	
 	@Override
 	public void onEnable()
@@ -210,11 +210,11 @@ public class Driver extends JavaPlugin implements CommandExecutor
         if (getServer().getPluginManager().isPluginEnabled("Horizon_Professions"))
         {
         	getLogger().info("RecipeManager hooked, recipe support enabled.");
-        	professions = new Main();
+        	professions = new ProfessionAPI();
         }
         else
         	getLogger().severe(String.format("Support disabled due to no 
-        		Horizon_Professions dependency found!", 
+        								Horizon_Professions dependency found!", 
         			getDescription().getName()));
 	}
 	

@@ -31,7 +31,7 @@ public final class Main extends JavaPlugin
 	int MAX_EXP;								//Maximum experience before level-up.
 	int CLAIMABLE_TIERS;						//The number of free tiers a new player may claim.
 	int TIER_CAP;								//The total nubmer of tiers a player may have in all professions
-	long PLACE_COOLDOWN = 0;					//Cooldown preventing experience gained from recently placed blocks.
+	long PLACE_COOLDOWN;						//Cooldown preventing experience gained from recently placed blocks.
 	
 	long time = 0;								//Time of last fatigue update.
 	
@@ -536,7 +536,7 @@ public final class Main extends JavaPlugin
 	 * @param profession - the profession for which the player is gaining experience.
 	 * @param exp - the amount of experience the player is gaining.
 	 */
-	public void gainExperience(Player player, String profession, int exp)
+	void gainExperience(Player player, String profession, int exp)
 	{		
 		UUID uuid = player.getUniqueId();
 		
@@ -589,7 +589,7 @@ public final class Main extends JavaPlugin
 	 * @param profession - the profession for which the player is gaining the levels.
 	 * @param level - the number of levels the player is gaining.
 	 */
-	public void gainLevel(Player player, String profession, int level)
+	void gainLevel(Player player, String profession, int level)
 	{		
 		//Player cannot progress past maximum tier.
 		if (getTier(player, profession) >= TIERS.length-1)
@@ -617,7 +617,7 @@ public final class Main extends JavaPlugin
 	 * @param profession - the profession for which the player is gaining the tier.
 	 * @return  - new tier of the player.
 	 */
-	public int gainTier(Player player, String profession)
+	int gainTier(Player player, String profession)
 	{		
 		int tier = getTier(player, profession);
 		int newTier;
@@ -643,7 +643,7 @@ public final class Main extends JavaPlugin
 	 * @param profession - the profession for which the player is gaining the tier.
 	 * @return  - new tier of the player.
 	 */
-	public int gainTier(UUID uuid, String profession)
+	int gainTier(UUID uuid, String profession)
 	{		
 		int tier = getTier(uuid, profession);
 		int newTier;
@@ -668,7 +668,7 @@ public final class Main extends JavaPlugin
 	 * @param profession - the profession for which the player is losing the tier.
 	 * @return  - new tier of the player.
 	 */
-	public int forgetTier(Player player, String profession)
+	int forgetTier(Player player, String profession)
 	{
 		int newTier;
 		
@@ -687,7 +687,7 @@ public final class Main extends JavaPlugin
 	 * @param profession - the profession for which the player is losing the tier.
 	 * @return  - new tier of the player.
 	 */
-	public int forgetTier(UUID uuid, String profession)
+	int forgetTier(UUID uuid, String profession)
 	{
 		int newTier;
 		
@@ -705,7 +705,7 @@ public final class Main extends JavaPlugin
 	 * @param player - the player for whom the experience is being set.
 	 * @param profession - the profession for which the experience is being set.
 	 */
-	public void setExp(Player player, String profession, int exp)
+	void setExp(Player player, String profession, int exp)
 	{
 			player.setMetadata(profession + "_exp", new FixedMetadataValue(plugin, exp));
 	}
@@ -715,7 +715,7 @@ public final class Main extends JavaPlugin
 	 * @param uuid - the uuid of the player for whom the experience is being set.
 	 * @param profession - the profession for which the experience is being set.
 	 */
-	public void setExp(UUID uuid, String profession, int exp)
+	void setExp(UUID uuid, String profession, int exp)
 	{
 		data.getConfig().set("data." + uuid + "." + profession + ".exp", exp);
 	}
@@ -725,7 +725,7 @@ public final class Main extends JavaPlugin
 	 * @param player - the player for whom the level is being set.
 	 * @param profession - the profession for which the level is being set.
 	 */
-	public void setLevel(Player player, String profession, int level)
+	void setLevel(Player player, String profession, int level)
 	{
 			player.setMetadata(profession + "_level", new FixedMetadataValue(plugin, level));
 	}
@@ -735,7 +735,7 @@ public final class Main extends JavaPlugin
 	 * @param uuid - the uuid of the player for whom the level is being set.
 	 * @param profession - the profession for which the level is being set.
 	 */
-	public void setLevel(UUID uuid, String profession, int level)
+	void setLevel(UUID uuid, String profession, int level)
 	{
 		data.getConfig().set("data." + uuid + "." + profession + ".level", level);
 	}
@@ -745,7 +745,7 @@ public final class Main extends JavaPlugin
 	 * @param player - the player for whom the fatigue value is being set.
 	 * @param profession - the profession for which the fatigue value is being set.
 	 */
-	public void setPracticeFatigue(Player player, String profession, int fatigue)
+	void setPracticeFatigue(Player player, String profession, int fatigue)
 	{
 			player.setMetadata(profession + "_practicefatigue", new FixedMetadataValue(plugin, fatigue));
 	}
@@ -755,7 +755,7 @@ public final class Main extends JavaPlugin
 	 * @param uuid - the uuid of the player for whom the fatigue value is being set.
 	 * @param profession - the profession for which the fatigue value is being set.
 	 */
-	public void setPracticeFatigue(UUID uuid, String profession, int fatigue)
+	void setPracticeFatigue(UUID uuid, String profession, int fatigue)
 	{
 		data.getConfig().set("data." + uuid + "." + profession + ".practicefatigue", fatigue);
 	}
@@ -765,7 +765,7 @@ public final class Main extends JavaPlugin
 	 * @param player - the player for whom the fatigue value is being set.
 	 * @param profession - the profession for which the fatigue value is being set.
 	 */
-	public void setInstructionFatigue(Player player, String profession, int fatigue)
+	void setInstructionFatigue(Player player, String profession, int fatigue)
 	{
 			player.setMetadata(profession + "_instructionfatigue", new FixedMetadataValue(plugin, fatigue));
 	}
@@ -776,7 +776,7 @@ public final class Main extends JavaPlugin
 	 * @param uuid - the uuid of the player for whom the fatigue value is being set.
 	 * @param profession - the profession for which the fatigue value is being set.
 	 */
-	public void setInstructionFatigue(UUID uuid, String profession, int fatigue)
+	void setInstructionFatigue(UUID uuid, String profession, int fatigue)
 	{
 		data.getConfig().set("data." + uuid + "." + profession + ".instructionfatigue", fatigue);
 	}
@@ -786,7 +786,7 @@ public final class Main extends JavaPlugin
 	 * @param player - the player
 	 * @param claimed - the number of free tiers a player has claimed.
 	 */
-	public void setClaimed(Player player, int claimed)
+	void setClaimed(Player player, int claimed)
 	{
 		player.setMetadata("claimed", new FixedMetadataValue(plugin, claimed));
 	}
@@ -796,7 +796,7 @@ public final class Main extends JavaPlugin
 	 * @param uuid - the uuid of the player.
 	 * @param claimed - the number of free tiers a player has claimed.
 	 */
-	public void setClaimed(UUID uuid, int claimed)
+	void setClaimed(UUID uuid, int claimed)
 	{
 		data.getConfig().set("data." + uuid + ".claimed", claimed);
 	}
@@ -807,7 +807,7 @@ public final class Main extends JavaPlugin
 	 * @param profession - the profession for which to set the tier.
 	 * @param tier - the value of the tier.
 	 */
-	public void setTier(Player player, String profession, int tier)
+	void setTier(Player player, String profession, int tier)
 	{	
 		//Remove all previously held permissions.
 		for (String previousTier: TIERS)
@@ -830,7 +830,7 @@ public final class Main extends JavaPlugin
 	 * @param profession - the profession for which to set the tier.
 	 * @param tier - the value of the tier.
 	 */
-	public void setTier(UUID uuid, String profession, int tier)
+	void setTier(UUID uuid, String profession, int tier)
 	{
 		OfflinePlayer offlinePlayer = getServer().getOfflinePlayer(uuid);
 		
@@ -854,7 +854,7 @@ public final class Main extends JavaPlugin
 	 * @param player - the player for whom the experience is being retrieved.
 	 * @param profession - the profession for which the experience is being retrieved.
 	 */
-	public int getExp(Player player, String profession)
+	int getExp(Player player, String profession)
 	{
 			return getMetadataInt(player, profession + "_exp", plugin);
 	}
@@ -864,7 +864,7 @@ public final class Main extends JavaPlugin
 	 * @param uuid - the uuid of the player for whom the experience is being retrieved.
 	 * @param profession - the profession for which the experience is being retrieved.
 	 */
-	public int getExp(UUID uuid, String profession)
+	int getExp(UUID uuid, String profession)
 	{
 		return data.getConfig().getInt("data." + uuid + "." + profession + ".exp");
 	}
@@ -874,7 +874,7 @@ public final class Main extends JavaPlugin
 	 * @param player - the player for whom the level is being retrieved.
 	 * @param profession - the profession for which the level is being retrieved.
 	 */
-	public int getLevel(Player player, String profession)
+	int getLevel(Player player, String profession)
 	{		
 		return getMetadataInt(player, profession + "_level", plugin);
 	}
@@ -884,7 +884,7 @@ public final class Main extends JavaPlugin
 	 * @param uuid - the uuid of the player for whom the level is being retrieved.
 	 * @param profession - the profession for which the level is being retrieved.
 	 */
-	public int getLevel(UUID uuid, String profession)
+	int getLevel(UUID uuid, String profession)
 	{
 		return data.getConfig().getInt("data." + uuid + "." + profession + ".level");
 	}
@@ -895,7 +895,7 @@ public final class Main extends JavaPlugin
 	 * @param player - the player for whom the fatigue value is being retrieved.
 	 * @param profession - the profession for which the fatigue value is being retrieved.
 	 */
-	public int getPracticeFatigue(Player player, String profession)
+	int getPracticeFatigue(Player player, String profession)
 	{
 			return getMetadataInt(player, profession + "_practicefatigue", plugin);
 	}
@@ -906,7 +906,7 @@ public final class Main extends JavaPlugin
 	 * @param uuid - the uuid of the player for whom the fatigue value is being retrieved.
 	 * @param profession - the profession for which the fatigue value is being retrieved.
 	 */
-	public int getPracticeFatigue(UUID uuid, String profession)
+	int getPracticeFatigue(UUID uuid, String profession)
 	{
 			return data.getConfig().getInt("data." + uuid + "." + profession + ".practicefatigue");
 	}
@@ -917,7 +917,7 @@ public final class Main extends JavaPlugin
 	 * @param player - the player for whom the fatigue value is being retrieved.
 	 * @param profession - the profession for which the fatigue value is being retrieved.
 	 */
-	public int getInstructionFatigue(Player player, String profession) 
+	int getInstructionFatigue(Player player, String profession) 
 	{
 			return getMetadataInt(player, profession + "_instructionfatigue", plugin);
 	}
@@ -928,7 +928,7 @@ public final class Main extends JavaPlugin
 	 * @param uuid - the uuid of the player for whom the fatigue value is being retrieved.
 	 * @param profession - the profession for which the fatigue value is being retrieved.
 	 */
-	public int getInstructionFatigue(UUID uuid, String profession)
+	int getInstructionFatigue(UUID uuid, String profession)
 	{
 		return data.getConfig().getInt("data." + uuid + "." + profession + ".instructionfatigue");
 	}
@@ -938,7 +938,7 @@ public final class Main extends JavaPlugin
 	 * @param player - the player.
 	 * @return the number of the free tiers a player has claimed.
 	 */
-	public int getClaimed(Player player)
+	int getClaimed(Player player)
 	{
 		return getMetadataInt(player, "claimed", plugin);
 	}
@@ -948,29 +948,29 @@ public final class Main extends JavaPlugin
 	 * @param uuid - the uuid of the player.
 	 * @return the number of the free tiers a player has claimed.
 	 */
-	public int getClaimed(UUID uuid)
+	int getClaimed(UUID uuid)
 	{
 		return data.getConfig().getInt("data." + uuid + ".claimed");
 	}
 	
 	/*
-	 * getTier() gets the tier the player currently has in a profession. Use getTierOffline() for offline players!
+	 * getTier() gets the tier the player currently has in a profession.
 	 * @param player - the player for whom to get the tier name.
 	 * @param profession - the profession for which to get the tier name.
 	 * @return - the tier the player has in the profession.
 	 */
-	public int getTier(Player player, String profession) 
+	int getTier(Player player, String profession) 
 	{
 		return getMetadataInt(player, profession + "_tier", plugin);
 	}
 	
 	/*
-	 * getTierOffline() gets the tier the offline player currently has in a profession.
+	 * getTier() gets the tier the offline player currently has in a profession.
 	 * @param uuid - the uuid of the player for whom to get the tier name.
 	 * @param profession - the profession for which to get the tier name.
 	 * @return - the tier the player has in the profession.
 	 */
-	public int getTier(UUID uuid, String profession) 
+	int getTier(UUID uuid, String profession) 
 	{
 		return data.getConfig().getInt("data." + uuid + "." + profession + ".tier");
 	}
@@ -980,7 +980,7 @@ public final class Main extends JavaPlugin
 	 * @param player - the player for whom to get the total number of tiers
 	 * @return - the total number of tiers a player has in all professions.
 	 */
-	private int getTotalTiers(Player player)
+	int getTotalTiers(Player player)
 	{
 		int total = 0;
 		
@@ -995,7 +995,7 @@ public final class Main extends JavaPlugin
 	 * @param uuid - the uuid of the player for whom to get the total number of tiers
 	 * @return - the total number of tiers a player has in all professions.
 	 */
-	private int getTotalTiers(UUID uuid)
+	int getTotalTiers(UUID uuid)
 	{
 		int total = 0;
 		

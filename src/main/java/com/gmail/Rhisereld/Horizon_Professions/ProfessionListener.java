@@ -194,9 +194,7 @@ public class ProfessionListener implements Listener
     	    	
     	    	for (String tier: tiers)
     	    		if (main.TIERS[main.getTier(player, profession)].equalsIgnoreCase(tier))
-    	    		{
     	    			playerTier = main.config.getConfig().getInt("healing." + item + ".tier." + tier);
-    	    		}
 
     	    	//If it isn't in the config just stop.
     	    	if (playerTier == -1)
