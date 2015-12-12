@@ -32,7 +32,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="D:/My Documents/Project Horizon/Server/plugins/Vault.jar"/>
-	<classpathentry kind="lib" path="D:/My Documents/Project Horizon/Server/plugins/RecipeManager.jar"/>
+	<classpathentry kind="lib" path="D:/My Documents/Project Horizon/Releases/RecipeManager.jar"/>
+	<classpathentry kind="lib" path="D:/My Documents/Project Horizon/Releases/Vault.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

@@ -18,9 +18,9 @@ import org.bukkit.plugin.Plugin;
 public class CraftListener implements Listener 
 {
 	Plugin plugin = Main.plugin;	//A reference to this plugin.
-	Main main;							//A reference to main.
-	String[] splitPermission;			//Permission string split into base/profession/tier.
-	Set <String> configRecipes;			//A list of recipes in the configuration file.
+	Main main;						//A reference to main.
+	String[] splitPermission;		//Permission string split into base/profession/tier.
+	Set <String> configRecipes;		//A list of recipes in the configuration file.
 	FileConfiguration config; //Configuration file.
 	
 	//Constructor passing a reference to main.
