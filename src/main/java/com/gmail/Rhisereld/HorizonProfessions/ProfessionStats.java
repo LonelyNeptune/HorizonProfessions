@@ -1,4 +1,4 @@
-package com.gmail.Rhisereld.Horizon_Professions;
+package com.gmail.Rhisereld.HorizonProfessions;
 
 import java.util.HashMap;
 import java.util.Set;

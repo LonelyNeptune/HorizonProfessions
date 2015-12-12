@@ -1,4 +1,4 @@
-package com.gmail.Rhisereld.Horizon_Professions;
+package com.gmail.Rhisereld.HorizonProfessions;
 
 import haveric.recipeManager.api.events.RecipeManagerCraftEvent;
 import haveric.recipeManager.recipes.WorkbenchRecipe;

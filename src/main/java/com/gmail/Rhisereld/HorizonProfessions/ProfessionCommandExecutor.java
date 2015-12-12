@@ -1,4 +1,4 @@
-package com.gmail.Rhisereld.Horizon_Professions;
+package com.gmail.Rhisereld.HorizonProfessions;
 
 import java.io.File;
 import java.io.FileWriter;
