@@ -1,12 +1,12 @@
 package com.gmail.Rhisereld.HorizonProfessions;
 
 import java.util.HashMap;
-import java.util.Set;
+import java.util.List;
 import java.util.UUID;
 
 public class ProfessionStats 
 {
-	Set<String> professions;
+	List<String> professions;
 	HashMap<String, Integer> experience;
 	HashMap<String, Integer> levels;
 	HashMap<String, Integer> tiers;
@@ -14,10 +14,16 @@ public class ProfessionStats
 	HashMap<String, Integer> practiceFatigue;
 	int claimed;
 	
-	public ProfessionStats(ConfigAccessor data, UUID uuid)
-	{
+	/**
+	 * Constructor for fetching existing stats from the data file.
+	 * 
+	 * @param data
+	 * @param uuid
+	 */
+	public ProfessionStats(ConfigAccessor data, ConfigAccessor config, UUID uuid)
+	{		
 		String path = "data." + uuid.toString();
-		professions = data.getConfig().getConfigurationSection(path).getKeys(false);
+		professions = config.getConfig().getStringList("professions");
 		
 		for (String p: professions)
 		{
@@ -28,23 +34,9 @@ public class ProfessionStats
 			practiceFatigue.put(p, data.getConfig().getInt(path + "." + p + ".practiceFatigue"));
 		}
 		
-		claimed = data.getConfig().getInt(path + ".claimed");
-	}
-	
-	public ProfessionStats(ConfigAccessor data, UUID uuid, Set<String> professions, int claimed)
-	{
-		String path = "data." + uuid.toString();
-		
-		for (String p: professions)
-		{
-			experience.put(p, 0);
-			levels.put(p, 0);
-			tiers.put(p, 0);
-			instructionFatigue.put(p, 0);
-			practiceFatigue.put(p, 0);
-		}
-		
-		data.getConfig().set(path + ".claimed", claimed);
-		this.claimed = claimed;
+		if (data.getConfig().getConfigurationSection(path).getKeys(false).isEmpty())
+			claimed = config.getConfig().getInt("claimable_tiers");
+		else
+			claimed = data.getConfig().getInt(path + ".claimed");
 	}
 }
