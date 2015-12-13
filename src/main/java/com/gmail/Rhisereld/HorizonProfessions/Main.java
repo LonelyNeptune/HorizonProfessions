@@ -101,7 +101,7 @@ public final class Main extends JavaPlugin
         if (getServer().getPluginManager().isPluginEnabled("RecipeManager"))
         {
         	getLogger().info("RecipeManager hooked, recipe support enabled.");
-            getServer().getPluginManager().registerEvents(new CraftListener(this), this);
+            getServer().getPluginManager().registerEvents(new CraftListener(data, config), this);
         }
         else
         	getLogger().severe(String.format("Recipe support disabled due to no RecipeManager dependency found!", getDescription().getName()));

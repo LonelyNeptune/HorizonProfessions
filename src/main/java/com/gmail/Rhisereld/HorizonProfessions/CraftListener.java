@@ -5,7 +5,6 @@ import haveric.recipeManager.recipes.WorkbenchRecipe;
 
 import java.util.Set;
 
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,17 +16,17 @@ import org.bukkit.plugin.Plugin;
  */
 public class CraftListener implements Listener 
 {
-	Plugin plugin = Main.plugin;	//A reference to this plugin.
-	Main main;						//A reference to main.
+	ConfigAccessor data;
+	ConfigAccessor config;
+	Plugin plugin;					//A reference to this plugin.
 	String[] splitPermission;		//Permission string split into base/profession/tier.
 	Set <String> configRecipes;		//A list of recipes in the configuration file.
-	FileConfiguration config; //Configuration file.
 	
 	//Constructor passing a reference to main.
-	public CraftListener(Main main) 
+	public CraftListener(ConfigAccessor data, ConfigAccessor config) 
 	{
-		this.main = main;
-		config = main.config.getConfig();
+		this.data = data;
+		this.config = config;
 	}
 
 	//Called when a player crafts a custom recipe.
@@ -38,15 +37,19 @@ public class CraftListener implements Listener
 		WorkbenchRecipe recipe = event.getRecipe();
 		
 		//Go through configuration file, if a recipe matches add the corresponding experience.
-		for (String profession: main.PROFESSIONS)
-		{
-			if (config.getConfigurationSection("recipes." + profession) != null)
-				configRecipes = config.getConfigurationSection("recipes." + profession).getKeys(false);
-			
-			if (configRecipes != null)
-				for (String configRecipe: configRecipes)
-					if (recipe.getName().equalsIgnoreCase(configRecipe))
-						main.gainExperience(player, profession, config.getInt("recipes." + profession + "." + configRecipe));			
-		}
+		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		int exp = 0;
+		String profession = null;
+		
+		for (String p: prof.getProfessions())
+			for (String t: prof.getTiers())
+				if (config.getConfig().getConfigurationSection("recipes." + p + "." + t).contains(recipe.getName()))
+				{
+					profession = p;
+					exp = config.getConfig().getInt("recipes." + p + "." + t + "." + recipe.getName());
+				}
+
+		if (profession != null & exp != 0)
+			prof.addExperience(profession, exp);
 	}
 }
