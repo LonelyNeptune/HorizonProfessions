@@ -34,7 +34,6 @@ public class ProfessionListener implements Listener
 	ConfigAccessor config;
 	boolean isHealingOther;				//Used to cancel healing self if the player is healing another.
 	
-	//Constructor passing a reference to main.
 	public ProfessionListener(Plugin plugin, ConfigAccessor data, ConfigAccessor config) 
 	{
 		this.plugin = plugin;

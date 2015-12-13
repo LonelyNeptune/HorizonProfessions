@@ -108,7 +108,7 @@ public final class Main extends JavaPlugin
         
         //Listeners and commands.
         getServer().getPluginManager().registerEvents(new ProfessionListener(this, data, config), this);
-    	this.getCommand("profession").setExecutor(new ProfessionCommandExecutor(this));
+    	this.getCommand("profession").setExecutor(new ProfessionCommandExecutor(this, data, config));
     	
     	//Load player stats
     	loadAllStats();

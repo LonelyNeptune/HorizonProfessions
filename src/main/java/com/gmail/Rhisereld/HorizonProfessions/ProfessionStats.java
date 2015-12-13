@@ -133,6 +133,19 @@ public class ProfessionStats
 	}
 	
 	/**
+	 * addLevel() adds level progress towards the next tier in the profession given.
+	 * 
+	 * @param profession
+	 * @param level
+	 */
+	public void addLevel(String profession, int level)
+	{
+		int newLevel = levels.get(profession) + level;
+		data.getConfig().get(path + "." + profession + ".level", newLevel);
+		levels.put(profession, newLevel);
+	}
+	
+	/**
 	 * getTier() returns the tier in the profession given.
 	 * 
 	 * @param profession
@@ -262,4 +275,21 @@ public class ProfessionStats
 		practiceFatigue.put(profession,  fatigue);
 	}
 	
+	/**
+	 * reset() sets all of the player's experience, levels and tiers to 0 in all professions, and removes all types of fatigue.
+	 * 
+	 */
+	public void reset()
+	{
+		for (String p: getProfessions())
+		{
+			setExperience(p, 0);
+			setLevel(p, 0);
+			setTier(p, 0);
+			setPracticeFatigue(p, 0);
+			setInstructionFatigue(p, 0);
+		}
+		
+		setClaimed(0);
+	}
 }
