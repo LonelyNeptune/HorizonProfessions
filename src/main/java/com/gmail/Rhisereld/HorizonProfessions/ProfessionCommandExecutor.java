@@ -48,7 +48,6 @@ public class ProfessionCommandExecutor implements CommandExecutor
      */
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
 	{
-		Player player;
 		String name = sender.getName();
 		String[] arguments;
 
@@ -121,7 +120,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				{
 					//Console or admin-only command.
 					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.view.admin"))
-						viewStats(Bukkit.getPlayer(args[1].toLowerCase()), sender);
+					{
+						viewStatsAdmin(args[1], sender);
+					}
 					//Nope
 					else
 						sender.sendMessage(ChatColor.RED + "You don't have permission to view another player's professions.");
@@ -144,8 +145,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 						return false;
 					}
 					
-					player = (Player) sender;
-					viewStats(player, sender);
+					viewStats((Player) sender);
 				}
 				
 				return true;
@@ -367,58 +367,101 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param player - the player for whom the stats are being displayed.
 	 * @param sender - the viewer to display the stats to.
 	 */
-	private void viewStats(Player player, CommandSender sender) 
+	private void viewStats(Player player) 
 	{
 		String name = player.getName();
 		
 		String tier;
-		int level;
-		int experience;
 		int maxLevel;
-		int maxExp;
 		int practiceFatigue;
 		int instructionFatigue;
-		String professionCapitalised;
-		String tierCapitalised;
 		String message = null;
-		int chatboxWidth;
-		int headerWidth;
 		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
-		
-		if (sender instanceof ConsoleCommandSender)
-		{
-			chatboxWidth = CONSOLE_WIDTH;
-			headerWidth = CONSOLE_HEADER_WIDTH;
-		}
-		else
-		{
-			chatboxWidth = CHATBOX_WIDTH;
-			headerWidth = HEADER_WIDTH;
-		}
 
-		sender.sendMessage("--------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">--------------");
-		sender.sendMessage(ChatColor.GOLD + centreText(" Viewing " + name, chatboxWidth));
+		player.sendMessage("--------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">--------------");
+		player.sendMessage(ChatColor.GOLD + centreText(" Viewing " + name, CHATBOX_WIDTH));
 		
 		for (String profession: prof.getProfessions())
 		{
 			tier = prof.getTierName(profession);
-			level = prof.getLevel(profession);
-			experience = prof.getExperience(profession);
 			maxLevel = config.getConfig().getInt("tiers." + prof.getTier(profession) + ".maxlevel");
-			maxExp = config.getConfig().getInt("max_exp");
 			practiceFatigue = prof.getPracticeFatigue(profession);
 			instructionFatigue = prof.getInstructionFatigue(profession);
-			professionCapitalised = profession.substring(0, 1).toUpperCase() + profession.substring(1);
-			tierCapitalised = tier.substring(0, 1).toUpperCase() + tier.substring(1);
 			
 			//Build profession header for each profession.
-			message = ChatColor.YELLOW + "  " + alignText(tierCapitalised + " " + professionCapitalised, headerWidth);
+			message = ChatColor.YELLOW + "  " + alignText(tier.substring(0, 1).toUpperCase() + tier.substring(1) + " " 
+						+ profession.substring(0, 1).toUpperCase() + profession.substring(1), HEADER_WIDTH);
 			
 			//If the player has hit max tier, don't even show the level progression
 			if (maxLevel == 0)
 				message += " Level " + "[Maximum]";
 			else
-				message += " Level " + "[" + level + "/" + maxLevel + "]";
+				message += " Level " + "[" + prof.getLevel(profession) + "/" + maxLevel + "]";
+			
+			//Send it.
+			player.sendMessage(message);
+			
+			//Build progress bar for each profession.
+			if (practiceFatigue > 0 && instructionFatigue > 0)
+				message = "" + ChatColor.RED;
+			else if (practiceFatigue > 0 || instructionFatigue > 0)
+					message = "" + ChatColor.GOLD;
+			else 
+				message = "" + ChatColor.GREEN;
+			
+			for (int i2 = 0; i2 < PROGRESS_BAR_BLOCKS; i2++)
+			{
+				if (practiceFatigue > 0)
+					message += "█";
+				else if (i2 < prof.getExperience(profession) / (config.getConfig().getInt("max_exp")/PROGRESS_BAR_BLOCKS))
+					message += "█";
+				else
+					message += ChatColor.DARK_GRAY + "█";
+			}
+			
+			message += ChatColor.YELLOW + " XP";
+			
+			//Send it.
+			player.sendMessage(message);
+		}
+	}
+	
+	/**
+	 * viewStatsAdmin() displays all current stats to the player including tiers, levels, experience and fatigue level
+	 * for each profession.
+	 * @param player - the player for whom the stats are being displayed.
+	 * @param sender - the viewer to display the stats to.
+	 */
+	private void viewStatsAdmin(String player, CommandSender sender) 
+	{
+		String tier;
+		int maxLevel;
+		int practiceFatigue;
+		int instructionFatigue;
+		String tierCapitalised;
+		String message = null;
+		ProfessionStats prof = new ProfessionStats(data, config, Bukkit.getOfflinePlayer(player).getUniqueId());
+
+		sender.sendMessage("--------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">--------------");
+		sender.sendMessage(ChatColor.GOLD + centreText(" Viewing " + player, CONSOLE_WIDTH));
+		
+		for (String profession: prof.getProfessions())
+		{
+			tier = prof.getTierName(profession);
+			maxLevel = config.getConfig().getInt("tiers." + prof.getTier(profession) + ".maxlevel");
+			practiceFatigue = prof.getPracticeFatigue(profession);
+			instructionFatigue = prof.getInstructionFatigue(profession);
+			tierCapitalised = tier.substring(0, 1).toUpperCase() + tier.substring(1);
+			
+			//Build profession header for each profession.
+			message = ChatColor.YELLOW + "  " + alignText(tierCapitalised + " " + profession.substring(0, 1).toUpperCase() 
+					+ profession.substring(1), CONSOLE_HEADER_WIDTH);
+			
+			//If the player has hit max tier, don't even show the level progression
+			if (maxLevel == 0)
+				message += " Level " + "[Maximum]";
+			else
+				message += " Level " + "[" + prof.getLevel(profession) + "/" + maxLevel + "]";
 			
 			//Send it.
 			sender.sendMessage(message);
@@ -435,7 +478,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			{
 				if (practiceFatigue > 0)
 					message += "█";
-				else if (i2 < experience / (maxExp/PROGRESS_BAR_BLOCKS))
+				else if (i2 < prof.getExperience(profession) / (config.getConfig().getInt("max_exp")/PROGRESS_BAR_BLOCKS))
 					message += "█";
 				else
 					message += ChatColor.DARK_GRAY + "█";
