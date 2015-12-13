@@ -107,7 +107,7 @@ public final class Main extends JavaPlugin
         	getLogger().severe(String.format("Recipe support disabled due to no RecipeManager dependency found!", getDescription().getName()));
         
         //Listeners and commands.
-        getServer().getPluginManager().registerEvents(new ProfessionListener(this), this);
+        getServer().getPluginManager().registerEvents(new ProfessionListener(this, data, config), this);
     	this.getCommand("profession").setExecutor(new ProfessionCommandExecutor(this));
     	
     	//Load player stats

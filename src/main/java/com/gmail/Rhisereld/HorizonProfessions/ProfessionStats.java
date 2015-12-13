@@ -1,5 +1,6 @@
 package com.gmail.Rhisereld.HorizonProfessions;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -96,6 +97,19 @@ public class ProfessionStats
 	}
 	
 	/**
+	 * addExperience() adds the amount of experience given to the profession given.
+	 * 
+	 * @param profession
+	 * @param exp
+	 */
+	public void addExperience(String profession, int exp)
+	{
+		int newExp = exp + experience.get(profession);
+		data.getConfig().set(path + "." + profession + ".exp", newExp);
+		experience.put(profession, newExp);
+	}
+	
+	/**
 	 * getLevel() returns the level progress towards the next tier in the profession given.
 	 * 
 	 * @param profession
@@ -130,6 +144,17 @@ public class ProfessionStats
 	}
 	
 	/**
+	 * getTierName() returns the name of the tier that the player has in the profession given.
+	 * 
+	 * @param profession
+	 * @return
+	 */
+	public String getTierName(String profession)
+	{
+		return config.getConfig().getString("tiers." + tiers.get(profession) + ".name");
+	}
+	
+	/**
 	 * setTier() sets the tier in the profession given.
 	 * 
 	 * @param profession
@@ -138,6 +163,57 @@ public class ProfessionStats
 	{
 		data.getConfig().set(path + "." + profession + ".tier", tier);
 		tiers.put(profession,  tier);
+	}
+	
+	/**
+	 * getTiers() returns the names of all the tiers as specified in configuration.
+	 * 
+	 * @return
+	 */
+	public List<String> getTiers()
+	{
+		List<String> tierNames = new ArrayList<String>();
+		
+		for (String t: config.getConfig().getConfigurationSection("tiers").getKeys(false))
+			tierNames.add(config.getConfig().getString("tiers." + t + ".name"));
+		
+		return tierNames;
+	}
+	
+	/**
+	 * hasTier() returns true if the player has a tier that is equal or higher in the profession given, and false otherwise.
+	 * 
+	 * @param profession
+	 * @param tierNum
+	 * @return
+	 */
+	public boolean hasTier(String profession, int tierNum)
+	{
+		if (tierNum >= tiers.get(profession))
+			return true;
+		else		
+			return false;
+	}
+	
+	/**
+	 * hasTier() returns true of the player has a tier that is equal or higher in the profession given, and false otherwise.
+	 * 
+	 * @param tierName
+	 * @return
+	 */
+	public boolean hasTier(String profession, String tierName)
+	{
+		List<String> tierNames = getTiers();
+		int tierNum = 0;
+		
+		for (int i = 0; i < tierNames.size(); i++)
+			if (tierNames.get(i).equalsIgnoreCase(tierName))
+				tierNum = i;
+		
+		if (tierNum >= tiers.get(profession))
+			return true;
+		else		
+			return false;
 	}
 	
 	/**

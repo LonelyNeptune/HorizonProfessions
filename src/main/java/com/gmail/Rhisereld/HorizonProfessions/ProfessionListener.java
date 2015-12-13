@@ -18,8 +18,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
@@ -31,35 +29,17 @@ import org.bukkit.plugin.Plugin;
  */
 public class ProfessionListener implements Listener
 {
-	static Plugin plugin = Main.plugin;	//A reference to this plugin.
-	Main main;							//A reference to main.
+	Plugin plugin;
+	ConfigAccessor data;
+	ConfigAccessor config;
 	boolean isHealingOther;				//Used to cancel healing self if the player is healing another.
 	
 	//Constructor passing a reference to main.
-	public ProfessionListener(Main main) 
+	public ProfessionListener(Plugin plugin, ConfigAccessor data, ConfigAccessor config) 
 	{
-		this.main = main;
-	}
-
-	//Called when a player logs onto the server.
-	@EventHandler(priority = EventPriority.MONITOR)
-	void onPlayerJoin(PlayerJoinEvent event)
-	{
-		Player player = event.getPlayer();
-		
-		//Attempt to load player stats.
-		main.loadPlayerStats(player);
-	}
-	
-	//Called when a player logs off the server.
-	@EventHandler(priority = EventPriority.MONITOR)
-	void onPlayerQuit(PlayerQuitEvent event)
-	{
-		Player player = event.getPlayer();
-
-		//Save player stats
-		main.savePlayerStats(player);
-		main.removePlayerStats(player);
+		this.plugin = plugin;
+		this.data = data;
+		this.config = config;
 	}
 	
 	//Called when a monster or player dies.
@@ -69,8 +49,6 @@ public class ProfessionListener implements Listener
 		Entity entity = event.getEntity();
 		EntityDamageByEntityEvent dEvent;
 		Player player;
-		String profession = null;
-		int exp = 0;
 		Set<String> list;
 		
 		//Check that it was killed by another entity
@@ -86,24 +64,22 @@ public class ProfessionListener implements Listener
 		player = (Player) dEvent.getDamager();
 		
 		//Check if the monster is contained within the config
-		for (String professionConfig: main.PROFESSIONS)
-		{
-			if (main.config.getConfig().getConfigurationSection("slaying." + professionConfig) != null)
-			{
-				list = main.config.getConfig().getConfigurationSection("slaying." + professionConfig).getKeys(false);
-				for (String monster: list)
-				{
-					if (entity.getType().toString().equalsIgnoreCase(monster))
-					{
-		    			profession = professionConfig;
-		    			exp = main.config.getConfig().getInt("slaying." + profession + "." + monster);
-						break;
-					}	
-				}
-			}
-		}
+		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
 		
-    	main.gainExperience(player, profession, exp);
+		for (String p: prof.getProfessions())
+		{
+			list = config.getConfig().getConfigurationSection("slaying." + p).getKeys(false);
+			if (list.isEmpty())
+				continue;
+			
+			for (String monster: list)
+				//If found, award experience for it.
+				if (entity.getType().toString().equalsIgnoreCase(monster))
+				{
+		    		prof.addExperience(p, config.getConfig().getInt("slaying." + p + "." + monster));
+					return;
+				}
+		}
 	}
 	
 	//Called when a player right clicks something
@@ -111,56 +87,46 @@ public class ProfessionListener implements Listener
 	void onPlayerInteract(PlayerInteractEntityEvent event)
 	{
 		Player player = event.getPlayer();
-		Player recipient;
-		String profession;
-		int playerTier = -1;
-		
 		isHealingOther = true;
 		
 		//Check that the player right-clicked on another player.
 		if (!(event.getRightClicked() instanceof Player))
 			return;
-		
-		recipient = (Player) event.getRightClicked();
-		
-		//See if options are specified in the configuration file.
-    	Set <String> items = main.config.getConfig().getConfigurationSection("healing.").getKeys(false);
 
-    	for (final String item: items)
+    	//Check if the item in hand fits any of the items specified in the configuration file.		
+    	Set <String> items = config.getConfig().getConfigurationSection("healing.").getKeys(false);
+    	String item = null;
+    	for (String i: items)
+    		if (player.getItemInHand().getType().toString().equalsIgnoreCase(i))
+    			item = i;
+    	
+    	//If the item isn't found, it's not a healing item.
+    	if (item == null)
+    		return;
+    	
+		//Check if the amount to heal is in the config
+    	String professionRequired = config.getConfig().getString("healing." + item + ".profession");
+    	ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+    	
+    	int amountToHeal = config.getConfig().getInt("healing." + item + ".tier." + prof.getTierName(professionRequired));
+    	if (amountToHeal == 0)
     	{
-        	
-    		//Check if the item in hand fits any of the items specified in the configuration file.
-    		if (player.getItemInHand().getType().toString().equalsIgnoreCase(item))
-    		{
-    			profession = main.config.getConfig().getString("healing." + item + ".profession");
-    			
-    			//Check if the amount to heal is in the config
-    	    	Set <String> tiers = main.config.getConfig().getConfigurationSection("healing." + item + ".tier").getKeys(false);
-    	    	
-    	    	for (String tier: tiers)
-    	    		if (main.TIERS[main.getTier(player, profession)].equalsIgnoreCase(tier))
-    	    			playerTier = main.config.getConfig().getInt("healing." + item + ".tier." + tier);
-
-    	    	//If it isn't in the config just stop.
-    	    	if (playerTier == -1)
-    	    	{
-    	    		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
-    	    		return;
-    	    	}
-    	    	
-    			//Check that the recipient has missing health.
-    			if (recipient.getHealth() >= recipient.getMaxHealth())
-    			{
-    				player.sendMessage(ChatColor.YELLOW + recipient.getName() + " does not need bandaging!");
-    				return;
-    			}  
-    			
-    			player.sendMessage(ChatColor.YELLOW + "Bandaging...");
-    			
-    			//Schedule the task in one second.
-    			makeDelayedTask(player, recipient, playerTier, item, profession, player.getLocation(),  recipient.getLocation());
-    		}
+    		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
+    		return;
     	}
+    	
+    	//Check that the recipient has missing health.
+		Player recipient = (Player) event.getRightClicked();
+		if (recipient.getHealth() >= recipient.getMaxHealth())
+		{
+			player.sendMessage(ChatColor.YELLOW + recipient.getName() + " does not need bandaging!");
+			return;
+		}  
+		
+		player.sendMessage(ChatColor.YELLOW + "Bandaging...");
+		
+		//Schedule the task in one second.
+		makeDelayedTask(player, recipient, amountToHeal, item, professionRequired, player.getLocation(), recipient.getLocation());
 	}
 	
 	//Called when a player right-clicks
@@ -168,8 +134,6 @@ public class ProfessionListener implements Listener
 	void onRightClick(PlayerInteractEvent event)
 	{
 		Player player = event.getPlayer();
-		String profession;
-		int playerTier = -1;
 		
 		//If the player is healing another person, they're not healing themself.
 		if (isHealingOther)
@@ -178,44 +142,39 @@ public class ProfessionListener implements Listener
 			return;
 		}
 		
-		//See if options are specified in the configuration file.
-    	Set <String> items = main.config.getConfig().getConfigurationSection("healing.").getKeys(false);
-
-    	for (final String item: items)
+		//Check if the item in hand fits any of the items specified in the configuration file.		
+    	Set <String> items = config.getConfig().getConfigurationSection("healing.").getKeys(false);
+    	String item = null;
+    	for (String i: items)
+    		if (player.getItemInHand().getType().toString().equalsIgnoreCase(i))
+    			item = i;
+    	
+    	//If the item isn't found, it's not a healing item.
+    	if (item == null)
+    		return;
+    	
+		//Check if the amount to heal is in the config
+    	String professionRequired = config.getConfig().getString("healing." + item + ".profession");
+    	ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+    	
+    	int amountToHeal = config.getConfig().getInt("healing." + item + ".tier." + prof.getTierName(professionRequired));
+    	if (amountToHeal == 0)
     	{
-        	
-    		//Check if the item in hand fits any of the items specified in the configuration file.
-    		if (player.getItemInHand().getType().toString().equalsIgnoreCase(item))
-    		{
-    			profession = main.config.getConfig().getString("healing." + item + ".profession");
-    			
-    			//Check if the amount to heal is in the config
-    	    	Set <String> tiers = main.config.getConfig().getConfigurationSection("healing." + item + ".tier").getKeys(false);
-    	    	
-    	    	for (String tier: tiers)
-    	    		if (main.TIERS[main.getTier(player, profession)].equalsIgnoreCase(tier))
-    	    			playerTier = main.config.getConfig().getInt("healing." + item + ".tier." + tier);
-
-    	    	//If it isn't in the config just stop.
-    	    	if (playerTier == -1)
-    	    	{
-    	    		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
-    	    		return;
-    	    	}
-    	    	
-    			//Check that the player has missing health.
-    			if (player.getHealth() >= player.getMaxHealth())
-    			{
-    				player.sendMessage(ChatColor.YELLOW + "You do not need bandaging!");
-    				return;
-    			}  
-    			
-    			player.sendMessage(ChatColor.YELLOW + "Bandaging...");
-    			
-    			//Schedule the task in one second.
-    			makeDelayedTask(player, player, playerTier, item, profession, player.getLocation(),  player.getLocation());
-    		}
+    		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
+    		return;
     	}
+    	    	
+    	//Check that the player has missing health.
+    	if (player.getHealth() >= player.getMaxHealth())
+    	{
+    		player.sendMessage(ChatColor.YELLOW + "You do not need bandaging!");
+    		return;
+    	}  
+    			
+    	player.sendMessage(ChatColor.YELLOW + "Bandaging...");
+    			
+    	//Schedule the task in one second.
+    	makeDelayedTask(player, player, amountToHeal, item, professionRequired, player.getLocation(),  player.getLocation());
 	}
 	
 	//Called when a block is broken
@@ -223,65 +182,51 @@ public class ProfessionListener implements Listener
 	void onBreakBlock(BlockBreakEvent event)
 	{
 		Player player = event.getPlayer();
-		Set<String> list;
-		int exp = 0;
-		String professionReq = null;
-		String tierReq = null;
-		int tierInt = -1;
 		
 		//If the player is in creative mode don't mess with the event
 		if (player.getGameMode().equals(GameMode.CREATIVE))
 			return;
 		
 		//Check if the block is contained within the config
-		for (String profession: main.PROFESSIONS)
-		{
-			for (String tier: main.TIERS)
-				if (main.config.getConfig().getConfigurationSection("breakblocks." + profession + "." + tier) != null)
-				{
-					list = main.config.getConfig().getConfigurationSection("breakblocks." + profession + "." + tier).getKeys(false);
-					for (String block: list)
-					{
-						if (event.getBlock().getType().toString().equalsIgnoreCase(block))
-						{
-							exp = main.config.getConfig().getInt("breakblocks." + profession + "." + tier + "." + block);
-							professionReq = profession;
-							tierReq = tier;
-							break;
-						}	
-					}
-				}
-		}
+		Set<String> configBlocks;
+		int exp = 0;
+		String professionReq = null;
+		String tierReq = null;
 		
-		//If not found, don't mess with the event.
+		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		
+		for(String p: prof.getProfessions())
+			for (String t: prof.getTiers())
+			{
+				configBlocks = config.getConfig().getConfigurationSection("breakblocks." + p + "." + t).getKeys(false);
+				
+				for (String b: configBlocks)
+					if (event.getBlock().getType().toString().equalsIgnoreCase(b))
+					{
+						exp = config.getConfig().getInt("breakblocks." + p + "." + t + "." + b);
+						professionReq = p;
+						tierReq = t;
+						break;
+					}
+			}
+		
+		//If not found, nothing to do here.
 		if (professionReq == null || tierReq == null)
 			return;
 		
-		//Check that the tier requirement is an actual tier.
-		for (int i = 0; i < main.TIERS.length - 1; i++)
-		{
-			if (tierReq.equalsIgnoreCase(main.TIERS[i]))
-				tierInt = i;
-		}
-		
-		//Be nice and let the administrator know that they messed up the config.
-		if (tierInt == -1)
-		{
-			main.getLogger().severe("Tier not found - " + tierReq);
-			return;
-		}
-
 		//If the player doesn't have at least the tier, cancel the event.
-		if (main.getTier(player, professionReq) < tierInt)
+		long place_cooldown = config.getConfig().getLong("place_cooldown");
+		
+		if (!prof.hasTier(professionReq, tierReq))
 		{
 			player.sendMessage(ChatColor.RED + "You aren't skilled enough to break that!");
 			event.setCancelled(true);
 		}
 		//Otherwise award some experience
-		//But only do it if the block wasn't placed recently.
+		//But only do it if the block wasn't placed recently.		
 		else if (event.getBlock().hasMetadata("timeplaced") 
-				&& (getMetadataLong(event.getBlock(), "timeupdated", plugin) - System.currentTimeMillis()) > main.PLACE_COOLDOWN)
-			main.gainExperience(player, professionReq, exp);
+				&& getMetadataLong(event.getBlock(), "timeupdated") - System.currentTimeMillis() > place_cooldown)
+			prof.addExperience(professionReq, exp);
 	}
 	
 	//Called when a block is placed.
@@ -289,62 +234,46 @@ public class ProfessionListener implements Listener
 	void onBlockPlace(BlockPlaceEvent event)
 	{
 		Player player = event.getPlayer();
-		Set<String> list;
-		int exp = 0;
-		String professionReq = null;
-		String tierReq = null;
-		int tierInt = -1;
 		
 		//Record the time placed so that placing cooldowns can be implemented.
 		event.getBlock().setMetadata("timeplaced", new FixedMetadataValue(plugin, System.currentTimeMillis()));
 		
 		//Check if the block is contained within the config
-		for (String profession: main.PROFESSIONS)
-		{
-			for (String tier: main.TIERS)
-				if (main.config.getConfig().getConfigurationSection("placeblocks." + profession + "." + tier) != null)
-				{
-					list = main.config.getConfig().getConfigurationSection("placeblocks." + profession + "." + tier).getKeys(false);
-					for (String block: list)
-					{
-						if (event.getBlock().getType().toString().equalsIgnoreCase(block))
-						{
-							exp = main.config.getConfig().getInt("placeblocks." + profession + "." + tier + "." + block);
-							professionReq = profession;
-							tierReq = tier;
-							break;
-						}
-					}
-				}
-		}
+		Set<String> configBlocks;
+		int exp = 0;
+		String professionReq = null;
+		String tierReq = null;
 		
-		//If not found, don't mess with the event.
+		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		
+		for(String p: prof.getProfessions())
+			for (String t: prof.getTiers())
+			{
+				configBlocks = config.getConfig().getConfigurationSection("placeblocks." + p + "." + t).getKeys(false);
+				
+				for (String b: configBlocks)
+					if (event.getBlock().getType().toString().equalsIgnoreCase(b))
+					{
+						exp = config.getConfig().getInt("placeblocks." + p + "." + t + "." + b);
+						professionReq = p;
+						tierReq = t;
+						break;
+					}
+			}
+		
+		//If not found, nothing to do here.
 		if (professionReq == null || tierReq == null)
 			return;
 		
-		//Check that the tier requirement is an actual tier.
-		for (int i = 0; i < main.TIERS.length - 1; i++)
-		{
-			if (tierReq.equalsIgnoreCase(main.TIERS[i]))
-				tierInt = i;
-		}
-		
-		//Be nice and let the administrator know that they messed up the config.
-		if (tierInt == -1)
-		{
-			main.getLogger().severe("Tier not found - " + tierReq);
-			return;
-		}
-
-		//If the player doesn't have at least the tier, cancel the event.
-		if (main.getTier(player, professionReq) < tierInt)
+		//If the player doesn't have at least the tier, cancel the event.		
+		if (!prof.hasTier(professionReq, tierReq))
 		{
 			player.sendMessage(ChatColor.RED + "You aren't skilled enough to place that!");
 			event.setCancelled(true);
 		}
 		//Otherwise award some experience
 		else
-			main.gainExperience(player, professionReq, exp);
+			prof.addExperience(professionReq, exp);
 	}
 	
 	void makeDelayedTask(final Player player, final Player recipient, final int playerTier, final String item, 
@@ -355,13 +284,12 @@ public class ProfessionListener implements Listener
 		{
 			public void run() 
 			{
-				double addHp;  
-				int exp;
+				double addHp;
 				
 				//Check that the player is still in roughly the same location
-				if (Math.abs(player.getLocation().getX() - playerLoc.getX()) > 1
-						|| Math.abs(player.getLocation().getY() - playerLoc.getY()) > 1
-						|| Math.abs(player.getLocation().getZ() - playerLoc.getZ()) > 1)
+				if (player.getLocation().getBlockX() == playerLoc.getBlockX()
+						|| player.getLocation().getBlockY() == playerLoc.getBlockY()
+						|| player.getLocation().getBlockZ() == playerLoc.getBlockZ())
 				{
 					player.sendMessage(ChatColor.YELLOW + "You cannot move while bandaging!");
 					return;
@@ -383,14 +311,14 @@ public class ProfessionListener implements Listener
 	    		player.updateInventory();
 	    			
 	    		//Heal the other player.
-	    		addHp = main.config.getConfig().getDouble("healing." + item + ".tier" + playerTier);
+	    		addHp = config.getConfig().getDouble("healing." + item + ".tier" + playerTier);
 	    		recipient.setHealth(recipient.getHealth() + addHp);
 
 	    		//Award experience.
-	    		exp = main.config.getConfig().getInt("healing." + item + ".exp");
+	    		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
 	    		
-	    		if (main.getPracticeFatigue(player, profession) <= 0)
-	    			main.gainExperience(player,  profession, exp);
+	    		if (prof.getPracticeFatigue(profession) <= 0)
+	    			prof.addExperience(profession, config.getConfig().getInt("healing." + item + ".exp"));
 	    			
 	    		//Notify both parties.
 	    		if (!player.equals(recipient))
@@ -411,7 +339,7 @@ public class ProfessionListener implements Listener
 	 * @param plugin - a reference to this plugin
 	 * @return - the metadata attached to the player that is associated with the key given.
 	 */
-	private long getMetadataLong(Metadatable object, String key, Plugin plugin) 
+	private long getMetadataLong(Metadatable object, String key) 
 	{
 		List<MetadataValue> values = object.getMetadata(key);  
 		for (MetadataValue value : values) 
