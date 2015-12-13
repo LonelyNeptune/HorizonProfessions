@@ -21,8 +21,6 @@ import org.bukkit.plugin.Plugin;
 public class ProfessionCommandExecutor implements CommandExecutor
 {
 	private final int PROGRESS_BAR_BLOCKS = 30; //The number of blocks that appear in the progress bar for command /profession view
-	private final int CHATBOX_WIDTH = 40; 		//The number of spaces in one line of the chatbox. May be unreliable for custom fonts
-	private final int CONSOLE_WIDTH = 35;		//The number of spaces in one line of the console.
 	private final int HEADER_WIDTH = 30; 		//The width of the header for each profession when viewing stats.
 	private final int CONSOLE_HEADER_WIDTH = 25;//The width of the header for the console.
 	
@@ -379,7 +377,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
 
 		player.sendMessage("--------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">--------------");
-		player.sendMessage(ChatColor.GOLD + centreText(" Viewing " + name, CHATBOX_WIDTH));
+		player.sendMessage(ChatColor.GOLD + " Viewing " + name);
 		
 		for (String profession: prof.getProfessions())
 		{
@@ -443,7 +441,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		ProfessionStats prof = new ProfessionStats(data, config, Bukkit.getOfflinePlayer(player).getUniqueId());
 
 		sender.sendMessage("--------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">--------------");
-		sender.sendMessage(ChatColor.GOLD + centreText(" Viewing " + player, CONSOLE_WIDTH));
+		sender.sendMessage(ChatColor.GOLD + " Viewing " + player);
 		
 		for (String profession: prof.getProfessions())
 		{
