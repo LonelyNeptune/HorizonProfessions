@@ -11,11 +11,11 @@ public class ProfessionStats
 	ConfigAccessor config;
 	String path;
 	List<String> professions;
-	HashMap<String, Integer> experience;
-	HashMap<String, Integer> levels;
-	HashMap<String, Integer> tiers;
-	HashMap<String, Integer> instructionFatigue;
-	HashMap<String, Integer> practiceFatigue;
+	HashMap<String, Integer> experience = new HashMap<String, Integer>();
+	HashMap<String, Integer> levels = new HashMap<String, Integer>();
+	HashMap<String, Integer> tiers = new HashMap<String, Integer>();
+	HashMap<String, Integer> instructionFatigue = new HashMap<String, Integer>();
+	HashMap<String, Integer> practiceFatigue = new HashMap<String, Integer>();
 	int claimed;
 	
 	/**
@@ -26,6 +26,9 @@ public class ProfessionStats
 	 */
 	public ProfessionStats(ConfigAccessor data, ConfigAccessor config, UUID uuid)
 	{		
+		this.data = data;
+		this.config = config;
+		
 		path = "data." + uuid.toString();
 		professions = config.getConfig().getStringList("professions");
 		

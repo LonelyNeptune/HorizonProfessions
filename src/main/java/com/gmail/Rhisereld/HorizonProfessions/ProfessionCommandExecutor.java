@@ -363,7 +363,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 
 	/**
 	 * viewStats() displays all current stats to the player including tiers, levels, experience and fatigue level
-	 * for each profession. Only use for players that are online! Use viewStatsOffline() for offline players.
+	 * for each profession.
 	 * @param player - the player for whom the stats are being displayed.
 	 * @param sender - the viewer to display the stats to.
 	 */
