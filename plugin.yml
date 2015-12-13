@@ -1,5 +1,5 @@
-name: Horizon_Professions
-main: com.gmail.Rhisereld.Horizon_Professions.Main
+name: HorizonProfessions
+main: com.gmail.Rhisereld.HorizonProfessions.Main
 version: 1.0
 depend: [Vault]
 softdepend: [RecipeManager]
