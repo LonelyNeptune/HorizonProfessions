@@ -1,30 +1,18 @@
 package com.gmail.Rhisereld.HorizonProfessions;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Main extends JavaPlugin
 {
-	static Plugin plugin;						//Some functions require a reference to the plugin in args.
-	static JavaPlugin javaPlugin;
 	public static Permission perms = null;		//Reference to permission object from Vault.
-	int FATIGUE_TIME;							//Daily cooldown for level-up in milliseconds.
-	List<String> PROFESSIONS = null;			//Names of professions.
-	String TIERS[];								//Names of tiers.
-	int[] MAX_LEVEL;							//Maximum level before progressing to the next tier
-	int MAX_EXP;								//Maximum experience before level-up.
-	int CLAIMABLE_TIERS;						//The number of free tiers a new player may claim.
-	int TIER_CAP;								//The total nubmer of tiers a player may have in all professions
-	long PLACE_COOLDOWN;						//Cooldown preventing experience gained from recently placed blocks.
 	
 	long time = 0;								//Time of last fatigue update.
 	
@@ -42,7 +30,6 @@ public final class Main extends JavaPlugin
     @Override
     public void onEnable() 
     {
-    	plugin = this;
     	claimNotified = new HashSet<UUID>();
     	
     	//Setup files for configuration and data storage.
@@ -51,36 +38,6 @@ public final class Main extends JavaPlugin
     	
     	//Load configuration
     	config.saveDefaultConfig();
-    	
-    	//Load all profession names.
-    	if (config.getConfig().getStringList("professions") == null)
-    		getLogger().severe("No professions specified in configuration - plugin have unexpected behavior.");
-    	else
-        	PROFESSIONS = config.getConfig().getStringList("professions");
-    	
-    	//Load all tier names.
-    	if (config.getConfig().getConfigurationSection("tiers") == null)
-    		getLogger().severe("No tiers specified in configuration - plugin have unexpected behavior.");
-    	else
-    	{
-    		Set <String> configTiers = config.getConfig().getConfigurationSection("tiers").getKeys(false);
-    		
-			TIERS = new String[configTiers.size()];
-			MAX_LEVEL = new int[configTiers.size()];
-    		
-    		for (String configTier: configTiers)
-    		{
-    			TIERS[Integer.parseInt(configTier)] = config.getConfig().getString("tiers." + configTier + ".name");
-    			MAX_LEVEL[Integer.parseInt(configTier)] = config.getConfig().getInt("tiers." + configTier + ".maxlevel");
-    		}
-    	}
-    	
-    	//Load other options.
-    	FATIGUE_TIME = config.getConfig().getInt("fatigue_time");
-    	MAX_EXP = config.getConfig().getInt("max_exp");
-    	CLAIMABLE_TIERS = config.getConfig().getInt("claimable_tiers");
-    	TIER_CAP = config.getConfig().getInt("tier_cap");
-    	PLACE_COOLDOWN = config.getConfig().getInt("place_cooldown");
 
     	//Vault integration for permissions
         if (!setupPermissions()) 
@@ -104,7 +61,7 @@ public final class Main extends JavaPlugin
     	this.getCommand("profession").setExecutor(new ProfessionCommandExecutor(this, data, config));
     	
     	//Save every 30 minutes.
-		Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable()
+		Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable()
 		{
 			public void run() 
 			{
@@ -113,7 +70,7 @@ public final class Main extends JavaPlugin
 		} , 36000, 36000);
 		
 		//Reduce fatigue time.
-		Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable()
+		Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable()
 		{
 			public void run() 
 			{
@@ -132,14 +89,10 @@ public final class Main extends JavaPlugin
     public void onDisable() 
     {
     	data.saveConfig();
-    	PROFESSIONS = null;
-    	MAX_LEVEL = null;
     	config = null;
     	data = null;
     	claimNotified = null;
     	perms = null;
-    	javaPlugin = null;
-    	plugin = null;
     }
     
 	/*
@@ -191,7 +144,7 @@ public final class Main extends JavaPlugin
 		{
 			ProfessionStats prof = new ProfessionStats(data, config, UUID.fromString(savedPlayer));
 			
-			for (String profession: PROFESSIONS)
+			for (String profession: prof.getProfessions())
 			{
 				practiceFatigue = (int) (prof.getPracticeFatigue(profession) - timeDifference);
 				instructionFatigue = (int) (prof.getInstructionFatigue(profession) - timeDifference);

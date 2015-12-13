@@ -880,7 +880,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	
 	private void confirmForgetTimeout(final CommandSender sender, final String key)
 	{
-		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(Main.plugin, new Runnable()
+		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable()
 		{
 			public void run() 
 			{
@@ -895,7 +895,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	
 	private void confirmResetTimeout(final CommandSender sender, final String key)
 	{
-		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(Main.plugin, new Runnable()
+		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable()
 		{
 			public void run() 
 			{
