@@ -24,7 +24,7 @@ import org.bukkit.metadata.MetadataValue;
 import org.bukkit.metadata.Metadatable;
 import org.bukkit.plugin.Plugin;
 
-/*
+/**
  * ProfessionListener contains all the methods that are called when certain events happen in game.
  */
 public class ProfessionListener implements Listener
@@ -331,12 +331,12 @@ public class ProfessionListener implements Listener
 			}, 20);
 	}
 	
-	/*
+
+	/**
 	 * getMetadataLong() retrieves metadata from an object using a key.
 	 * @param object - the object the metadata is attached to.
 	 * @param key - the key the metadata is under.
-	 * @param plugin - a reference to this plugin
-	 * @return - the metadata attached to the player that is associated with the key given.
+	 * @return
 	 */
 	private long getMetadataLong(Metadatable object, String key) 
 	{

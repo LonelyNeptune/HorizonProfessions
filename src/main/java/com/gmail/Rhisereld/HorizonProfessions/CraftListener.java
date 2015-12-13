@@ -3,24 +3,18 @@ package com.gmail.Rhisereld.HorizonProfessions;
 import haveric.recipeManager.api.events.RecipeManagerCraftEvent;
 import haveric.recipeManager.recipes.WorkbenchRecipe;
 
-import java.util.Set;
-
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
 
-/*
+/**
  * ProfessionListener contains all the methods that are called when certain crafting events happen in game.
  */
 public class CraftListener implements Listener 
 {
 	ConfigAccessor data;
 	ConfigAccessor config;
-	Plugin plugin;					//A reference to this plugin.
-	String[] splitPermission;		//Permission string split into base/profession/tier.
-	Set <String> configRecipes;		//A list of recipes in the configuration file.
 	
 	//Constructor passing a reference to main.
 	public CraftListener(ConfigAccessor data, ConfigAccessor config) 

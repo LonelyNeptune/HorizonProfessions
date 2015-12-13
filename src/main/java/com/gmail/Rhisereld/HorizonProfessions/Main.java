@@ -13,7 +13,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class Main extends JavaPlugin
 {
 	public static Permission perms = null;		//Reference to permission object from Vault.
-	
 	long time = 0;								//Time of last fatigue update.
 	
 	ConfigAccessor config;						//Configuration file.
@@ -21,7 +20,7 @@ public final class Main extends JavaPlugin
 	
 	Set<UUID> claimNotified;
 	
-	/*
+	/**
 	 * onEnable() is called when the server is started or the plugin is enabled.
 	 * It should contain everything that the plugin needs for its initial setup.
 	 * 
@@ -79,7 +78,7 @@ public final class Main extends JavaPlugin
 		} , 20, 12000);
     }
 
-	/*
+	/**
      * onDisable() is called when the server shuts down or the plugin is disabled.
      * It should contain all the cleanup and data saving that the plugin needs to do before it is disabled.
      * 
@@ -95,9 +94,11 @@ public final class Main extends JavaPlugin
     	perms = null;
     }
     
-	/*
+	/**
 	 * setupPermissions() sets up Vault permissions integration which allows this plugin to communicate with
 	 * permissions plugins in a standardised fashion.
+	 * 
+	 * @return
 	 */
     private boolean setupPermissions() 
     {
@@ -106,13 +107,11 @@ public final class Main extends JavaPlugin
         return perms != null;
     }
     
-	/*
-	 * updateFatigue() is called periodically (every 10 minutes) to update the fatigue values of all players.
+    /**
+     * updateFatigue() is called periodically (every 10 minutes) to update the fatigue values of all players.
 	 * Fatigue begins at FATIGUE_TIME (milliseconds) and decreases over time until it reaches zero.
 	 * Until fatigue reaches zero, players are prevented from gaining any experience.
-	 * For online players the fatigue is updated in their metadata. For offline players the fatigue is updated
-	 * in the configuration file.
-	 */
+     */
 	private void updateFatigue() 
     {    	
     	long timeDifference;

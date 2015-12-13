@@ -21,8 +21,7 @@ import org.bukkit.plugin.Plugin;
 public class ProfessionCommandExecutor implements CommandExecutor
 {
 	private final int PROGRESS_BAR_BLOCKS = 30; //The number of blocks that appear in the progress bar for command /profession view
-	private final int CHATBOX_WIDTH = 40; 		//The number of spaces in one line of the chatbox. May be unreliable for custom
-												//fonts
+	private final int CHATBOX_WIDTH = 40; 		//The number of spaces in one line of the chatbox. May be unreliable for custom fonts
 	private final int CONSOLE_WIDTH = 35;		//The number of spaces in one line of the console.
 	private final int HEADER_WIDTH = 30; 		//The width of the header for each profession when viewing stats.
 	private final int CONSOLE_HEADER_WIDTH = 25;//The width of the header for the console.
@@ -41,7 +40,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
     	this.config = config;
 	}
 
-    /*
+    /**
      * onCommand() is called when a player enters a command recognised by Bukkit to belong to this plugin.
      * After that it is up to the contents of this method to determine what the commands do.
      * 
@@ -362,7 +361,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		return false;
 	}
 
-	/*
+	/**
 	 * viewStats() displays all current stats to the player including tiers, levels, experience and fatigue level
 	 * for each profession. Only use for players that are online! Use viewStatsOffline() for offline players.
 	 * @param player - the player for whom the stats are being displayed.
@@ -449,14 +448,14 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		}
 	}
 	
-	/*
+	/**
 	 * alignText() allows for text to be aligned into columns in the chatbox by adding the appropriate number of spaces
 	 * to the end of the string.
 	 * @param string - the string to modify.
 	 * @param size - the ideal size of the column for the string to occupy.
 	 * @return - the modified string.
 	 */
-	private static String alignText(String string, int size) 
+	private String alignText(String string, int size) 
 	{
 	    String alignedString = string;
 	    int numSpaces;
@@ -480,14 +479,14 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	    return alignedString;
 	}
 	
-	/*
+	/**
 	 * centreText() allows text to be centred in the middle of the chatbox by adding the appropriate number of spaces to
 	 * the beginning and end of the string
 	 * @param string - the string to modify
 	 * @param size - the ideal size of the column for the string to occupy.
 	 * @return - the modified string.
 	 */
-	private static String centreText(String string, int size) 
+	private String centreText(String string, int size) 
 	{
 	    String alignedString = " ";
 	    int numSpaces;
@@ -516,7 +515,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	    return alignedString;
 	}
 
-	/*
+	/**
 	 * forgetTier() reduces the tier of the player in a certain profession by one.
 	 * @param sender - the sender to return messages to.
 	 * @param profession - the profession for which to reduce a tier.
@@ -568,11 +567,12 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		createLog(message, "log.txt");
 	}
 	
-	/*
+	/**
 	 * giveTier() increases the tier of the player in a certain profession by one.
-	 * @param sender - the sender to return messages to.
-	 * @param - player - the player for whom to increase the tier.
-	 * @param - profession - the profession for which to increase the tier.
+	 * 
+	 * @param sender
+	 * @param profession
+	 * @param playerString
 	 */
 	private void giveTier(CommandSender sender, String profession, String playerString) 
 	{
@@ -620,9 +620,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		createLog(message, "log.txt");
 	}
 	
-	/*
+	/**
 	 * claimTier() increases the tier of the player in a certain profession by one and updates the number of tiers the 
-	 * player has claimed. A new player may claim 3 tiers, and must not already be the maximum tier.
+	 * player has claimed.
 	 * @param player - the player who is claiming a tier
 	 * @param profession - the profession in which a player wishes to claim a tier.
 	 */
@@ -658,9 +658,10 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		player.sendMessage(ChatColor.YELLOW + player.getName() + " has gained some knowledge. They are now " + 
 							getDeterminer(prof.getTierName(profession)) + " " + prof.getTierName(profession) + " " + profession + ".");
 	}
-
-	/*
+	
+	/**
 	 * resetStats() removes all experience, levels and tiers from the player.
+	 * @param sender
 	 * @param playerString - the player who is having their stats reset to 0.
 	 */
 	private void resetStats(CommandSender sender, String playerString) 
@@ -694,10 +695,13 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		createLog(message, "log.txt");
 	}
 	
-	/*
+	/**
 	 * trainPlayer() allows one player to train another in a specified profession. The trainer must be the top tier in that
 	 * profession and the trainee must not be. The trainee will gain two levels in the profession, but will suffer 
 	 * instruction fatigue which serves as a cooldown.
+	 * @param trainer
+	 * @param profession
+	 * @param traineeString
 	 */
 	private void trainPlayer(Player trainer, String profession, String traineeString) 
 	{
@@ -775,7 +779,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		createLog(message, "trainlog.txt");
 	}
 
-	/*
+
+	/**
 	 * giveCommandsGuide() displays a list of the available commands.
 	 * @param player - the player to display the commands to.
 	 */
@@ -795,7 +800,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		player.sendMessage("Trains another player in a specified profession. They will gain two levels.");
 	}
 	
-	/*
+	/**
 	 * giveCommandsGuideAdmin() displays a list of the available commands to administrators.
 	 * @param sender - the sender to display the commands to.
 	 */
@@ -817,7 +822,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		sender.sendMessage("Trains another player in a specified profession. They will gain two levels.");
 	}
 	
-	/*
+	/**
 	 * getDeterminer() returns the determiner that should occur before a noun.
 	 * @param string - the noun.
 	 * @return - "an" if the noun begins with a vowel, "a" otherwise.
@@ -831,7 +836,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			return "a";
 	}
 	
-	/*
+	/**
 	 * createLog() saves the string provided to the file log.txt.
 	 * @param String - the message to be logged.
 	 * @param time - the time the message was logged.
