@@ -224,6 +224,30 @@ public class ProfessionListener implements Listener
     	makeDelayedTask(player, player, amountToHeal, item, professionRequired, player.getLocation(),  player.getLocation());
 	}
 	
+	@EventHandler(priority = EventPriority.NORMAL)
+	void onDamage(EntityDamageByEntityEvent event)
+	{
+		Set<String> professions;
+		
+		//If it isn't a player, don't mess with this event.
+		if (!(event.getDamager() instanceof Player))
+			return;
+
+		//Get the damage and multiply it by the relevant modifiers.
+		try {professions = config.getConfigurationSection("damageModifier").getKeys(false);}
+		catch (NullPointerException e)
+		{ return; }
+		
+		Player player = (Player) event.getDamager();
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
+		double damage = event.getDamage();
+
+		for (String p: professions)
+			damage = damage * config.getInt("damageModifier." + p + "." + prof.getTierName(prof.getTier(p)), 100) / 100;
+		
+		event.setDamage(damage);
+	}
+	
 	//Called when a block is broken
 	@EventHandler(priority = EventPriority.HIGH)
 	void onBreakBlock(BlockBreakEvent event)
@@ -245,15 +269,15 @@ public class ProfessionListener implements Listener
 		for(String p: prof.getProfessions())
 			for (String t: prof.getTiers())
 			{
-				if (config.getConfigurationSection("breakblocks." + p + "." + t) == null)
+				if (config.getConfigurationSection("breakBlocks." + p + "." + t) == null)
 					continue;
 				
-				configBlocks = config.getConfigurationSection("breakblocks." + p + "." + t).getKeys(false);
+				configBlocks = config.getConfigurationSection("breakBlocks." + p + "." + t).getKeys(false);
 				
 				for (String b: configBlocks)
 					if (event.getBlock().getType().toString().equalsIgnoreCase(b))
 					{
-						exp = config.getInt("breakblocks." + p + "." + t + "." + b);
+						exp = config.getInt("breakBlocks." + p + "." + t + "." + b);
 						professionReq = p;
 						tierReq = t;
 						break;
@@ -303,12 +327,12 @@ public class ProfessionListener implements Listener
 		for(String p: prof.getProfessions())
 			for (String t: prof.getTiers())
 			{
-				configBlocks = config.getConfigurationSection("placeblocks." + p + "." + t).getKeys(false);
+				configBlocks = config.getConfigurationSection("placeBlocks." + p + "." + t).getKeys(false);
 				
 				for (String b: configBlocks)
 					if (event.getBlock().getType().toString().equalsIgnoreCase(b))
 					{
-						exp = config.getInt("placeblocks." + p + "." + t + "." + b);
+						exp = config.getInt("placeBlocks." + p + "." + t + "." + b);
 						professionReq = p;
 						tierReq = t;
 						break;

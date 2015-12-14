@@ -46,6 +46,12 @@ slaying:
     wolf: 1
     snowman: 1
     villager: 1
+damageModifier:
+  hunter:
+    unskilled: 50
+    novice: 100
+    adept: 150
+    expert: 200
 healing:
   paper:
     profession: medic
@@ -57,12 +63,12 @@ healing:
 recipes:
   engineer:
     diode: 5
-breakblocks:
+breakBlocks:
   labourer:
     novice:
       dirt: 1
       stone: 2
-placeblocks:
+placeBlocks:
   labourer:
     novice:
       wheat: 1
