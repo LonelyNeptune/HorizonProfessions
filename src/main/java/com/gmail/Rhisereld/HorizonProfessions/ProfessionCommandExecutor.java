@@ -58,10 +58,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			//profession
 			if (args.length == 0)
 			{
-				if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizonprofessions.help.admin"))
-					return giveCommandsGuideAdmin(sender);
-				else if (sender.hasPermission("horizonprofessions.help"))
-					return giveCommandsGuide((Player) sender);
+				if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizonprofessions.help.admin") 
+						|| sender.hasPermission("horizonprofessions.help"))
+					return giveCommandsGuide(sender);
 				else
 					sender.sendMessage(ChatColor.RED + "You don't have permission to use this command!");
 				return true;
@@ -363,7 +362,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
 				
 		for (Player onlinePlayer: onlinePlayers)
-			if (onlinePlayer.hasPermission("horizon_profession.forget.admin"))
+			if (onlinePlayer.hasPermission("horizonprofessions.forget.admin"))
 				onlinePlayer.sendMessage(message);
 			
 		createLog(message, "log.txt");
@@ -427,7 +426,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
 				
 		for (Player onlinePlayer: onlinePlayers)
-			if (onlinePlayer.hasPermission("horizon_profession.givetier"))
+			if (onlinePlayer.hasPermission("horizonprofessions.givetier"))
 				onlinePlayer.sendMessage(message);
 			
 		createLog(message, "log.txt");
@@ -561,7 +560,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
 		
 		for (Player onlinePlayer: onlinePlayers)
-			if (onlinePlayer.hasPermission("horizon_profession.reset.admin"))
+			if (onlinePlayer.hasPermission("horizonprofessions.reset.admin"))
 				onlinePlayer.sendMessage(message);
 		
 		createLog(message, "log.txt");
@@ -654,56 +653,66 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
 		
 		for (Player player : onlinePlayers) 
-			if (player.hasPermission("horizon_profession.train.admin"))
+			if (player.hasPermission("horizonprofessions.train.admin"))
 				player.sendMessage(message);
 		
 		createLog(message, "trainlog.txt");
 		return true;
 	}
 
-
 	/**
 	 * giveCommandsGuide() displays a list of the available commands.
-	 * @param player - the player to display the commands to.
-	 */
-	private boolean giveCommandsGuide(Player player) 
-	{
-		player.sendMessage("----------------<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">----------------");
-		player.sendMessage(ChatColor.GOLD + "Horizon Professions allows you to keep track of your trade skills!");
-		player.sendMessage(ChatColor.YELLOW + "/profession view");
-		player.sendMessage("View your professions.");
-		player.sendMessage(ChatColor.YELLOW + "/profession forget [profession]");
-		player.sendMessage("Lose a tier in a profession.");
-		player.sendMessage(ChatColor.YELLOW + "/profession claim [profession]");
-		player.sendMessage("Claim a free tier in a profession.");
-		player.sendMessage(ChatColor.YELLOW + "/profession reset");
-		player.sendMessage("Resets all of your progress to zero.");
-		player.sendMessage(ChatColor.YELLOW + "/profession train [profession] [player]");
-		player.sendMessage("Trains another player in a specified profession. They will gain two levels.");
-		
-		return true;
-	}
-	
-	/**
-	 * giveCommandsGuideAdmin() displays a list of the available commands to administrators.
 	 * @param sender - the sender to display the commands to.
 	 */
-	private boolean giveCommandsGuideAdmin(CommandSender sender) 
+	private boolean giveCommandsGuide(CommandSender sender) 
 	{
 		sender.sendMessage("------------<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">------------");
 		sender.sendMessage(ChatColor.GOLD + "Horizon Professions allows you to keep track of your trade skills!");
-		sender.sendMessage(ChatColor.YELLOW + "/profession view [optional:player]");
-		sender.sendMessage("View the professions of a player.");
-		sender.sendMessage(ChatColor.YELLOW + "/profession forget [profession] [optional:player]");
-		sender.sendMessage("Force a player to lose a tier in a profession.");
-		sender.sendMessage(ChatColor.YELLOW + "/profession givetier [profession] [player]");
-		sender.sendMessage("Give a tier to a player in the specified profession.");
-		sender.sendMessage(ChatColor.YELLOW + "/profession claim [profession]");
-		sender.sendMessage("Claim a free tier in a profession.");
-		sender.sendMessage(ChatColor.YELLOW + "/profession reset [optional:player]");
-		sender.sendMessage("Resets all of the player's progress to zero.");
-		sender.sendMessage(ChatColor.YELLOW + "/profession train [profession] [player]");
-		sender.sendMessage("Trains another player in a specified profession. They will gain two levels.");
+		if (sender.hasPermission("horizonprofessions.view.admin"))
+		{
+			sender.sendMessage(ChatColor.YELLOW + "/profession view [optional:player]");
+			sender.sendMessage("View the professions of a player.");
+		}
+		else if (sender.hasPermission("horizonprofessions.view"))
+		{
+			sender.sendMessage(ChatColor.YELLOW + "/profession view");
+			sender.sendMessage("View your professions.");
+		}
+		if (sender.hasPermission("horizonprofessions.forget.admin"))
+		{
+			sender.sendMessage(ChatColor.YELLOW + "/profession forget [profession] [optional:player]");
+			sender.sendMessage("Force a player to lose a tier in a profession.");
+		}
+		else if (sender.hasPermission("horizonprofessions.forget") && sender instanceof Player)
+		{
+			sender.sendMessage(ChatColor.YELLOW + "/profession forget [profession]");
+			sender.sendMessage("Lose a tier in one profession.");
+		}
+		if (sender.hasPermission("horizonprofessions.givetier"))
+		{
+			sender.sendMessage(ChatColor.YELLOW + "/profession givetier [profession] [player]");
+			sender.sendMessage("Give a tier to a player in the specified profession.");
+		}
+		if (sender.hasPermission("horizonprofessions.claimtier") && sender instanceof Player)
+		{
+			sender.sendMessage(ChatColor.YELLOW + "/profession claim [profession]");
+			sender.sendMessage("Claim a free tier in a profession.");
+		}
+		if (sender.hasPermission("horizonprofessions.reset.admin"))
+		{
+			sender.sendMessage(ChatColor.YELLOW + "/profession reset [optional:player]");
+			sender.sendMessage("Resets all of the player's progress to zero.");
+		}
+		else if (sender.hasPermission("horizonprofessions.reset") && sender instanceof Player)
+		{
+			sender.sendMessage(ChatColor.YELLOW + "/profession reset");
+			sender.sendMessage("Resets all of your progress to zero.");
+		}
+		if (sender.hasPermission("horizonprofessions.train") && sender instanceof Player)
+		{
+			sender.sendMessage(ChatColor.YELLOW + "/profession train [profession] [player]");
+			sender.sendMessage("Trains another player in a specified profession. They will gain two levels.");
+		}
 		
 		return true;
 	}
