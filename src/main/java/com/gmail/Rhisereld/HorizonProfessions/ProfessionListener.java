@@ -67,9 +67,10 @@ public class ProfessionListener implements Listener
 		
 		for (String p: prof.getProfessions())
 		{
-			list = config.getConfig().getConfigurationSection("slaying." + p).getKeys(false);
-			if (list.isEmpty())
-				continue;
+			//If there's no configuration for that profession, skip it.
+			try {list = config.getConfig().getConfigurationSection("slaying." + p).getKeys(false);}
+			catch (NullPointerException e)
+			{ continue; }
 			
 			for (String monster: list)
 				//If found, award experience for it.
