@@ -3,19 +3,24 @@ package com.gmail.Rhisereld.HorizonProfessions;
 import java.util.List;
 import java.util.UUID;
 
+import net.milkbowl.vault.permission.Permission;
+
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class ProfessionAPI 
 {
-	ConfigAccessor data;
-	ConfigAccessor config;
+	Permission perms;
+	FileConfiguration data;
+	FileConfiguration config;
 	
-	public ProfessionAPI()
+	public ProfessionAPI(Permission perms)
 	{
-    	config = new ConfigAccessor((JavaPlugin) Bukkit.getServer().getPluginManager().getPlugin("HorizonProfessions"), "config.yml");
-    	data = new ConfigAccessor((JavaPlugin) Bukkit.getServer().getPluginManager().getPlugin("HorizonProfessions"), "data.yml");
+		this.perms = perms;
+    	config = new ConfigAccessor((JavaPlugin) Bukkit.getServer().getPluginManager().getPlugin("HorizonProfessions"), "config.yml").getConfig();
+    	data = new ConfigAccessor((JavaPlugin) Bukkit.getServer().getPluginManager().getPlugin("HorizonProfessions"), "data.yml").getConfig();
 	}
 
 	/**
@@ -25,7 +30,7 @@ public class ProfessionAPI
 	public List<String> getProfessions()
 	{
 		UUID uuid = UUID.fromString("null");
-		ProfessionStats prof = new ProfessionStats(data, config, uuid);
+		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		return prof.getProfessions();
 	}
 	
@@ -36,7 +41,7 @@ public class ProfessionAPI
 	public List<String> getTiers()
 	{
 		UUID uuid = UUID.fromString("null");
-		ProfessionStats prof = new ProfessionStats(data, config, uuid);
+		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		return prof.getTiers();
 	}
 	
@@ -49,7 +54,7 @@ public class ProfessionAPI
 	 */
 	public void gainExperience(Player player, String profession, int exp)
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		prof.addExperience(profession, exp);
 	}
 	
@@ -62,7 +67,7 @@ public class ProfessionAPI
 	 */
 	public void gainLevel(Player player, String profession, int level)
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		prof.addLevel(profession, level);
 	}
 	
@@ -75,7 +80,7 @@ public class ProfessionAPI
 	 */
 	public int gainTier(Player player, String profession)
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		int newTier = prof.getTier(profession) + 1;
 		prof.setTier(profession, newTier);
 		return newTier;
@@ -89,7 +94,7 @@ public class ProfessionAPI
 	 */
 	public int forgetTier(Player player, String profession)
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		int newTier = prof.getTier(profession) - 1;
 		prof.setTier(profession, newTier);
 		return newTier;
@@ -102,7 +107,7 @@ public class ProfessionAPI
 	 */
 	public void setExp(Player player, String profession, int exp)
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		prof.setExperience(profession, exp);
 	}
 
@@ -113,7 +118,7 @@ public class ProfessionAPI
 	 */
 	public void setLevel(Player player, String profession, int level)
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		prof.setLevel(profession, level);
 	}
 		
@@ -124,7 +129,7 @@ public class ProfessionAPI
 	 */
 	public void setPracticeFatigue(Player player, String profession, int fatigue)
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		prof.setPracticeFatigue(profession, fatigue);
 	}
 	
@@ -135,7 +140,7 @@ public class ProfessionAPI
 	 */
 	public void setInstructionFatigue(Player player, String profession, int fatigue)
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		prof.setInstructionFatigue(profession, fatigue);
 	}
 	
@@ -146,7 +151,7 @@ public class ProfessionAPI
 	 */
 	public void setClaimed(Player player, int claimed)
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		prof.setClaimed(claimed);
 	}
 	
@@ -158,7 +163,7 @@ public class ProfessionAPI
 	 */
 	public void setTier(Player player, String profession, int tier)
 	{	
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		prof.setTier(profession, tier);
 	}
 
@@ -169,7 +174,7 @@ public class ProfessionAPI
 	 */
 	public int getExp(Player player, String profession)
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		return prof.getExperience(profession);
 	}
 	
@@ -180,7 +185,7 @@ public class ProfessionAPI
 	 */
 	public int getLevel(Player player, String profession)
 	{		
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		return prof.getLevel(profession);
 	}
 
@@ -191,7 +196,7 @@ public class ProfessionAPI
 	 */
 	public int getPracticeFatigue(Player player, String profession)
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		return prof.getPracticeFatigue(profession);
 	}
 
@@ -202,7 +207,7 @@ public class ProfessionAPI
 	 */
 	public int getInstructionFatigue(Player player, String profession) 
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		return prof.getInstructionFatigue(profession);
 	}
 	
@@ -213,7 +218,7 @@ public class ProfessionAPI
 	 */
 	public int getClaimed(Player player)
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		return prof.getClaimed();
 	}
 	
@@ -225,7 +230,7 @@ public class ProfessionAPI
 	 */
 	public int getTier(Player player, String profession) 
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		return prof.getTier(profession);
 	}
 }

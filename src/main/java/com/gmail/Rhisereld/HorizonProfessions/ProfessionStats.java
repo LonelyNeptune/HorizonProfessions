@@ -6,14 +6,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import net.milkbowl.vault.permission.Permission;
+
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public class ProfessionStats 
 {
+	Permission perms;
 	FileConfiguration data;
 	FileConfiguration config;
 	String path;
 	List<String> professions;
+	UUID uuid;
 	HashMap<String, Integer> experience = new HashMap<String, Integer>();
 	HashMap<String, Integer> levels = new HashMap<String, Integer>();
 	HashMap<String, Integer> tiers = new HashMap<String, Integer>();
@@ -27,10 +32,13 @@ public class ProfessionStats
 	 * @param data
 	 * @param uuid
 	 */
-	public ProfessionStats(FileConfiguration data, FileConfiguration config, UUID uuid)
+	public ProfessionStats(Permission perms, FileConfiguration data, FileConfiguration config, UUID uuid)
 	{		
+		this.perms = perms;
 		this.data = data;
 		this.config = config;
+		
+		this.uuid = uuid;
 		
 		path = "data." + uuid.toString();
 		professions = config.getStringList("professions");
@@ -171,6 +179,23 @@ public class ProfessionStats
 	{
 		data.set(path + "." + profession + ".tier", tier);
 		tiers.put(profession,  tier);
+		
+		//Set permissions for the tier.
+		for (String t: getTiers())
+			perms.playerRemoveGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + t);
+		
+		perms.playerAddGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + getTierName(tier));
+	}
+	
+	/**
+	 * getTierName() converts an integer to the name of the tier to which it corresponds.
+	 * 
+	 * @param profession
+	 * @return
+	 */
+	public String getTierName(int tier)
+	{
+		return config.getString("tiers." + tier + ".name");
 	}
 	
 	/**

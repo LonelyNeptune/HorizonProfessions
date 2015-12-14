@@ -2,6 +2,8 @@ package com.gmail.Rhisereld.HorizonProfessions;
 
 import java.util.UUID;
 
+import net.milkbowl.vault.permission.Permission;
+
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -9,6 +11,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public class ProfessionHandler 
 {
+	Permission perms;
 	FileConfiguration data;
 	FileConfiguration config;
 	
@@ -16,8 +19,9 @@ public class ProfessionHandler
 	private final int HEADER_WIDTH = 30; 		//The width of the header for each profession when viewing stats.
 	private final int CONSOLE_HEADER_WIDTH = 25;//The width of the header for the console.
 	
-	public ProfessionHandler(FileConfiguration data, FileConfiguration config)
+	public ProfessionHandler(Permission perms, FileConfiguration data, FileConfiguration config)
 	{
+		this.perms = perms;
 		this.data = data;
 		this.config = config;
 	}
@@ -36,7 +40,7 @@ public class ProfessionHandler
 		int practiceFatigue;
 		int instructionFatigue;
 		String message = null;
-		ProfessionStats prof = new ProfessionStats(data, config, player);
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player);
 
 		sender.sendMessage("--------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">--------------");
 		sender.sendMessage(ChatColor.GOLD + "  Viewing " + name);
@@ -101,7 +105,7 @@ public class ProfessionHandler
 	public int forgetTier(UUID uuid, String profession) throws IllegalArgumentException
 	{
 		//Check that the profession argument is one of the professions.
-		ProfessionStats prof = new ProfessionStats(data, config, uuid);
+		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		String professionFound = null;
 		for (String existingProfession: prof.getProfessions())
 			if (profession.equalsIgnoreCase(existingProfession))
@@ -132,7 +136,7 @@ public class ProfessionHandler
 	public int giveTier(UUID uuid, String profession) throws IllegalArgumentException
 	{
 		//Check that the profession argument is one of the professions.
-		ProfessionStats prof = new ProfessionStats(data, config, uuid);
+		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		String professionFound = null;
 		for (String existingProfession: prof.getProfessions())
 			if (profession.equalsIgnoreCase(existingProfession))
@@ -163,7 +167,7 @@ public class ProfessionHandler
 	 */
 	public int claimTier(UUID uuid, String profession) throws IllegalArgumentException
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, uuid);
+		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		int claimed = prof.getClaimed();
 		
 		//Check if they have reached the maximum number of claimable tiers.

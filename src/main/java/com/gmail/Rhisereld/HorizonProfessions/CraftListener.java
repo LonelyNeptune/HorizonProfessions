@@ -2,6 +2,7 @@ package com.gmail.Rhisereld.HorizonProfessions;
 
 import haveric.recipeManager.api.events.RecipeManagerCraftEvent;
 import haveric.recipeManager.recipes.WorkbenchRecipe;
+import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -14,12 +15,14 @@ import org.bukkit.event.Listener;
  */
 public class CraftListener implements Listener 
 {
+	Permission perms;
 	FileConfiguration data;
 	FileConfiguration config;
 	
 	//Constructor passing a reference to main.
-	public CraftListener(FileConfiguration data, FileConfiguration config) 
+	public CraftListener(Permission perms, FileConfiguration data, FileConfiguration config) 
 	{
+		this.perms = perms;
 		this.data = data;
 		this.config = config;
 	}
@@ -32,7 +35,7 @@ public class CraftListener implements Listener
 		WorkbenchRecipe recipe = event.getRecipe();
 		
 		//Go through configuration file, if a recipe matches add the corresponding experience.
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		int exp = 0;
 		String profession = null;
 		

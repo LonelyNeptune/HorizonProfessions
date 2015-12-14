@@ -1,12 +1,15 @@
 package com.gmail.Rhisereld.HorizonProfessions;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -46,18 +49,38 @@ public final class Main extends JavaPlugin
             return;
         }
         
+        //Setup permission groups
+        List<String> professions = config.getConfig().getStringList("professions");
+        List<String> tiers = new ArrayList<String>();
+		
+		for (String t: config.getConfig().getConfigurationSection("tiers").getKeys(false))
+			tiers.add(config.getConfig().getString("tiers." + t + ".name"));
+        
+		for (String p: professions)
+			for (String t: tiers)
+				perms.groupAdd((String) null, p + "-" + t, config.getConfig().getString("permission_prefix") + "." + p + "." + t);
+		
+		//Add online players to groups
+		ProfessionStats prof;
+		for (Player pl: Bukkit.getOnlinePlayers())
+		{
+			prof = new ProfessionStats(perms, data.getConfig(), config.getConfig(), pl.getUniqueId());
+			for (String pr: professions)
+				perms.playerAddGroup((String) null, pl, pr + "-" + prof.getTierName(prof.getTier(pr)));
+		}
+        
         //RecipeManager integration for recipes.
         if (getServer().getPluginManager().isPluginEnabled("RecipeManager"))
         {
         	getLogger().info("RecipeManager hooked, recipe support enabled.");
-            getServer().getPluginManager().registerEvents(new CraftListener(data.getConfig(), config.getConfig()), this);
+            getServer().getPluginManager().registerEvents(new CraftListener(perms, data.getConfig(), config.getConfig()), this);
         }
         else
         	getLogger().severe(String.format("Recipe support disabled due to no RecipeManager dependency found!", getDescription().getName()));
         
         //Listeners and commands.
-        getServer().getPluginManager().registerEvents(new ProfessionListener(this, data.getConfig(), config.getConfig()), this);
-    	this.getCommand("profession").setExecutor(new ProfessionCommandExecutor(this, data.getConfig(), config.getConfig()));
+        getServer().getPluginManager().registerEvents(new ProfessionListener(this, perms, data.getConfig(), config.getConfig()), this);
+    	this.getCommand("profession").setExecutor(new ProfessionCommandExecutor(this, perms, data.getConfig(), config.getConfig()));
     	
     	//Save every 30 minutes.
 		Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable()
@@ -87,6 +110,18 @@ public final class Main extends JavaPlugin
 	@Override
     public void onDisable() 
     {
+		//Remove players from groups.
+		List<String> professions = config.getConfig().getStringList("professions");
+        List<String> tiers = new ArrayList<String>();
+		
+		for (String t: config.getConfig().getConfigurationSection("tiers").getKeys(false))
+			tiers.add(config.getConfig().getString("tiers." + t + ".name"));
+		
+		for (Player pl: Bukkit.getOnlinePlayers())
+			for (String pr: professions)
+				for (String t: tiers)
+					perms.playerRemoveGroup(pl, pr + "-" + t);
+		
     	data.saveConfig();
     	config = null;
     	data = null;
@@ -141,7 +176,7 @@ public final class Main extends JavaPlugin
     	//Update fatigue for players
 		for (String savedPlayer: savedPlayers)
 		{
-			ProfessionStats prof = new ProfessionStats(data.getConfig(), config.getConfig(), UUID.fromString(savedPlayer));
+			ProfessionStats prof = new ProfessionStats(perms, data.getConfig(), config.getConfig(), UUID.fromString(savedPlayer));
 			
 			for (String profession: prof.getProfessions())
 			{

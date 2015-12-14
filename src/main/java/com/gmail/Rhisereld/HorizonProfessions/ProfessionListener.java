@@ -3,6 +3,8 @@ package com.gmail.Rhisereld.HorizonProfessions;
 import java.util.List;
 import java.util.Set;
 
+import net.milkbowl.vault.permission.Permission;
+
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -20,6 +22,8 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
@@ -32,15 +36,38 @@ import org.bukkit.plugin.Plugin;
 public class ProfessionListener implements Listener
 {
 	Plugin plugin;
+	Permission perms;
 	FileConfiguration data;
 	FileConfiguration config;
 	boolean isHealingOther;				//Used to cancel healing self if the player is healing another.
 	
-	public ProfessionListener(Plugin plugin, FileConfiguration data, FileConfiguration config) 
+	public ProfessionListener(Plugin plugin, Permission perms, FileConfiguration data, FileConfiguration config) 
 	{
+		this.perms = perms;
 		this.plugin = plugin;
 		this.data = data;
 		this.config = config;
+	}
+	
+	//Called when a player joins the server
+	@EventHandler(priority = EventPriority.MONITOR)
+	void onPlayerJoin(PlayerJoinEvent event)
+	{
+		//Add the player to the correct permissions groups for their professions
+		ProfessionStats prof = new ProfessionStats(perms, data, config, event.getPlayer().getUniqueId());
+		for (String p: prof.getProfessions())
+			perms.playerAddGroup((String) null, event.getPlayer(), p + "-" + prof.getTierName(prof.getTier(p))); 
+	}
+	
+	//Called when a player leaves the server
+	@EventHandler(priority = EventPriority.MONITOR)
+	void onPlayerLeave(PlayerQuitEvent event)
+	{
+		//Remove the player from all permission groups for professions
+		ProfessionStats prof = new ProfessionStats(perms, data, config, event.getPlayer().getUniqueId());
+		for (String p: prof.getProfessions())
+			for (String t: prof.getTiers())
+			perms.playerRemoveGroup((String) null, event.getPlayer(), p + "-" + t); 
 	}
 	
 	//Called when a monster or player dies.
@@ -65,7 +92,7 @@ public class ProfessionListener implements Listener
 		player = (Player) dEvent.getDamager();
 		
 		//Check if the monster is contained within the config
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		
 		for (String p: prof.getProfessions())
 		{
@@ -108,8 +135,8 @@ public class ProfessionListener implements Listener
     	
 		//Check if the amount to heal is in the config
     	String professionRequired = config.getString("healing." + item + ".profession");
-    	ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
-    	ProfessionHandler profHandler = new ProfessionHandler(data, config);
+    	ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
+    	ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
     	
     	double amountToHeal = config.getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
     	if (amountToHeal == 0)
@@ -170,8 +197,8 @@ public class ProfessionListener implements Listener
     	
 		//Check if the amount to heal is in the config
     	String professionRequired = config.getString("healing." + item + ".profession");
-    	ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
-    	ProfessionHandler profHandler = new ProfessionHandler(data, config);
+    	ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
+    	ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
     	
     	double amountToHeal = config.getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
     	if (amountToHeal == 0)
@@ -213,7 +240,7 @@ public class ProfessionListener implements Listener
 		String professionReq = null;
 		String tierReq = null;
 		
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		
 		for(String p: prof.getProfessions())
 			for (String t: prof.getTiers())
@@ -271,7 +298,7 @@ public class ProfessionListener implements Listener
 		String professionReq = null;
 		String tierReq = null;
 		
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		
 		for(String p: prof.getProfessions())
 			for (String t: prof.getTiers())
@@ -344,7 +371,7 @@ public class ProfessionListener implements Listener
 	    		recipient.setHealth(recipient.getHealth() + amountToHeal);
 
 	    		//Award experience.
-	    		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+	    		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 	    		
 	    		if (prof.getPracticeFatigue(profession) <= 0)
 	    			prof.addExperience(profession, config.getInt("healing." + item + ".exp"));

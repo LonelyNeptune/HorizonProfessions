@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import net.milkbowl.vault.permission.Permission;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -24,15 +26,17 @@ import org.bukkit.plugin.Plugin;
 public class ProfessionCommandExecutor implements CommandExecutor
 {	
 	Plugin plugin;
+	Permission perms;
 	FileConfiguration data;
 	FileConfiguration config;
 	
 	HashMap<String, String> confirmForget = new HashMap<String, String>();	//Used to confirm commands
 	HashMap<String, String> confirmReset = new HashMap<String, String>();
 	
-    public ProfessionCommandExecutor(Plugin plugin, FileConfiguration data, FileConfiguration config) 
+    public ProfessionCommandExecutor(Plugin plugin, Permission perms, FileConfiguration data, FileConfiguration config) 
     {
     	this.plugin = plugin;
+    	this.perms = perms;
     	this.data = data;
     	this.config = config;
 	}
@@ -222,7 +226,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		}
 		
 		Player player = (Player) sender;
-		ProfessionHandler profHandler = new ProfessionHandler(data, config);
+		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
 		profHandler.displayStats(player.getUniqueId(), player.getName(), sender);
 		
 		return true;
@@ -244,7 +248,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		}
 		
 		Player player = Bukkit.getPlayer(name);
-		ProfessionHandler profHandler = new ProfessionHandler(data, config);
+		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
 		if (player == null)
 		{
 			OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(name);
@@ -314,7 +318,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 */
 	private boolean confirmForgetTier(CommandSender sender, String profession, String name)
 	{
-		ProfessionHandler profHandler = new ProfessionHandler(data, config);
+		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
 		Player player = Bukkit.getPlayer(name);
 		int newTier;
 		
@@ -383,7 +387,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			return false;
 		}
 		
-		ProfessionHandler profHandler = new ProfessionHandler(data, config);
+		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
 		Player player = Bukkit.getPlayer(name);
 		int newTier;
 		
@@ -453,7 +457,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		}
 		
 		Player player = (Player) sender;
-		ProfessionHandler profHandler = new ProfessionHandler(data, config);
+		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
 		String newTier;
 		
 		try {newTier = profHandler.getTierName(profHandler.claimTier(player.getUniqueId(), profession));}
@@ -534,9 +538,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		confirmReset.remove(sender.getName());
 		
 		if (player == null)
-			prof = new ProfessionStats(data, config, Bukkit.getOfflinePlayer(playerString).getUniqueId());
+			prof = new ProfessionStats(perms, data, config, Bukkit.getOfflinePlayer(playerString).getUniqueId());
 		else
-			prof = new ProfessionStats(data, config, Bukkit.getOfflinePlayer(playerString).getUniqueId());
+			prof = new ProfessionStats(perms, data, config, Bukkit.getOfflinePlayer(playerString).getUniqueId());
 		
 		//Reset all stats
 		prof.reset();
@@ -592,8 +596,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			return false;
 		}
 		
-		ProfessionStats profTrainer = new ProfessionStats(data, config, trainer.getUniqueId());
-		ProfessionStats profTrainee = new ProfessionStats(data, config, trainee.getUniqueId());
+		ProfessionStats profTrainer = new ProfessionStats(perms, data, config, trainer.getUniqueId());
+		ProfessionStats profTrainee = new ProfessionStats(perms, data, config, trainee.getUniqueId());
 		
 		//Check that the trainer is the top tier
 		List<String> tiers = profTrainer.getTiers();
