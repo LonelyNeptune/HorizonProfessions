@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -109,7 +110,7 @@ public class ProfessionListener implements Listener
     	ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
     	ProfessionHandler profHandler = new ProfessionHandler(data, config);
     	
-    	int amountToHeal = config.getConfig().getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
+    	double amountToHeal = config.getConfig().getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
     	if (amountToHeal == 0)
     	{
     		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
@@ -118,13 +119,21 @@ public class ProfessionListener implements Listener
     	
     	//Check that the recipient has missing health.
 		Player recipient = (Player) event.getRightClicked();
-		if (recipient.getHealth() >= recipient.getMaxHealth())
+		if (recipient.getHealth() >= 20)
 		{
 			player.sendMessage(ChatColor.YELLOW + recipient.getName() + " does not need bandaging!");
 			return;
 		}  
 		
+    	//Check that it won't take you over the maximum amount of health.
+    	if (recipient.getHealth() + amountToHeal > 20)
+    		amountToHeal = 20 - recipient.getHealth();
+		
 		player.sendMessage(ChatColor.YELLOW + "Bandaging...");
+		String name = player.getCustomName();
+		if (name == null)
+			name = player.getName();
+		recipient.sendMessage(ChatColor.YELLOW + name + " is bandaging you...");
 		
 		//Schedule the task in one second.
 		makeDelayedTask(player, recipient, amountToHeal, item, professionRequired, player.getLocation(), recipient.getLocation());
@@ -135,6 +144,10 @@ public class ProfessionListener implements Listener
 	void onRightClick(PlayerInteractEvent event)
 	{
 		Player player = event.getPlayer();
+		
+		//Check that it's a right click
+		if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK)
+			return;
 		
 		//If the player is healing another person, they're not healing themself.
 		if (isHealingOther)
@@ -159,7 +172,7 @@ public class ProfessionListener implements Listener
     	ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
     	ProfessionHandler profHandler = new ProfessionHandler(data, config);
     	
-    	int amountToHeal = config.getConfig().getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
+    	double amountToHeal = config.getConfig().getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
     	if (amountToHeal == 0)
     	{
     		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
@@ -167,11 +180,15 @@ public class ProfessionListener implements Listener
     	}
     	    	
     	//Check that the player has missing health.
-    	if (player.getHealth() >= player.getMaxHealth())
+    	if (player.getHealth() >= 20)
     	{
     		player.sendMessage(ChatColor.YELLOW + "You do not need bandaging!");
     		return;
     	}  
+    	
+    	//Check that it won't take you over the maximum amount of health.
+    	if (player.getHealth() + amountToHeal > 20)
+    		amountToHeal = 20 - player.getHealth();
     			
     	player.sendMessage(ChatColor.YELLOW + "Bandaging...");
     			
@@ -285,24 +302,26 @@ public class ProfessionListener implements Listener
 			prof.addExperience(professionReq, exp);
 	}
 	
-	void makeDelayedTask(final Player player, final Player recipient, final int playerTier, final String item, 
+	void makeDelayedTask(final Player player, final Player recipient, final double amountToHeal, final String item, 
 			final String profession, final Location playerLoc, final Location recipientLoc)
 	{
 		//After a second, perform the action.
 		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() 
 		{
 			public void run() 
-			{
-				double addHp;
-				
+			{				
 				//Check that the player is still in roughly the same location
-				if (player.getLocation().getBlockX() == playerLoc.getBlockX()
-						|| player.getLocation().getBlockY() == playerLoc.getBlockY()
-						|| player.getLocation().getBlockZ() == playerLoc.getBlockZ())
+				if (Math.abs(player.getLocation().getX() - playerLoc.getX()) > 1
+						|| Math.abs(player.getLocation().getY() - playerLoc.getY()) > 1
+						|| Math.abs(player.getLocation().getZ() - playerLoc.getZ()) > 1)
 				{
 					player.sendMessage(ChatColor.YELLOW + "You cannot move while bandaging!");
 					return;
 				}
+				
+				String name = player.getCustomName();
+				if (name == null)
+					name = player.getName();
 				
 				//Check that the recipient is still in roughly the same location
 				//Skip if self-heal
@@ -312,6 +331,7 @@ public class ProfessionListener implements Listener
 						|| Math.abs(recipient.getLocation().getZ() - recipientLoc.getZ()) > 1)
 					{
 						player.sendMessage(ChatColor.YELLOW + "You cannot bandage your patient while they are moving!");
+						recipient.sendMessage(ChatColor.YELLOW + name + " cannot bandage you while you are moving!");
 						return;
 					}
 				
@@ -320,8 +340,7 @@ public class ProfessionListener implements Listener
 	    		player.updateInventory();
 	    			
 	    		//Heal the other player.
-	    		addHp = config.getConfig().getDouble("healing." + item + ".tier" + playerTier);
-	    		recipient.setHealth(recipient.getHealth() + addHp);
+	    		recipient.setHealth(recipient.getHealth() + amountToHeal);
 
 	    		//Award experience.
 	    		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
