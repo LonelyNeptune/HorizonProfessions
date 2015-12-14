@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -18,12 +19,9 @@ import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+@SuppressWarnings("deprecation")
 public class ProfessionCommandExecutor implements CommandExecutor
-{
-	private final int PROGRESS_BAR_BLOCKS = 30; //The number of blocks that appear in the progress bar for command /profession view
-	private final int HEADER_WIDTH = 30; 		//The width of the header for each profession when viewing stats.
-	private final int CONSOLE_HEADER_WIDTH = 25;//The width of the header for the console.
-	
+{	
 	Plugin plugin;
 	ConfigAccessor data;
 	ConfigAccessor config;
@@ -56,9 +54,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			if (args.length == 0)
 			{
 				if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.help.admin"))
-					giveCommandsGuideAdmin(sender);
+					return giveCommandsGuideAdmin(sender);
 				else if (sender.hasPermission("horizon_professions.help"))
-					giveCommandsGuide((Player) sender);
+					return giveCommandsGuide((Player) sender);
 				else
 					sender.sendMessage(ChatColor.RED + "You don't have permission to use this command!");
 				return true;
@@ -83,23 +81,18 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					}
 					
 					arguments = confirmForget.get(name).split(" ");
-
-					forgetTier(sender, arguments[0], arguments[1]);
-					confirmForget.remove(name);
-					return true;
+					return confirmForgetTier(sender, arguments[0], arguments[1]);
 				}
 				//profession confirm reset
 				else if (args[1].equalsIgnoreCase("reset"))
 				{
 					if (confirmReset.get(name) == null)
 					{
-						sender.sendMessage(ChatColor.YELLOW + "There is nothing for you to confirm?");
+						sender.sendMessage(ChatColor.YELLOW + "There is nothing for you to confirm.");
 						return true;
 					}
 					
-					resetStats(sender, confirmReset.get(name));
-					confirmReset.remove(name);
-					return true;
+					return confirmResetStats(sender, confirmReset.get(name));
 				}
 			}
 			
@@ -115,162 +108,59 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				
 				//Player is attempting to view another player's stats.
 				if (args.length == 2)
-				{
-					//Console or admin-only command.
-					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.view.admin"))
-					{
-						viewStatsAdmin(args[1], sender);
-					}
-					//Nope
-					else
-						sender.sendMessage(ChatColor.RED + "You don't have permission to view another player's professions.");
-				}
+					return viewStatsAdmin(args[1], sender);
 					
 				//Player is attempting to view their own stats.
 				if (args.length == 1)
-				{
-					//Permission required
-					if (!sender.hasPermission("horizon_professions.view"))
-					{
-						sender.sendMessage(ChatColor.RED + "You don't have permission to view professions.");
-						return false;
-					}
-					
-					//Player-only command
-					if (!(sender instanceof Player))
-					{
-						sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
-						return false;
-					}
-					
-					viewStats((Player) sender);
-				}
-				
-				return true;
+					return viewStats(sender);
 			}
 			
 			//profession forget [profession] [player] 
 			if (args[0].equalsIgnoreCase("forget"))
 			{			
-				//Player provided too many arguments
-				if (args.length > 3)
+				//Player provided an incorrect number of arguments.
+				if (args.length > 3 || args.length < 2)
 				{
-					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession forget [profession] [optional:player]");
+					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession forget [profession] "
+							+ "[optional:player]");
 					return false;
 				}
 				
 				//Player is attempting to force another player to forget a tier.
 				if (args.length == 3)
-				{
-					//Console or admin-only command.
-					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.forget.admin"))
-					{
-						sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to force " + args[2] + " to forget a tier?"
-											+ " Type '/profession confirm forget' to confirm.");
-						confirmForget.put(name, args[1] + " " + args[2]);
-						confirmForgetTimeout(sender, name);
-						return true;
-					}
-					//Nope
-					else
-						sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to forget a tier.");
-				}
+					return forgetTier(sender, args[1], args[2]);
 				
 				//Player is attempting to forget a tier.
 				if (args.length == 2)
-				{
-					//Permission required
-					if (!sender.hasPermission("horizon_professions.forget"))
-					{
-						sender.sendMessage(ChatColor.RED + "You don't have permission to forget a tier.");
-						return false;
-					}
-					
-					//Player-only command
-					if (!(sender instanceof Player))
-					{
-						sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
-						return false;
-					}
-					
-					sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to forget a tier?"
-										+ " Type '/profession confirm forget' to confirm.");
-					confirmForget.put(name, args[1] + " " + name);
-					confirmForgetTimeout(sender, name);
-					return true;
-				}
-				
-				//Player did not provide enough arguments
-				if (args.length < 2)
-				{
-					sender.sendMessage(ChatColor.RED + "Too few arguments! Correct usage: /profession forget [profession] [optional:player]");
-					return false;
-				}
+					return forgetTier(sender, args[1], sender.getName());
 			}
 			
 			//profession givetier [profession] [player] 
 			if (args[0].equalsIgnoreCase("givetier"))
 			{
-				//Player provided too many arguments
-				if (args.length > 3)
+				//Player provided an incorrect number of arguments.
+				if (args.length > 3 || args.length < 3)
 				{
-					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession givetier [profession] [player]");
-					return false;
-				}
-				
-				//Player did not provide enough arguments
-				if (args.length < 3)
-				{
-					sender.sendMessage(ChatColor.RED + "Too few arguments! Correct usage: /profession givetier [profession] [player]");
+					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession givetier [profession] [player]");
 					return false;
 				}
 				
 				if (args.length == 3)
-				{
-					//Console or admin-only command.
-					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.givetier.admin"))
-						giveTier(sender, args[1].toLowerCase(), args[2]);
-					//Nope
-					else
-						sender.sendMessage(ChatColor.RED + "You don't have permission to give tiers to players.");
-				}
+					return giveTier(sender, args[1], args[2]);
 			}
 			
 			//profession claim [profession]
 			if (args[0].equalsIgnoreCase("claim"))
 			{
 				//Player provided too many arguments
-				if (args.length > 2)
+				if (args.length != 2)
 				{
-					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession claim [profession]");
-					return false;
-				}
-			
-				//Player did not provide enough arguments
-				if (args.length < 2)
-				{
-					sender.sendMessage(ChatColor.RED + "Too few arguments! Correct usage: /profession claim [profession]");
+					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession claim [profession]");
 					return false;
 				}
 				
 				if (args.length == 2)
-				{
-					//Player-only command
-					if (!(sender instanceof Player))
-					{
-						sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
-						return false;
-					}
-					
-					//Permission required
-					if (!sender.hasPermission("horizon_professions.claimtier"))
-					{
-						sender.sendMessage(ChatColor.RED + "You don't have permission to claim a tier.");
-						return false;
-					}
-
-					claimTier((Player) sender, args[1].toLowerCase());
-				}
+					return claimTier(sender, args[1].toLowerCase());
 			}
 			
 			//profession reset [player]
@@ -285,77 +175,26 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				
 				//Player is attempting to force another player to reset.
 				if (args.length == 2)
-				{
-					//Console or admin-only command.
-					if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.reset.admin"))
-					{
-						sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to force " + args[1] + " to reset?"
-								+ " Type '/profession confirm reset' to confirm.");
-						confirmReset.put(name, args[1]);
-						confirmResetTimeout(sender, name);
-						return true;
-					}
-					//Nope
-					else
-						sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to reset their professions.");
-				}
+					return resetStats(sender, args[1]);
 				
 				//Player is attempting to reset.
 				if (args.length == 1)
-				{
-					//Permission required
-					if (!sender.hasPermission("horizon_professions.reset"))
-					{
-						sender.sendMessage(ChatColor.RED + "You don't have permission to reset.");
-						return false;
-					}
-					
-					//Player-only command
-					if (!(sender instanceof Player))
-					{
-						sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
-						return false;
-					}
-					
-					sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to reset?"
-										+ " Type '/profession confirm reset' to confirm.");
-					confirmReset.put(name, name);
-					confirmResetTimeout(sender, name);
-					return true;
-				}
+					return resetStats(sender, sender.getName());
 			}
 			
 			//profession train [profession] [player]
 			if (args[0].equalsIgnoreCase("train"))
 			{
-				//Player provided too many arguments
-				if (args.length > 3)
+				if (args.length != 3)
 				{
-					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession train [profession] [player]");
+					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession train [profession] [player]");
 					return false;
 				}
 				
-				//Player is attempting to train someone
-				if (args.length == 3)
-				{
-					//Player-only command
-					if (!(sender instanceof Player))
-					{
-						sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
-						return false;
-					}
-
-					trainPlayer((Player) sender, args[1].toLowerCase(), args[2].toLowerCase());
-				}
-				
-				//Player did not provide enough arguments
-				if (args.length < 3)
-				{
-					sender.sendMessage(ChatColor.RED + "Too few arguments! Correct usage: /profession train [profession] [player]");
-					return false;
-				}
+				return trainPlayer(sender, args[1], args[2]);
 			}
 		}
+		
 		return false;
 	}
 
@@ -365,63 +204,27 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param player - the player for whom the stats are being displayed.
 	 * @param sender - the viewer to display the stats to.
 	 */
-	private void viewStats(Player player) 
+	private boolean viewStats(CommandSender sender) 
 	{
-		String name = player.getName();
-		
-		String tier;
-		int maxLevel;
-		int practiceFatigue;
-		int instructionFatigue;
-		String message = null;
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
-
-		player.sendMessage("--------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">--------------");
-		player.sendMessage(ChatColor.GOLD + " Viewing " + name);
-		
-		for (String profession: prof.getProfessions())
+		//Check that the sender is a player
+		if (!(sender instanceof Player))
 		{
-			tier = prof.getTierName(profession);
-			maxLevel = config.getConfig().getInt("tiers." + prof.getTier(profession) + ".maxlevel");
-			practiceFatigue = prof.getPracticeFatigue(profession);
-			instructionFatigue = prof.getInstructionFatigue(profession);
-			
-			//Build profession header for each profession.
-			message = ChatColor.YELLOW + "  " + alignText(tier.substring(0, 1).toUpperCase() + tier.substring(1) + " " 
-						+ profession.substring(0, 1).toUpperCase() + profession.substring(1), HEADER_WIDTH);
-			
-			//If the player has hit max tier, don't even show the level progression
-			if (maxLevel == 0)
-				message += " Level " + "[Maximum]";
-			else
-				message += " Level " + "[" + prof.getLevel(profession) + "/" + maxLevel + "]";
-			
-			//Send it.
-			player.sendMessage(message);
-			
-			//Build progress bar for each profession.
-			if (practiceFatigue > 0 && instructionFatigue > 0)
-				message = "" + ChatColor.RED;
-			else if (practiceFatigue > 0 || instructionFatigue > 0)
-					message = "" + ChatColor.GOLD;
-			else 
-				message = "" + ChatColor.GREEN;
-			
-			for (int i2 = 0; i2 < PROGRESS_BAR_BLOCKS; i2++)
-			{
-				if (practiceFatigue > 0)
-					message += "█";
-				else if (i2 < prof.getExperience(profession) / (config.getConfig().getInt("max_exp")/PROGRESS_BAR_BLOCKS))
-					message += "█";
-				else
-					message += ChatColor.DARK_GRAY + "█";
-			}
-			
-			message += ChatColor.YELLOW + " XP";
-			
-			//Send it.
-			player.sendMessage(message);
+			sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+			return false;
 		}
+		
+		//Check that the player has permission
+		if (!sender.hasPermission("horizon_professions.view"))
+		{
+			sender.sendMessage(ChatColor.RED + "You don't have permission to view your professions.");
+			return false;
+		}
+		
+		Player player = (Player) sender;
+		ProfessionHandler profHandler = new ProfessionHandler(data, config);
+		profHandler.displayStats(player.getUniqueId(), player.getName(), sender);
+		
+		return true;
 	}
 	
 	/**
@@ -430,182 +233,137 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param player - the player for whom the stats are being displayed.
 	 * @param sender - the viewer to display the stats to.
 	 */
-	private void viewStatsAdmin(String player, CommandSender sender) 
+	private boolean viewStatsAdmin(String name, CommandSender sender) 
 	{
-		String tier;
-		int maxLevel;
-		int practiceFatigue;
-		int instructionFatigue;
-		String tierCapitalised;
-		String message = null;
-		ProfessionStats prof = new ProfessionStats(data, config, Bukkit.getOfflinePlayer(player).getUniqueId());
-
-		sender.sendMessage("--------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">--------------");
-		sender.sendMessage(ChatColor.GOLD + " Viewing " + player);
-		
-		for (String profession: prof.getProfessions())
+		//Check that the player has permission OR is the console
+		if (!sender.hasPermission("horizon_professions.view.admin") && sender instanceof Player)
 		{
-			tier = prof.getTierName(profession);
-			maxLevel = config.getConfig().getInt("tiers." + prof.getTier(profession) + ".maxlevel");
-			practiceFatigue = prof.getPracticeFatigue(profession);
-			instructionFatigue = prof.getInstructionFatigue(profession);
-			tierCapitalised = tier.substring(0, 1).toUpperCase() + tier.substring(1);
-			
-			//Build profession header for each profession.
-			message = ChatColor.YELLOW + "  " + alignText(tierCapitalised + " " + profession.substring(0, 1).toUpperCase() 
-					+ profession.substring(1), CONSOLE_HEADER_WIDTH);
-			
-			//If the player has hit max tier, don't even show the level progression
-			if (maxLevel == 0)
-				message += " Level " + "[Maximum]";
-			else
-				message += " Level " + "[" + prof.getLevel(profession) + "/" + maxLevel + "]";
-			
-			//Send it.
-			sender.sendMessage(message);
-			
-			//Build progress bar for each profession.
-			if (practiceFatigue > 0 && instructionFatigue > 0)
-				message = "" + ChatColor.RED;
-			else if (practiceFatigue > 0 || instructionFatigue > 0)
-					message = "" + ChatColor.GOLD;
-			else 
-				message = "" + ChatColor.GREEN;
-			
-			for (int i2 = 0; i2 < PROGRESS_BAR_BLOCKS; i2++)
-			{
-				if (practiceFatigue > 0)
-					message += "█";
-				else if (i2 < prof.getExperience(profession) / (config.getConfig().getInt("max_exp")/PROGRESS_BAR_BLOCKS))
-					message += "█";
-				else
-					message += ChatColor.DARK_GRAY + "█";
-			}
-			
-			message += ChatColor.YELLOW + " XP";
-			
-			//Send it.
-			sender.sendMessage(message);
+			sender.sendMessage(ChatColor.RED + "You don't have permission to view another player's professions.");
+			return false;
 		}
-	}
-	
-	/**
-	 * alignText() allows for text to be aligned into columns in the chatbox by adding the appropriate number of spaces
-	 * to the end of the string.
-	 * @param string - the string to modify.
-	 * @param size - the ideal size of the column for the string to occupy.
-	 * @return - the modified string.
-	 */
-	private String alignText(String string, int size) 
-	{
-	    String alignedString = string;
-	    int numSpaces;
-	 
-	    if (string != null) 
-	    {
-	        numSpaces = (size - string.length())*2;
-	        
-	        for (int i = 0; i < alignedString.length(); i++)
-	        {
-	        	if (alignedString.charAt(i) == 'i' || alignedString.charAt(i) == 'l') 
-	            	numSpaces++;
-	        	if (alignedString.charAt(i) == 'c' || alignedString.charAt(i) == 'p' || alignedString.charAt(i) == 'v')
-	        		numSpaces--;
-	        }
-	        
-	        for (int i2 = 0; i2 < numSpaces; i2++) 
-	        	alignedString += " ";
-	    }
-	    
-	    return alignedString;
-	}
-	
-	/**
-	 * centreText() allows text to be centred in the middle of the chatbox by adding the appropriate number of spaces to
-	 * the beginning and end of the string
-	 * @param string - the string to modify
-	 * @param size - the ideal size of the column for the string to occupy.
-	 * @return - the modified string.
-	 */
-	private String centreText(String string, int size) 
-	{
-	    String alignedString = " ";
-	    int numSpaces;
-	 
-	    if (string != null) 
-	    {
-	        numSpaces = (size - string.length())*2;
-	        
-	        for (int i = 0; i < alignedString.length(); i++)
-	        {
-	        	if (alignedString.charAt(i) == 'i' || alignedString.charAt(i) == 'l') 
-	            	numSpaces++;
-	        	if (alignedString.charAt(i) == 'c' || alignedString.charAt(i) == 'p' || alignedString.charAt(i) == 'v')
-	        		numSpaces--;
-	        }
-	        
-	        for (int i2 = 0; i2 < numSpaces/2; i2++) 
-	        	alignedString += " ";
-	        
-	        alignedString += string;
-	        
-	        for (int i2 = 0; i2 < numSpaces/2; i2++) 
-	        	alignedString += " ";
-	    }
-	    
-	    return alignedString;
+		
+		Player player = Bukkit.getPlayer(name);
+		ProfessionHandler profHandler = new ProfessionHandler(data, config);
+		if (player == null)
+		{
+			OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(name);
+			profHandler.displayStats(offlinePlayer.getUniqueId(), offlinePlayer.getName(), sender);
+		}
+		else
+			profHandler.displayStats(player.getUniqueId(), name, sender);
+		
+		return true;
 	}
 
 	/**
-	 * forgetTier() reduces the tier of the player in a certain profession by one.
+	 * forgetTier() checks that the command is valid, asks for confirmation and sets the command to await for confirmation.
 	 * @param sender - the sender to return messages to.
 	 * @param profession - the profession for which to reduce a tier.
 	 * @param playerString - the player of whom to reduce the tier of.
 	 */
-	private void forgetTier(CommandSender sender, String profession, String playerString) 
+	private boolean forgetTier(CommandSender sender, String profession, String name) 
 	{
-		Player player = Bukkit.getServer().getPlayer(playerString);
-		String message;
+		//If the sender is the target
+		if (sender.getName().equalsIgnoreCase(name))
+		{
+			//Console cannot use the command like this
+			if (!(sender instanceof Player))
+			{
+				sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+				return false;
+			}
+			
+			//Player must have permission
+			if (!sender.hasPermission("horizon_professions.forget"))
+			{
+				sender.sendMessage(ChatColor.RED + "You do not have permission to forget a tier.");
+				return false;
+			}			
+			
+			//Ask for confirmation
+			sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to forget a tier?"
+					+ " Type '/profession confirm forget' to confirm.");
+		}
+		//If the sender is NOT the target
+		else
+		{
+			//Sender must have permission OR be the console
+			if (sender instanceof Player && !sender.hasPermission("horizon_professions.forget.admin"))
+			{
+				sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to forget a tier.");
+				return false;
+			}
+			
+			//Ask for confirmation
+			sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to force " + name + " to forget a tier?"
+					+ " Type '/profession confirm forget' to confirm.");
+		}
+
+		//Await confirmation
+		confirmForget.put(sender.getName(), profession + " " + name);
+		confirmForgetTimeout(sender, sender.getName());
+		return true;
+	}
+	
+	/**
+	 * confirmForgetTier() performs the confirmed command of reducing the tier of the player in a certain profession by one.
+	 * @param sender - the sender to return messages to.
+	 * @param profession - the profession for which to reduce a tier.
+	 * @param playerString - the player of whom to reduce the tier of.
+	 */
+	private boolean confirmForgetTier(CommandSender sender, String profession, String name)
+	{
+		ProfessionHandler profHandler = new ProfessionHandler(data, config);
+		Player player = Bukkit.getPlayer(name);
+		int newTier;
 		
-		//Check that the profession argument is one of the professions.
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
-		for (String existingProfession: prof.getProfessions())
-			if (!profession.equalsIgnoreCase(existingProfession))
-				{
-					player.sendMessage(ChatColor.RED + "That profession does not exist!");
-					return;
-				}
+		//Stop waiting for confirmation
+		confirmForget.remove(sender.getName());
 		
-		//Remove the tier
-		prof.setExperience(profession, 0);
-		prof.setLevel(profession, 0);
-		if (prof.getTier(profession) > 0)
-			prof.setTier(profession, prof.getTier(profession) - 1);
+		//Perform the action
+		if (player == null)
+			try {newTier = profHandler.forgetTier(Bukkit.getOfflinePlayer(name).getUniqueId(), profession);}
+			catch (IllegalArgumentException e) 
+			{
+				sender.sendMessage(ChatColor.RED + e.getMessage());
+				return false;
+			}
+		else
+			try {newTier = profHandler.forgetTier(player.getUniqueId(), profession);} 
+			catch (IllegalArgumentException e) 
+			{
+				sender.sendMessage(ChatColor.RED + e.getMessage());
+				return false;
+			}
 		
+		String tierName = profHandler.getTierName(newTier);
+
 		//Notify sender.
-		sender.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now " + 
-							getDeterminer(prof.getTierName(profession)) + " " + prof.getTierName(profession) + " " + profession + ".");
-		
+		sender.sendMessage(ChatColor.YELLOW + name + " has forgotten some knowledge. They are now " + getDeterminer(tierName) 
+							+ " " + tierName + " " + profession + ".");
+				
 		//If the sender isn't the receiver, notify the receiver too.
 		if (sender instanceof Player && (Player) sender != player && player != null)
 		{
-			player.sendMessage(ChatColor.YELLOW + playerString + " has forgotten some knowledge. They are now " + 
-					getDeterminer(prof.getTierName(profession)) + " " + prof.getTierName(profession) + " " + profession + ".");
+			player.sendMessage(ChatColor.YELLOW + name + " has forgotten some knowledge. They are now " + 
+					getDeterminer(tierName) + " " + tierName + " " + profession + ".");
 		}
 		else
-			return;
+			return true;
 
-		message = ChatColor.GOLD + sender.getName() + " has forced " + playerString + " to forget a level in " 
-				+ profession + ".";
-		
+		String message = ChatColor.GOLD + sender.getName() + " has forced " + name + " to forget a level in " 
+						+ profession + ".";
+				
 		//Notify all online moderators.
-		Collection<? extends Player> onlinePlayers = Bukkit.getServer().getOnlinePlayers();
-		
+		Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
+				
 		for (Player onlinePlayer: onlinePlayers)
 			if (onlinePlayer.hasPermission("horizon_profession.forget.admin"))
 				onlinePlayer.sendMessage(message);
-		
+			
 		createLog(message, "log.txt");
+		
+		return true;
 	}
 	
 	/**
@@ -615,50 +373,60 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param profession
 	 * @param playerString
 	 */
-	private void giveTier(CommandSender sender, String profession, String playerString) 
+	private boolean giveTier(CommandSender sender, String profession, String name) 
 	{
-		Player player = Bukkit.getServer().getPlayer(playerString);
-		String message;
+		//Check that the player has permission OR is the console
+		if (!sender.hasPermission("horizon_professions.givetier") && sender instanceof Player)
+		{
+			sender.sendMessage(ChatColor.RED + "You don't have permission to give tiers.");
+			return false;
+		}
 		
-		//Check that the profession argument is one of the professions.
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
-		for (String existingProfession: prof.getProfessions())
-			if (!profession.equalsIgnoreCase(existingProfession))
-				{
-					player.sendMessage(ChatColor.RED + "That profession does not exist!");
-					return;
-				}
+		ProfessionHandler profHandler = new ProfessionHandler(data, config);
+		Player player = Bukkit.getPlayer(name);
+		int newTier;
 		
-		//Add the tier
-		prof.setExperience(profession, 0);
-		prof.setLevel(profession, 0);
-		if (prof.getTier(profession) < prof.getTiers().size())
-			prof.setTier(profession, prof.getTier(profession) + 1);
+		if (player == null)
+			try {newTier = profHandler.giveTier(Bukkit.getOfflinePlayer(name).getUniqueId(), profession);}
+			catch (IllegalArgumentException e)
+			{
+				sender.sendMessage(ChatColor.RED + e.getMessage());
+				return false;
+			}
+		else
+			try {newTier = profHandler.giveTier(player.getUniqueId(), profession);}
+			catch (IllegalArgumentException e)
+			{
+				sender.sendMessage(ChatColor.RED + e.getMessage());
+				return false;
+			}
 		
+		String tierName = profHandler.getTierName(newTier);
+
 		//Notify sender.
-		sender.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now " + 
-							getDeterminer(prof.getTierName(profession)) + " " + prof.getTierName(profession) + " " + profession + ".");
-		
+		sender.sendMessage(ChatColor.YELLOW + name + " has gained some knowledge. They are now " + getDeterminer(tierName) 
+							+ " " + tierName + " " + profession + ".");
+				
 		//If the sender isn't the receiver, notify the receiver too.
 		if (sender instanceof Player && (Player) sender != player && player != null)
 		{
-			player.sendMessage(ChatColor.YELLOW + playerString + " has gained some knowledge. They are now " + 
-					getDeterminer(prof.getTierName(profession)) + " " + prof.getTierName(profession) + " " + profession + ".");
+			player.sendMessage(ChatColor.YELLOW + name + " has gained some knowledge. They are now "  + 
+					getDeterminer(tierName) + " " + tierName + " " + profession + ".");
 		}
 		else
-			//If the sender is the receiver there isn't any need to notify further or create logs.
-			return;
+			return true;
 
-		message = ChatColor.GOLD + sender.getName() + " has given a tier in " + profession + " to " + playerString;
-		
+		String message = ChatColor.GOLD + sender.getName() + " has given a tier in " + profession + " to " + name;
+				
 		//Notify all online moderators.
-		Collection<? extends Player> onlinePlayers = Bukkit.getServer().getOnlinePlayers();
-		
+		Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
+				
 		for (Player onlinePlayer: onlinePlayers)
 			if (onlinePlayer.hasPermission("horizon_profession.givetier"))
 				onlinePlayer.sendMessage(message);
-		
+			
 		createLog(message, "log.txt");
+		return true;
 	}
 	
 	/**
@@ -667,49 +435,107 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param player - the player who is claiming a tier
 	 * @param profession - the profession in which a player wishes to claim a tier.
 	 */
-	private void claimTier(Player player, String profession) 
+	private boolean claimTier(CommandSender sender, String profession) 
 	{
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
-		int claimed = prof.getClaimed();
-		
-		//Check if they have reached the maximum number of claimable tiers.
-		if (claimed >= config.getConfig().getInt("claimable_tiers"))
+		//Check that the sender is a player
+		if (!(sender instanceof Player))
 		{
-			player.sendMessage(ChatColor.RED + "You do not have any claimable tiers left!");
-			return;
+			sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+			return false;
 		}
 		
-		//Check if they are already maximum tier in that profession.
-		if (prof.getTier(profession) == 3)
+		//Check that the player has permission
+		if (!sender.hasPermission("horizon_professions.claimtier") && sender instanceof Player)
 		{
-			player.sendMessage(ChatColor.RED + "You are already the maximum tier in that profession!");
-			return;
+			sender.sendMessage(ChatColor.RED + "You don't have permission to claim a tier.");
+			return false;
 		}
-			
-		//Give them a tier.
-		prof.setTier(profession, prof.getTier(profession) + 1);
 		
-		//Reset level and exp
-		prof.setExperience(profession, 0);
-		prof.setLevel(profession, 0);
+		Player player = (Player) sender;
+		ProfessionHandler profHandler = new ProfessionHandler(data, config);
+		String newTier;
 		
-		//Increment the number of tiers they have claimed.
-		prof.setClaimed(claimed + 1);
+		try {newTier = profHandler.getTierName(profHandler.claimTier(player.getUniqueId(), profession));}
+		catch (IllegalArgumentException e)
+		{
+			sender.sendMessage(ChatColor.RED + e.getMessage());
+			return false;
+		}
 		
 		player.sendMessage(ChatColor.YELLOW + player.getName() + " has gained some knowledge. They are now " + 
-							getDeterminer(prof.getTierName(profession)) + " " + prof.getTierName(profession) + " " + profession + ".");
+							getDeterminer(newTier) + " " + newTier + " " + profession + ".");
+		
+		return true;
 	}
 	
 	/**
-	 * resetStats() removes all experience, levels and tiers from the player.
+	 * resetStats() checks that the command is valid, asks for confirmation and sets the command to await for confirmation.
 	 * @param sender
 	 * @param playerString - the player who is having their stats reset to 0.
+	 * @return 
 	 */
-	private void resetStats(CommandSender sender, String playerString) 
+	private boolean resetStats(CommandSender sender, String playerName) 
+	{		
+		//If the sender is the target
+		if (sender.getName().equalsIgnoreCase(playerName))
+		{
+			//Console cannot use the command like this
+			if (!(sender instanceof Player))
+			{
+				sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+				return false;
+			}
+			
+			//Player must have permission
+			if (!sender.hasPermission("horizon_professions.reset"))
+			{
+				sender.sendMessage(ChatColor.RED + "You do not have permission to reset your professions.");
+				return false;
+			}			
+			
+			//Ask for confirmation
+			sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to reset your professions? You will lose all your progress!"
+					+ " Type '/profession confirm reset' to confirm.");
+		}
+		//If the sender is NOT the target
+		else
+		{
+			//Sender must have permission OR be the console
+			if (sender instanceof Player && !sender.hasPermission("horizon_professions.reset.admin"))
+			{
+				sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to reset.");
+				return false;
+			}
+			
+			//Ask for confirmation
+			sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to force " + playerName + " to reset?"
+					+ " Type '/profession confirm reset' to confirm.");
+		}
+
+		//Await confirmation
+		confirmReset.put(sender.getName(), playerName);
+		confirmResetTimeout(sender, sender.getName());
+		return true;
+	}
+	
+	/**
+	 * confirmResetStats() removes all experience, levels and tiers from the player.
+	 * @param sender
+	 * @param playerString - the player who is having their stats reset to 0.
+	 * @return 
+	 */
+	private boolean confirmResetStats(CommandSender sender, String playerString)
 	{
-		Player player = Bukkit.getServer().getPlayer(playerString);
-		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
-		String message;
+		Player player = Bukkit.getPlayer(playerString);
+		ProfessionStats prof;
+		
+		//Stop waiting for confirmation
+		confirmReset.remove(sender.getName());
+		
+		if (player == null)
+			prof = new ProfessionStats(data, config, Bukkit.getOfflinePlayer(playerString).getUniqueId());
+		else
+			prof = new ProfessionStats(data, config, Bukkit.getOfflinePlayer(playerString).getUniqueId());
 		
 		//Reset all stats
 		prof.reset();
@@ -722,81 +548,90 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			player.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
 		}
 		else
-			return;
+			return true;
 
-		message = ChatColor.GOLD + sender.getName() + " has forced " + playerString + " to reset.";
+		String message = ChatColor.GOLD + sender.getName() + " has forced " + playerString + " to reset.";
 		
 		//Notify all online moderators.
-		Collection<? extends Player> onlinePlayers = Bukkit.getServer().getOnlinePlayers();
+		Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
 		
 		for (Player onlinePlayer: onlinePlayers)
 			if (onlinePlayer.hasPermission("horizon_profession.reset.admin"))
 				onlinePlayer.sendMessage(message);
 		
 		createLog(message, "log.txt");
+		return true;
 	}
 	
 	/**
 	 * trainPlayer() allows one player to train another in a specified profession. The trainer must be the top tier in that
 	 * profession and the trainee must not be. The trainee will gain two levels in the profession, but will suffer 
 	 * instruction fatigue which serves as a cooldown.
-	 * @param trainer
+	 * @param sender
 	 * @param profession
 	 * @param traineeString
+	 * @return 
 	 */
-	private void trainPlayer(Player trainer, String profession, String traineeString) 
-	{
-		Player trainee = Bukkit.getServer().getPlayer(traineeString);
+	private boolean trainPlayer(CommandSender sender, String profession, String traineeString) 
+	{		
+		//Check that the sender is a player
+		if (!(sender instanceof Player))
+		{
+			sender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+			return false;
+		}
+		
+		Player trainee = Bukkit.getPlayer(traineeString);
+		Player trainer = (Player) sender;
+		
+		//Check that the trainee is online
+		if (trainee == null)
+		{
+			sender.sendMessage(ChatColor.YELLOW + "You cannot train " + traineeString + " because they are not online!");
+			return false;
+		}
+		
 		ProfessionStats profTrainer = new ProfessionStats(data, config, trainer.getUniqueId());
 		ProfessionStats profTrainee = new ProfessionStats(data, config, trainee.getUniqueId());
-		double distance;
-		String message;
 		
 		//Check that the trainer is the top tier
 		List<String> tiers = profTrainer.getTiers();
 		
 		if (profTrainer.getTier(profession) < tiers.size() - 1)
 		{
-			trainer.sendMessage(ChatColor.YELLOW + "You cannot train yet because you are not " 
+			sender.sendMessage(ChatColor.YELLOW + "You cannot train yet because you are not " 
 								+ getDeterminer(tiers.get(tiers.size()-1)) + " " + tiers.get(tiers.size()-1) + " " + profession + "!");
-			return;
-		}
-		
-		//Check that the trainee is online
-		if (!trainee.isOnline())
-		{
-			trainer.sendMessage(ChatColor.YELLOW + "You cannot train " + traineeString + " because they are not online!");
-			return;
+			return false;
 		}
 		
 		//Trying to train yourself is funny, but not allowed.
 		if (trainer.getUniqueId() == trainee.getUniqueId())
 		{
-			trainer.sendMessage(ChatColor.YELLOW + "You cannot train yourself, silly!");
-			return;
+			sender.sendMessage(ChatColor.YELLOW + "You cannot train yourself, silly!");
+			return false;
 		}
 		
 		//Check that the trainee is not already at the top tier
 		if (profTrainee.getTier(profession) >= 3)
 		{
-			trainer.sendMessage(ChatColor.YELLOW + "You cannot train " + traineeString + " because they are already an Expert!");
-			return;
+			sender.sendMessage(ChatColor.YELLOW + "You cannot train " + traineeString + " because they are already an Expert!");
+			return false;
 		}
 		
 		//Check that the trainee is not suffering from instruction fatigue.
 		if (profTrainee.getInstructionFatigue(profession) > 0)
 		{
-			trainer.sendMessage(ChatColor.YELLOW + traineeString + " has already benefitted from instruction today.");
-			return;
+			sender.sendMessage(ChatColor.YELLOW + traineeString + " has already benefitted from instruction today.");
+			return false;
 		}
 		
 		//Check that the trainer and trainee are reasonably close together and in the same world.
-		distance = trainer.getLocation().distance(trainee.getLocation());
+		double distance = trainer.getLocation().distance(trainee.getLocation());
 
 		if (!trainer.getWorld().equals(trainee.getWorld()) || Double.isNaN(distance) || distance > 20)
 		{
-			trainer.sendMessage("You are too far away to train " + traineeString + "!");
-			return;
+			sender.sendMessage("You are too far away to train " + traineeString + "!");
+			return false;
 		}
 		
 		//Give levels
@@ -806,18 +641,19 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		profTrainee.setInstructionFatigue(profession, config.getConfig().getInt("fatigue_time"));
 		
 		//Notify trainer, trainee and any moderators.
-		trainer.sendMessage("You have trained " + traineeString + " in the " + profession + " profession.");
+		sender.sendMessage("You have trained " + traineeString + " in the " + profession + " profession.");
 		trainee.sendMessage(trainer.getCustomName() + " has trained you in the " + profession + " profession.");
 		
-		message = ChatColor.YELLOW + trainer.getName() + " just trained " + traineeString + " in the " + profession + " profession!";
+		String message = ChatColor.YELLOW + trainer.getName() + " just trained " + traineeString + " in the " + profession + " profession!";
 		
-		Collection<? extends Player> onlinePlayers = Bukkit.getServer().getOnlinePlayers();
+		Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
 		
 		for (Player player : onlinePlayers) 
 			if (player.hasPermission("horizon_profession.train.admin"))
 				player.sendMessage(message);
 		
 		createLog(message, "trainlog.txt");
+		return true;
 	}
 
 
@@ -825,7 +661,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * giveCommandsGuide() displays a list of the available commands.
 	 * @param player - the player to display the commands to.
 	 */
-	private void giveCommandsGuide(Player player) 
+	private boolean giveCommandsGuide(Player player) 
 	{
 		player.sendMessage("----------------<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">----------------");
 		player.sendMessage(ChatColor.GOLD + "Horizon Professions allows you to keep track of your trade skills!");
@@ -839,13 +675,15 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		player.sendMessage("Resets all of your progress to zero.");
 		player.sendMessage(ChatColor.YELLOW + "/profession train [profession] [player]");
 		player.sendMessage("Trains another player in a specified profession. They will gain two levels.");
+		
+		return true;
 	}
 	
 	/**
 	 * giveCommandsGuideAdmin() displays a list of the available commands to administrators.
 	 * @param sender - the sender to display the commands to.
 	 */
-	private void giveCommandsGuideAdmin(CommandSender sender) 
+	private boolean giveCommandsGuideAdmin(CommandSender sender) 
 	{
 		sender.sendMessage("------------<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">------------");
 		sender.sendMessage(ChatColor.GOLD + "Horizon Professions allows you to keep track of your trade skills!");
@@ -861,6 +699,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		sender.sendMessage("Resets all of the player's progress to zero.");
 		sender.sendMessage(ChatColor.YELLOW + "/profession train [profession] [player]");
 		sender.sendMessage("Trains another player in a specified profession. They will gain two levels.");
+		
+		return true;
 	}
 	
 	/**
@@ -924,30 +764,30 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		} 
     }
 	
-	private void confirmForgetTimeout(final CommandSender sender, final String key)
+	private void confirmForgetTimeout(final CommandSender sender, final String name)
 	{
-		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable()
+		Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable()
 		{
 			public void run() 
 			{
-				if (confirmForget.containsKey(key))
+				if (confirmForget.containsKey(name))
 				{
-					confirmForget.remove(key);
+					confirmForget.remove(name);
 					sender.sendMessage(ChatColor.YELLOW + "You timed out.");
 				}
 			}			
 		} , 200);
 	}
 	
-	private void confirmResetTimeout(final CommandSender sender, final String key)
+	private void confirmResetTimeout(final CommandSender sender, final String name)
 	{
-		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable()
+		Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, new Runnable()
 		{
 			public void run() 
 			{
-				if (confirmReset.containsKey(key))
+				if (confirmReset.containsKey(name))
 				{
-					confirmReset.remove(key);
+					confirmReset.remove(name);
 					sender.sendMessage(ChatColor.YELLOW + "You timed out.");
 				}
 			}			

@@ -160,17 +160,6 @@ public class ProfessionStats
 	}
 	
 	/**
-	 * getTierName() returns the name of the tier that the player has in the profession given.
-	 * 
-	 * @param profession
-	 * @return
-	 */
-	public String getTierName(String profession)
-	{
-		return config.getConfig().getString("tiers." + tiers.get(profession) + ".name");
-	}
-	
-	/**
 	 * setTier() sets the tier in the profession given.
 	 * 
 	 * @param profession
@@ -205,7 +194,7 @@ public class ProfessionStats
 	 */
 	public boolean hasTier(String profession, int tierNum)
 	{
-		if (tierNum >= tiers.get(profession))
+		if (tiers.get(profession) >= tierNum)
 			return true;
 		else		
 			return false;
