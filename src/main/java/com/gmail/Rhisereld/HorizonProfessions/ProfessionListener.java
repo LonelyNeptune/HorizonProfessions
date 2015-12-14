@@ -7,6 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -31,11 +32,11 @@ import org.bukkit.plugin.Plugin;
 public class ProfessionListener implements Listener
 {
 	Plugin plugin;
-	ConfigAccessor data;
-	ConfigAccessor config;
+	FileConfiguration data;
+	FileConfiguration config;
 	boolean isHealingOther;				//Used to cancel healing self if the player is healing another.
 	
-	public ProfessionListener(Plugin plugin, ConfigAccessor data, ConfigAccessor config) 
+	public ProfessionListener(Plugin plugin, FileConfiguration data, FileConfiguration config) 
 	{
 		this.plugin = plugin;
 		this.data = data;
@@ -69,7 +70,7 @@ public class ProfessionListener implements Listener
 		for (String p: prof.getProfessions())
 		{
 			//If there's no configuration for that profession, skip it.
-			try {list = config.getConfig().getConfigurationSection("slaying." + p).getKeys(false);}
+			try {list = config.getConfigurationSection("slaying." + p).getKeys(false);}
 			catch (NullPointerException e)
 			{ continue; }
 			
@@ -77,7 +78,7 @@ public class ProfessionListener implements Listener
 				//If found, award experience for it.
 				if (entity.getType().toString().equalsIgnoreCase(monster))
 				{
-		    		prof.addExperience(p, config.getConfig().getInt("slaying." + p + "." + monster));
+		    		prof.addExperience(p, config.getInt("slaying." + p + "." + monster));
 					return;
 				}
 		}
@@ -95,7 +96,7 @@ public class ProfessionListener implements Listener
 			return;
 
     	//Check if the item in hand fits any of the items specified in the configuration file.		
-    	Set <String> items = config.getConfig().getConfigurationSection("healing.").getKeys(false);
+    	Set <String> items = config.getConfigurationSection("healing.").getKeys(false);
     	String item = null;
     	for (String i: items)
     		if (player.getItemInHand().getType().toString().equalsIgnoreCase(i))
@@ -106,11 +107,11 @@ public class ProfessionListener implements Listener
     		return;
     	
 		//Check if the amount to heal is in the config
-    	String professionRequired = config.getConfig().getString("healing." + item + ".profession");
+    	String professionRequired = config.getString("healing." + item + ".profession");
     	ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
     	ProfessionHandler profHandler = new ProfessionHandler(data, config);
     	
-    	double amountToHeal = config.getConfig().getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
+    	double amountToHeal = config.getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
     	if (amountToHeal == 0)
     	{
     		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
@@ -157,7 +158,7 @@ public class ProfessionListener implements Listener
 		}
 		
 		//Check if the item in hand fits any of the items specified in the configuration file.		
-    	Set <String> items = config.getConfig().getConfigurationSection("healing.").getKeys(false);
+    	Set <String> items = config.getConfigurationSection("healing.").getKeys(false);
     	String item = null;
     	for (String i: items)
     		if (player.getItemInHand().getType().toString().equalsIgnoreCase(i))
@@ -168,11 +169,11 @@ public class ProfessionListener implements Listener
     		return;
     	
 		//Check if the amount to heal is in the config
-    	String professionRequired = config.getConfig().getString("healing." + item + ".profession");
+    	String professionRequired = config.getString("healing." + item + ".profession");
     	ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
     	ProfessionHandler profHandler = new ProfessionHandler(data, config);
     	
-    	double amountToHeal = config.getConfig().getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
+    	double amountToHeal = config.getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
     	if (amountToHeal == 0)
     	{
     		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
@@ -217,15 +218,15 @@ public class ProfessionListener implements Listener
 		for(String p: prof.getProfessions())
 			for (String t: prof.getTiers())
 			{
-				if (config.getConfig().getConfigurationSection("breakblocks." + p + "." + t) == null)
+				if (config.getConfigurationSection("breakblocks." + p + "." + t) == null)
 					continue;
 				
-				configBlocks = config.getConfig().getConfigurationSection("breakblocks." + p + "." + t).getKeys(false);
+				configBlocks = config.getConfigurationSection("breakblocks." + p + "." + t).getKeys(false);
 				
 				for (String b: configBlocks)
 					if (event.getBlock().getType().toString().equalsIgnoreCase(b))
 					{
-						exp = config.getConfig().getInt("breakblocks." + p + "." + t + "." + b);
+						exp = config.getInt("breakblocks." + p + "." + t + "." + b);
 						professionReq = p;
 						tierReq = t;
 						break;
@@ -239,7 +240,7 @@ public class ProfessionListener implements Listener
 		}
 		
 		//If the player doesn't have at least the tier, cancel the event.
-		long place_cooldown = config.getConfig().getLong("place_cooldown");
+		long place_cooldown = config.getLong("place_cooldown");
 		
 		if (!prof.hasTier(professionReq, tierReq))
 		{
@@ -275,12 +276,12 @@ public class ProfessionListener implements Listener
 		for(String p: prof.getProfessions())
 			for (String t: prof.getTiers())
 			{
-				configBlocks = config.getConfig().getConfigurationSection("placeblocks." + p + "." + t).getKeys(false);
+				configBlocks = config.getConfigurationSection("placeblocks." + p + "." + t).getKeys(false);
 				
 				for (String b: configBlocks)
 					if (event.getBlock().getType().toString().equalsIgnoreCase(b))
 					{
-						exp = config.getConfig().getInt("placeblocks." + p + "." + t + "." + b);
+						exp = config.getInt("placeblocks." + p + "." + t + "." + b);
 						professionReq = p;
 						tierReq = t;
 						break;
@@ -346,7 +347,7 @@ public class ProfessionListener implements Listener
 	    		ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
 	    		
 	    		if (prof.getPracticeFatigue(profession) <= 0)
-	    			prof.addExperience(profession, config.getConfig().getInt("healing." + item + ".exp"));
+	    			prof.addExperience(profession, config.getInt("healing." + item + ".exp"));
 	    			
 	    		//Notify both parties.
 	    		if (!player.equals(recipient))

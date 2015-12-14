@@ -50,14 +50,14 @@ public final class Main extends JavaPlugin
         if (getServer().getPluginManager().isPluginEnabled("RecipeManager"))
         {
         	getLogger().info("RecipeManager hooked, recipe support enabled.");
-            getServer().getPluginManager().registerEvents(new CraftListener(data, config), this);
+            getServer().getPluginManager().registerEvents(new CraftListener(data.getConfig(), config.getConfig()), this);
         }
         else
         	getLogger().severe(String.format("Recipe support disabled due to no RecipeManager dependency found!", getDescription().getName()));
         
         //Listeners and commands.
-        getServer().getPluginManager().registerEvents(new ProfessionListener(this, data, config), this);
-    	this.getCommand("profession").setExecutor(new ProfessionCommandExecutor(this, data, config));
+        getServer().getPluginManager().registerEvents(new ProfessionListener(this, data.getConfig(), config.getConfig()), this);
+    	this.getCommand("profession").setExecutor(new ProfessionCommandExecutor(this, data.getConfig(), config.getConfig()));
     	
     	//Save every 30 minutes.
 		Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable()
@@ -141,7 +141,7 @@ public final class Main extends JavaPlugin
     	//Update fatigue for players
 		for (String savedPlayer: savedPlayers)
 		{
-			ProfessionStats prof = new ProfessionStats(data, config, UUID.fromString(savedPlayer));
+			ProfessionStats prof = new ProfessionStats(data.getConfig(), config.getConfig(), UUID.fromString(savedPlayer));
 			
 			for (String profession: prof.getProfessions())
 			{

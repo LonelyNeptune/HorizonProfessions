@@ -16,6 +16,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -23,13 +24,13 @@ import org.bukkit.plugin.Plugin;
 public class ProfessionCommandExecutor implements CommandExecutor
 {	
 	Plugin plugin;
-	ConfigAccessor data;
-	ConfigAccessor config;
+	FileConfiguration data;
+	FileConfiguration config;
 	
 	HashMap<String, String> confirmForget = new HashMap<String, String>();	//Used to confirm commands
 	HashMap<String, String> confirmReset = new HashMap<String, String>();
 	
-    public ProfessionCommandExecutor(Plugin plugin, ConfigAccessor data, ConfigAccessor config) 
+    public ProfessionCommandExecutor(Plugin plugin, FileConfiguration data, FileConfiguration config) 
     {
     	this.plugin = plugin;
     	this.data = data;
@@ -638,7 +639,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		profTrainee.addLevel(profession, 2);
 		
 		//Set fatigue
-		profTrainee.setInstructionFatigue(profession, config.getConfig().getInt("fatigue_time"));
+		profTrainee.setInstructionFatigue(profession, config.getInt("fatigue_time"));
 		
 		//Notify trainer, trainee and any moderators.
 		sender.sendMessage("You have trained " + traineeString + " in the " + profession + " profession.");

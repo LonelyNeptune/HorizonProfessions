@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.bukkit.configuration.file.FileConfiguration;
+
 public class ProfessionStats 
 {
-	ConfigAccessor data;
-	ConfigAccessor config;
+	FileConfiguration data;
+	FileConfiguration config;
 	String path;
 	List<String> professions;
 	HashMap<String, Integer> experience = new HashMap<String, Integer>();
@@ -25,24 +27,24 @@ public class ProfessionStats
 	 * @param data
 	 * @param uuid
 	 */
-	public ProfessionStats(ConfigAccessor data, ConfigAccessor config, UUID uuid)
+	public ProfessionStats(FileConfiguration data, FileConfiguration config, UUID uuid)
 	{		
 		this.data = data;
 		this.config = config;
 		
 		path = "data." + uuid.toString();
-		professions = config.getConfig().getStringList("professions");
+		professions = config.getStringList("professions");
 		
 		for (String p: professions)
 		{
-			experience.put(p, data.getConfig().getInt(path + "." + p + ".exp"));
-			levels.put(p, data.getConfig().getInt(path + "." + p + ".level"));
-			tiers.put(p, data.getConfig().getInt(path + "." + p + ".tier"));
-			instructionFatigue.put(p, data.getConfig().getInt(path + "." + p + ".instructionFatigue"));
-			practiceFatigue.put(p, data.getConfig().getInt(path + "." + p + ".practiceFatigue"));
+			experience.put(p, data.getInt(path + "." + p + ".exp"));
+			levels.put(p, data.getInt(path + "." + p + ".level"));
+			tiers.put(p, data.getInt(path + "." + p + ".tier"));
+			instructionFatigue.put(p, data.getInt(path + "." + p + ".instructionFatigue"));
+			practiceFatigue.put(p, data.getInt(path + "." + p + ".practiceFatigue"));
 		}
 
-		claimed = data.getConfig().getInt(path + ".claimed");
+		claimed = data.getInt(path + ".claimed");
 	}
 	
 	/**
@@ -73,7 +75,7 @@ public class ProfessionStats
 	 */
 	public void setClaimed(int claimed)
 	{
-		data.getConfig().set(path + ".claimed", claimed);
+		data.set(path + ".claimed", claimed);
 		this.claimed = claimed;
 	}
 	
@@ -96,7 +98,7 @@ public class ProfessionStats
 	 */
 	public void setExperience(String profession, int exp)
 	{
-		data.getConfig().set(path + "." + profession + ".exp", exp);
+		data.set(path + "." + profession + ".exp", exp);
 		experience.put(profession, exp);
 	}
 	
@@ -109,7 +111,7 @@ public class ProfessionStats
 	public void addExperience(String profession, int exp)
 	{
 		int newExp = exp + experience.get(profession);
-		data.getConfig().set(path + "." + profession + ".exp", newExp);
+		data.set(path + "." + profession + ".exp", newExp);
 		experience.put(profession, newExp);
 	}
 	
@@ -132,7 +134,7 @@ public class ProfessionStats
 	 */
 	public void setLevel(String profession, int level)
 	{
-		data.getConfig().set(path + "." + profession + ".level", level);
+		data.set(path + "." + profession + ".level", level);
 		levels.put(profession,  level);
 	}
 	
@@ -145,7 +147,7 @@ public class ProfessionStats
 	public void addLevel(String profession, int level)
 	{
 		int newLevel = levels.get(profession) + level;
-		data.getConfig().get(path + "." + profession + ".level", newLevel);
+		data.get(path + "." + profession + ".level", newLevel);
 		levels.put(profession, newLevel);
 	}
 	
@@ -167,7 +169,7 @@ public class ProfessionStats
 	 */
 	public void setTier(String profession, int tier)
 	{
-		data.getConfig().set(path + "." + profession + ".tier", tier);
+		data.set(path + "." + profession + ".tier", tier);
 		tiers.put(profession,  tier);
 	}
 	
@@ -180,8 +182,8 @@ public class ProfessionStats
 	{
 		List<String> tierNames = new ArrayList<String>();
 		
-		for (String t: config.getConfig().getConfigurationSection("tiers").getKeys(false))
-			tierNames.add(config.getConfig().getString("tiers." + t + ".name"));
+		for (String t: config.getConfigurationSection("tiers").getKeys(false))
+			tierNames.add(config.getString("tiers." + t + ".name"));
 		
 		return tierNames;
 	}
@@ -210,10 +212,10 @@ public class ProfessionStats
 	public boolean hasTier(String profession, String tierName)
 	{
 		int tierNum = 0;
-		Set<String> configTiers = config.getConfig().getConfigurationSection("tiers").getKeys(false);
+		Set<String> configTiers = config.getConfigurationSection("tiers").getKeys(false);
 		
 		for (String t: configTiers)
-			if (config.getConfig().getString("tiers." + t + ".name").equalsIgnoreCase(tierName))
+			if (config.getString("tiers." + t + ".name").equalsIgnoreCase(tierName))
 				tierNum = Integer.valueOf(t);
 		
 		if (tiers.get(profession) >= tierNum)
@@ -241,7 +243,7 @@ public class ProfessionStats
 	 */
 	public void setInstructionFatigue(String profession, int fatigue)
 	{
-		data.getConfig().set(path + "." + profession + ".instructionFatigue", fatigue);
+		data.set(path + "." + profession + ".instructionFatigue", fatigue);
 		instructionFatigue.put(profession,  fatigue);
 	}
 	
@@ -264,7 +266,7 @@ public class ProfessionStats
 	 */
 	public void setPracticeFatigue(String profession, int fatigue)
 	{
-		data.getConfig().set(path + "." + profession + ".practiceFatigue", fatigue);
+		data.set(path + "." + profession + ".practiceFatigue", fatigue);
 		practiceFatigue.put(profession,  fatigue);
 	}
 	

@@ -5,17 +5,18 @@ import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 
 public class ProfessionHandler 
 {
-	ConfigAccessor data;
-	ConfigAccessor config;
+	FileConfiguration data;
+	FileConfiguration config;
 	
 	private final int PROGRESS_BAR_BLOCKS = 30; //The number of blocks that appear in the progress bar for command /profession view
 	private final int HEADER_WIDTH = 30; 		//The width of the header for each profession when viewing stats.
 	private final int CONSOLE_HEADER_WIDTH = 25;//The width of the header for the console.
 	
-	public ProfessionHandler(ConfigAccessor data, ConfigAccessor config)
+	public ProfessionHandler(FileConfiguration data, FileConfiguration config)
 	{
 		this.data = data;
 		this.config = config;
@@ -43,7 +44,7 @@ public class ProfessionHandler
 		for (String profession: prof.getProfessions())
 		{
 			tier = getTierName(prof.getTier(profession));
-			maxLevel = config.getConfig().getInt("tiers." + prof.getTier(profession) + ".maxlevel");
+			maxLevel = config.getInt("tiers." + prof.getTier(profession) + ".maxlevel");
 			practiceFatigue = prof.getPracticeFatigue(profession);
 			instructionFatigue = prof.getInstructionFatigue(profession);
 			
@@ -77,7 +78,7 @@ public class ProfessionHandler
 			{
 				if (practiceFatigue > 0)
 					message += "█";
-				else if (i2 < prof.getExperience(profession) / (config.getConfig().getInt("max_exp")/PROGRESS_BAR_BLOCKS))
+				else if (i2 < prof.getExperience(profession) / (config.getInt("max_exp")/PROGRESS_BAR_BLOCKS))
 					message += "█";
 				else
 					message += ChatColor.DARK_GRAY + "█";
@@ -166,7 +167,7 @@ public class ProfessionHandler
 		int claimed = prof.getClaimed();
 		
 		//Check if they have reached the maximum number of claimable tiers.
-		if (claimed >= config.getConfig().getInt("claimable_tiers"))
+		if (claimed >= config.getInt("claimable_tiers"))
 			throw new IllegalArgumentException("You do not have any claimable tiers left!");
 		
 		//Check if they are already maximum tier in that profession.
@@ -226,6 +227,6 @@ public class ProfessionHandler
 	 */
 	public String getTierName(int tier)
 	{
-		return config.getConfig().getString("tiers." + tier + ".name");
+		return config.getString("tiers." + tier + ".name");
 	}
 }

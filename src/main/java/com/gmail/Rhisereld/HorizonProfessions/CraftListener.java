@@ -3,6 +3,7 @@ package com.gmail.Rhisereld.HorizonProfessions;
 import haveric.recipeManager.api.events.RecipeManagerCraftEvent;
 import haveric.recipeManager.recipes.WorkbenchRecipe;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -13,11 +14,11 @@ import org.bukkit.event.Listener;
  */
 public class CraftListener implements Listener 
 {
-	ConfigAccessor data;
-	ConfigAccessor config;
+	FileConfiguration data;
+	FileConfiguration config;
 	
 	//Constructor passing a reference to main.
-	public CraftListener(ConfigAccessor data, ConfigAccessor config) 
+	public CraftListener(FileConfiguration data, FileConfiguration config) 
 	{
 		this.data = data;
 		this.config = config;
@@ -37,10 +38,10 @@ public class CraftListener implements Listener
 		
 		for (String p: prof.getProfessions())
 			for (String t: prof.getTiers())
-				if (config.getConfig().getConfigurationSection("recipes." + p + "." + t).contains(recipe.getName()))
+				if (config.getConfigurationSection("recipes." + p + "." + t).contains(recipe.getName()))
 				{
 					profession = p;
-					exp = config.getConfig().getInt("recipes." + p + "." + t + "." + recipe.getName());
+					exp = config.getInt("recipes." + p + "." + t + "." + recipe.getName());
 				}
 
 		if (profession != null & exp != 0)
