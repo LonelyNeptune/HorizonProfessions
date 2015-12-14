@@ -7,47 +7,47 @@ commands:
   profession:
     description: All Horizon Profession commands.
     aliases: hp
-    permissions: horizon_professions.help
+    permissions: horizonprofessions.help
 
 permissions:
-  horizon_professions.*:
+  horizonprofessions.*:
     description: Gives access to all Horizon Profession commands.
     children:
-      horizon_professions.help: true
-      horizon_professions.help.admin: true
-      horizon_professions.view: true
-      horizon_professions.view.admin: true
-      horizon_professions.forget: true
-      horizon_professions.forget.admin: true
-      horizon_professions.givetier: true
-      horizon_professions.claimtier: true
-      horizon_professions.reset: true
-      horizon_professions.reset.admin: true
-      horizon_professions.train: true
-      horizon_professions.train.admin: true
+      horizonprofessions.help: true
+      horizonprofessions.help.admin: true
+      horizonprofessions.view: true
+      horizonprofessions.view.admin: true
+      horizonprofessions.forget: true
+      horizonprofessions.forget.admin: true
+      horizonprofessions.givetier: true
+      horizonprofessions.claimtier: true
+      horizonprofessions.reset: true
+      horizonprofessions.reset.admin: true
+      horizonprofessions.train: true
+      horizonprofessions.train.admin: true
       
-  horizon_professions.admin:
+  horizonprofessions.admin:
     description: Gives access to all Horizon Profession commands for admins and normal players.
     children:
-      horizon_professions.help: true
-      horizon_professions.help.admin: true
-      horizon_professions.view: true
-      horizon_professions.view.admin: true
-      horizon_professions.forget: true
-      horizon_professions.forget.admin: true
-      horizon_professions.givetier: true
-      horizon_professions.claimtier: true
-      horizon_professions.reset: true
-      horizon_professions.reset.admin: true
-      horizon_professions.train: true
-      horizon_professions.train.admin: true
+      horizonprofessions.help: true
+      horizonprofessions.help.admin: true
+      horizonprofessions.view: true
+      horizonprofessions.view.admin: true
+      horizonprofessions.forget: true
+      horizonprofessions.forget.admin: true
+      horizonprofessions.givetier: true
+      horizonprofessions.claimtier: true
+      horizonprofessions.reset: true
+      horizonprofessions.reset.admin: true
+      horizonprofessions.train: true
+      horizonprofessions.train.admin: true
 
-  horizon_professions.common:
+  horizonprofessions.common:
     description: Access to Horizon Profession for normal players.
     children:
-      horizon_professions.help: true
-      horizon_professions.view: true
-      horizon_professions.forget: true
-      horizon_professions.claimtier: true
-      horizon_professions.reset: true
-      horizon_professions.train: true
+      horizonprofessions.help: true
+      horizonprofessions.view: true
+      horizonprofessions.forget: true
+      horizonprofessions.claimtier: true
+      horizonprofessions.reset: true
+      horizonprofessions.train: true

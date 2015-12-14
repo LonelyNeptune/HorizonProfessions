@@ -54,9 +54,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			//profession
 			if (args.length == 0)
 			{
-				if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizon_professions.help.admin"))
+				if (sender instanceof ConsoleCommandSender || sender.hasPermission("horizonprofessions.help.admin"))
 					return giveCommandsGuideAdmin(sender);
-				else if (sender.hasPermission("horizon_professions.help"))
+				else if (sender.hasPermission("horizonprofessions.help"))
 					return giveCommandsGuide((Player) sender);
 				else
 					sender.sendMessage(ChatColor.RED + "You don't have permission to use this command!");
@@ -215,7 +215,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		}
 		
 		//Check that the player has permission
-		if (!sender.hasPermission("horizon_professions.view"))
+		if (!sender.hasPermission("horizonprofessions.view"))
 		{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to view your professions.");
 			return false;
@@ -237,7 +237,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	private boolean viewStatsAdmin(String name, CommandSender sender) 
 	{
 		//Check that the player has permission OR is the console
-		if (!sender.hasPermission("horizon_professions.view.admin") && sender instanceof Player)
+		if (!sender.hasPermission("horizonprofessions.view.admin") && sender instanceof Player)
 		{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to view another player's professions.");
 			return false;
@@ -275,7 +275,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			}
 			
 			//Player must have permission
-			if (!sender.hasPermission("horizon_professions.forget"))
+			if (!sender.hasPermission("horizonprofessions.forget"))
 			{
 				sender.sendMessage(ChatColor.RED + "You do not have permission to forget a tier.");
 				return false;
@@ -289,7 +289,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		else
 		{
 			//Sender must have permission OR be the console
-			if (sender instanceof Player && !sender.hasPermission("horizon_professions.forget.admin"))
+			if (sender instanceof Player && !sender.hasPermission("horizonprofessions.forget.admin"))
 			{
 				sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to forget a tier.");
 				return false;
@@ -377,7 +377,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	private boolean giveTier(CommandSender sender, String profession, String name) 
 	{
 		//Check that the player has permission OR is the console
-		if (!sender.hasPermission("horizon_professions.givetier") && sender instanceof Player)
+		if (!sender.hasPermission("horizonprofessions.givetier") && sender instanceof Player)
 		{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to give tiers.");
 			return false;
@@ -446,7 +446,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		}
 		
 		//Check that the player has permission
-		if (!sender.hasPermission("horizon_professions.claimtier") && sender instanceof Player)
+		if (!sender.hasPermission("horizonprofessions.claimtier") && sender instanceof Player)
 		{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to claim a tier.");
 			return false;
@@ -488,7 +488,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			}
 			
 			//Player must have permission
-			if (!sender.hasPermission("horizon_professions.reset"))
+			if (!sender.hasPermission("horizonprofessions.reset"))
 			{
 				sender.sendMessage(ChatColor.RED + "You do not have permission to reset your professions.");
 				return false;
@@ -502,7 +502,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		else
 		{
 			//Sender must have permission OR be the console
-			if (sender instanceof Player && !sender.hasPermission("horizon_professions.reset.admin"))
+			if (sender instanceof Player && !sender.hasPermission("horizonprofessions.reset.admin"))
 			{
 				sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to reset.");
 				return false;
@@ -725,7 +725,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 */
 	private void createLog(String message, String filename)
     {
-		File saveTo = new File("plugins\\horizon_professions\\" + filename);
+		File saveTo = new File("plugins\\horizonprofessions\\" + filename);
 		long time = System.currentTimeMillis();
 		Timestamp timestamp = new Timestamp(time);
 		PrintWriter out = null;
