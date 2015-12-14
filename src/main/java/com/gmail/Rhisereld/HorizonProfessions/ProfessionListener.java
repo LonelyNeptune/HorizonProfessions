@@ -106,8 +106,9 @@ public class ProfessionListener implements Listener
 		//Check if the amount to heal is in the config
     	String professionRequired = config.getConfig().getString("healing." + item + ".profession");
     	ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+    	ProfessionHandler profHandler = new ProfessionHandler(data, config);
     	
-    	int amountToHeal = config.getConfig().getInt("healing." + item + ".tier." + prof.getTierName(professionRequired));
+    	int amountToHeal = config.getConfig().getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
     	if (amountToHeal == 0)
     	{
     		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
@@ -155,8 +156,9 @@ public class ProfessionListener implements Listener
 		//Check if the amount to heal is in the config
     	String professionRequired = config.getConfig().getString("healing." + item + ".profession");
     	ProfessionStats prof = new ProfessionStats(data, config, player.getUniqueId());
+    	ProfessionHandler profHandler = new ProfessionHandler(data, config);
     	
-    	int amountToHeal = config.getConfig().getInt("healing." + item + ".tier." + prof.getTierName(professionRequired));
+    	int amountToHeal = config.getConfig().getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
     	if (amountToHeal == 0)
     	{
     		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
@@ -197,6 +199,9 @@ public class ProfessionListener implements Listener
 		for(String p: prof.getProfessions())
 			for (String t: prof.getTiers())
 			{
+				if (config.getConfig().getConfigurationSection("breakblocks." + p + "." + t) == null)
+					continue;
+				
 				configBlocks = config.getConfig().getConfigurationSection("breakblocks." + p + "." + t).getKeys(false);
 				
 				for (String b: configBlocks)
@@ -211,7 +216,9 @@ public class ProfessionListener implements Listener
 		
 		//If not found, nothing to do here.
 		if (professionReq == null || tierReq == null)
+		{
 			return;
+		}
 		
 		//If the player doesn't have at least the tier, cancel the event.
 		long place_cooldown = config.getConfig().getLong("place_cooldown");
@@ -222,10 +229,12 @@ public class ProfessionListener implements Listener
 			event.setCancelled(true);
 		}
 		//Otherwise award some experience
-		//But only do it if the block wasn't placed recently.		
-		else if (event.getBlock().hasMetadata("timeplaced") 
-				&& getMetadataLong(event.getBlock(), "timeupdated") - System.currentTimeMillis() > place_cooldown)
+		//But only do it if the block wasn't placed recently.	
+		else if (!event.getBlock().hasMetadata("timeplaced") 
+				|| System.currentTimeMillis() - getMetadataLong(event.getBlock(), "timeplaced") > place_cooldown)
+		{
 			prof.addExperience(professionReq, exp);
+		}
 	}
 	
 	//Called when a block is placed.

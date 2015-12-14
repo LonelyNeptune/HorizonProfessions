@@ -3,6 +3,7 @@ package com.gmail.Rhisereld.HorizonProfessions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class ProfessionStats 
@@ -208,14 +209,14 @@ public class ProfessionStats
 	 */
 	public boolean hasTier(String profession, String tierName)
 	{
-		List<String> tierNames = getTiers();
 		int tierNum = 0;
+		Set<String> configTiers = config.getConfig().getConfigurationSection("tiers").getKeys(false);
 		
-		for (int i = 0; i < tierNames.size(); i++)
-			if (tierNames.get(i).equalsIgnoreCase(tierName))
-				tierNum = i;
+		for (String t: configTiers)
+			if (config.getConfig().getString("tiers." + t + ".name").equalsIgnoreCase(tierName))
+				tierNum = Integer.valueOf(t);
 		
-		if (tierNum >= tiers.get(profession))
+		if (tiers.get(profession) >= tierNum)
 			return true;
 		else		
 			return false;
