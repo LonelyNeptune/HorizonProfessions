@@ -59,7 +59,8 @@ public class ProfessionListener implements Listener
 		//Add the player to the correct permissions groups for their professions
 		ProfessionStats prof = new ProfessionStats(perms, data, config, event.getPlayer().getUniqueId());
 		for (String pr: prof.getProfessions())
-			perms.playerAdd((String) null, event.getPlayer(), pr + "-" + prof.getTierName(prof.getTier(pr)));
+			perms.playerAdd((String) null, event.getPlayer(), config.getString("permission_prefix") + "." + pr + "-" 
+					+ prof.getTierName(prof.getTier(pr)));
 	}
 	
 	//Called when a player leaves the server
@@ -69,7 +70,8 @@ public class ProfessionListener implements Listener
 		//Remove the player from all permission groups for professions
 		ProfessionStats prof = new ProfessionStats(perms, data, config, event.getPlayer().getUniqueId());
 		for (String pr: prof.getProfessions())
-			perms.playerRemove((String) null, event.getPlayer(), pr + "-" + prof.getTierName(prof.getTier(pr)));
+			perms.playerRemove((String) null, event.getPlayer(), config.getString("permission_prefix") + "." + pr + "-" 
+					+ prof.getTierName(prof.getTier(pr)));
 	}
 	
 	//Called when a monster or player dies.
