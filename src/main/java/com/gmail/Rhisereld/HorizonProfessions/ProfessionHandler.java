@@ -241,16 +241,13 @@ public class ProfessionHandler
 		//Set fatigue
 		profTrainee.setInstructionFatigue(profession);
 		
-		Bukkit.getLogger().info(getDeterminer(profTrainee.getTierName(profTrainee.getTier(profession)))); //TODO
-		Bukkit.getLogger().info(profTrainee.getTierName(profTrainee.getTier(profession))); //TODO
-		Bukkit.getLogger().info(profession); //TODO
-		
 		//Give levels
+		String message = null;
 		if (profTrainee.addLevel(profession, 2))
-			return "Thanks to your training, you have become " + getDeterminer(profTrainee.getTierName(profTrainee.getTier(profession))
-					+ " " + profTrainee.getTierName(profTrainee.getTier(profession)) + " " + profession);
-		else 
-			return null;
+			message = "Thanks to your training, you have become " + getDeterminer(profTrainee.getTierName(profTrainee.getTier(profession)))
+					+ " " + profTrainee.getTierName(profTrainee.getTier(profession)) + " " + profession + ".";
+		
+		return message;
 	}
 	
 	/**
