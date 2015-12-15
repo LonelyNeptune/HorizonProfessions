@@ -57,10 +57,15 @@ public class ProfessionListener implements Listener
 	void onPlayerJoin(PlayerJoinEvent event)
 	{
 		//Add the player to the correct permissions groups for their professions
-		ProfessionStats prof = new ProfessionStats(perms, data, config, event.getPlayer().getUniqueId());
+		Player player = event.getPlayer();
+		UUID uuid = player.getUniqueId();
+		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		for (String pr: prof.getProfessions())
-			perms.playerAdd((String) null, event.getPlayer(), config.getString("permission_prefix") + "." + pr + "-" 
+			perms.playerAdd((String) null, player, config.getString("permission_prefix") + "." + pr + "-" 
 					+ prof.getTierName(prof.getTier(pr)));
+		
+		//Add the player's name and UUID to file.
+		data.set("data." + uuid + ".name", player.getName());
 	}
 	
 	//Called when a player leaves the server

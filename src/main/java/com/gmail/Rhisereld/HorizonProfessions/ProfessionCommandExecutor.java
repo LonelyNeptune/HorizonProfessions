@@ -7,12 +7,12 @@ import java.io.PrintWriter;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.UUID;
 
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -21,7 +21,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-@SuppressWarnings("deprecation")
 public class ProfessionCommandExecutor implements CommandExecutor
 {	
 	Plugin plugin;
@@ -249,8 +248,13 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
 		if (player == null)
 		{
-			OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(name);
-			profHandler.displayStats(offlinePlayer.getUniqueId(), offlinePlayer.getName(), sender);
+			UUID uuid = profHandler.getUUID(name);
+			if (uuid == null)
+			{
+				sender.sendMessage(ChatColor.RED + "That player does not exist!");
+				return false;
+			}
+			profHandler.displayStats(profHandler.getUUID(name), name, sender);
 		}
 		else
 			profHandler.displayStats(player.getUniqueId(), name, sender);
@@ -325,7 +329,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		
 		//Perform the action
 		if (player == null)
-			try {newTier = profHandler.forgetTier(Bukkit.getOfflinePlayer(name).getUniqueId(), profession);}
+			try {newTier = profHandler.forgetTier(profHandler.getUUID(name), profession);}
 			catch (IllegalArgumentException e) 
 			{
 				sender.sendMessage(ChatColor.RED + e.getMessage());
@@ -390,7 +394,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		int newTier;
 		
 		if (player == null)
-			try {newTier = profHandler.giveTier(Bukkit.getOfflinePlayer(name).getUniqueId(), profession);}
+			try {newTier = profHandler.giveTier(profHandler.getUUID(name), profession);}
 			catch (IllegalArgumentException e)
 			{
 				sender.sendMessage(ChatColor.RED + e.getMessage());
@@ -527,33 +531,31 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param playerString - the player who is having their stats reset to 0.
 	 * @return 
 	 */
-	private boolean confirmResetStats(CommandSender sender, String playerString)
+	private boolean confirmResetStats(CommandSender sender, String name)
 	{
-		Player player = Bukkit.getPlayer(playerString);
-		ProfessionStats prof;
+		Player player = Bukkit.getPlayer(name);
+		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
 		
 		//Stop waiting for confirmation
 		confirmReset.remove(sender.getName());
 		
-		if (player == null)
-			prof = new ProfessionStats(perms, data, config, Bukkit.getOfflinePlayer(playerString).getUniqueId());
-		else
-			prof = new ProfessionStats(perms, data, config, Bukkit.getOfflinePlayer(playerString).getUniqueId());
-		
 		//Reset all stats
-		prof.reset();
+		if (player == null)
+			profHandler.reset(profHandler.getUUID(name));
+		else
+			profHandler.reset(player.getUniqueId());
 
 		//Notify sender.
-		sender.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
+		sender.sendMessage(ChatColor.YELLOW + name + " has lost all their knowledge.");
 		//If the sender is not the receiver, notify the receiver too.
 		if (sender instanceof Player && (Player) sender != player && player != null)
 		{
-			player.sendMessage(ChatColor.YELLOW + playerString + " has lost all their knowledge.");
+			player.sendMessage(ChatColor.YELLOW + name + " has lost all their knowledge.");
 		}
 		else
 			return true;
 
-		String message = ChatColor.GOLD + sender.getName() + " has forced " + playerString + " to reset.";
+		String message = ChatColor.GOLD + sender.getName() + " has forced " + name + " to reset.";
 		
 		//Notify all online moderators.
 		Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();

@@ -1,6 +1,7 @@
 package com.gmail.Rhisereld.HorizonProfessions;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import net.milkbowl.vault.permission.Permission;
@@ -318,5 +319,37 @@ public class ProfessionHandler
 			return "an";
 		else
 			return "a";
+	}
+	
+	/**
+	 * getUUID() searches the data file for a name and returns the UUID if found.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public UUID getUUID(String name)
+	{
+		Set<String> uuids;
+		try { uuids = data.getConfigurationSection("data").getKeys(false); }
+		catch (NullPointerException e)
+		{ return null; }
+		
+		for (String u: uuids)
+		{
+			String s = data.getString("data." + u + ".name");
+			if (s.equalsIgnoreCase(name))
+				return UUID.fromString(u);
+		}
+
+		return null;
+	}
+	
+	/**
+	 * reset() sets all of the player's experience, levels and tiers to 0 in all professions, and removes all types of fatigue.
+	 * 
+	 */
+	public void reset(UUID uuid)
+	{
+		new ProfessionStats(perms, data, config, uuid).reset();
 	}
 }
