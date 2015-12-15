@@ -7,7 +7,6 @@ import java.io.PrintWriter;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 
 import net.milkbowl.vault.permission.Permission;
 
@@ -576,7 +575,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * @param traineeString
 	 * @return 
 	 */
-	private boolean trainPlayer(CommandSender sender, String profession, String traineeString) 
+	private boolean trainPlayer(CommandSender sender, String profession, String traineeName) 
 	{		
 		//Check that the sender is a player
 		if (!(sender instanceof Player))
@@ -585,70 +584,33 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			return false;
 		}
 		
-		Player trainee = Bukkit.getPlayer(traineeString);
-		Player trainer = (Player) sender;
-		
 		//Check that the trainee is online
+		Player trainee = Bukkit.getPlayer(traineeName);
 		if (trainee == null)
 		{
-			sender.sendMessage(ChatColor.YELLOW + "You cannot train " + traineeString + " because they are not online!");
+			sender.sendMessage(ChatColor.YELLOW + "You cannot train " + traineeName + " because they are not online!");
 			return false;
 		}
 		
-		ProfessionStats profTrainer = new ProfessionStats(perms, data, config, trainer.getUniqueId());
-		ProfessionStats profTrainee = new ProfessionStats(perms, data, config, trainee.getUniqueId());
-		
-		//Check that the trainer is the top tier
-		List<String> tiers = profTrainer.getTiers();
-		
-		if (profTrainer.getTier(profession) < tiers.size() - 1)
+		//Perform the training.
+		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
+		try { profHandler.train(sender, traineeName, profession); }
+		catch (IllegalArgumentException e)
 		{
-			sender.sendMessage(ChatColor.YELLOW + "You cannot train yet because you are not " 
-								+ getDeterminer(tiers.get(tiers.size()-1)) + " " + tiers.get(tiers.size()-1) + " " + profession + "!");
+			sender.sendMessage(ChatColor.YELLOW + e.getMessage());
 			return false;
 		}
-		
-		//Trying to train yourself is funny, but not allowed.
-		if (trainer.getUniqueId() == trainee.getUniqueId())
-		{
-			sender.sendMessage(ChatColor.YELLOW + "You cannot train yourself, silly!");
-			return false;
-		}
-		
-		//Check that the trainee is not already at the top tier
-		if (profTrainee.getTier(profession) >= 3)
-		{
-			sender.sendMessage(ChatColor.YELLOW + "You cannot train " + traineeString + " because they are already an Expert!");
-			return false;
-		}
-		
-		//Check that the trainee is not suffering from instruction fatigue.
-		if (profTrainee.getInstructionFatigue(profession) > 0)
-		{
-			sender.sendMessage(ChatColor.YELLOW + traineeString + " has already benefitted from instruction today.");
-			return false;
-		}
-		
-		//Check that the trainer and trainee are reasonably close together and in the same world.
-		double distance = trainer.getLocation().distance(trainee.getLocation());
-
-		if (!trainer.getWorld().equals(trainee.getWorld()) || Double.isNaN(distance) || distance > 20)
-		{
-			sender.sendMessage("You are too far away to train " + traineeString + "!");
-			return false;
-		}
-		
-		//Give levels
-		profTrainee.addLevel(profession, 2);
-		
-		//Set fatigue
-		profTrainee.setInstructionFatigue(profession, config.getInt("fatigue_time"));
 		
 		//Notify trainer, trainee and any moderators.
-		sender.sendMessage("You have trained " + traineeString + " in the " + profession + " profession.");
+		Player trainer = (Player) sender;
+		String trainerName = trainer.getCustomName();
+		if (trainerName == null)
+			trainerName = trainer.getName();
+		
+		sender.sendMessage("You have trained " + traineeName + " in the " + profession + " profession.");
 		trainee.sendMessage(trainer.getCustomName() + " has trained you in the " + profession + " profession.");
 		
-		String message = ChatColor.YELLOW + trainer.getName() + " just trained " + traineeString + " in the " + profession + " profession!";
+		String message = ChatColor.YELLOW + trainer.getName() + " just trained " + traineeName + " in the " + profession + " profession!";
 		
 		Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
 		

@@ -1,13 +1,16 @@
 package com.gmail.Rhisereld.HorizonProfessions;
 
+import java.util.List;
 import java.util.UUID;
 
 import net.milkbowl.vault.permission.Permission;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 
 public class ProfessionHandler 
 {
@@ -193,6 +196,55 @@ public class ProfessionHandler
 	}
 	
 	/**
+	 * train() performs checks to ensure the training can be done, then increases the trainee's levels by two and sets instruction fatigue
+	 * which serves as a cooldown for training.
+	 * 
+	 * @param sender
+	 * @param traineeName
+	 * @param profession
+	 */
+	public void train(CommandSender sender, String traineeName, String profession) throws IllegalArgumentException
+	{
+		Player trainee = Bukkit.getPlayer(traineeName);
+		Player trainer = (Player) sender;
+
+		ProfessionStats profTrainer = new ProfessionStats(perms, data, config, trainer.getUniqueId());
+		ProfessionStats profTrainee = new ProfessionStats(perms, data, config, trainee.getUniqueId());
+		
+		//Check that the trainer is the top tier
+		List<String> tiers = profTrainer.getTiers();
+		
+		if (profTrainer.getTier(profession) < tiers.size() - 1)
+			throw new IllegalArgumentException("You cannot train yet because you are not " 
+					+ getDeterminer(tiers.get(tiers.size()-1)) + " " + tiers.get(tiers.size()-1) + " " + profession + "!");
+		
+		//Trying to train yourself is funny, but not allowed.
+		if (trainer.getUniqueId() == trainee.getUniqueId())
+			throw new IllegalArgumentException("You cannot train yourself, silly!");
+		
+		//Check that the trainee is not already at the top tier
+		if (profTrainee.getTier(profession) >= 3)
+			throw new IllegalArgumentException("You cannot train " + traineeName + " because they are already an " 
+					+ getDeterminer(tiers.get(tiers.size()-1)) + " " + tiers.get(tiers.size()-1));
+		
+		//Check that the trainee is not suffering from instruction fatigue.
+		if (profTrainee.getInstructionFatigue(profession) > 0)
+			throw new IllegalArgumentException(traineeName + " has already benefitted from instruction today.");
+		
+		//Check that the trainer and trainee are reasonably close together and in the same world.
+		double distance = trainer.getLocation().distance(trainee.getLocation());
+
+		if (!trainer.getWorld().equals(trainee.getWorld()) || Double.isNaN(distance) || distance > 20)
+			throw new IllegalArgumentException("You are too far away to train " + traineeName + "!");
+		
+		//Give levels
+		profTrainee.addLevel(profession, 2);
+		
+		//Set fatigue
+		profTrainee.setInstructionFatigue(profession, config.getInt("fatigue_time"));
+	}
+	
+	/**
 	 * alignText() allows for text to be aligned into columns in the chatbox by adding the appropriate number of spaces
 	 * to the end of the string.
 	 * @param string - the string to modify.
@@ -232,5 +284,19 @@ public class ProfessionHandler
 	public String getTierName(int tier)
 	{
 		return config.getString("tiers." + tier + ".name");
+	}
+	
+	/** 
+	 * getDeterminer() returns the determiner that should occur before a noun.
+	 * @param string - the noun.
+	 * @return - "an" if the noun begins with a vowel, "a" otherwise.
+	 */
+	private String getDeterminer(String string)
+	{
+		if (string.charAt(0) == 'a' || string.charAt(0) == 'e' || string.charAt(0) == 'i' || string.charAt(0) == 'o'
+				|| string.charAt(0) == 'u')
+			return "an";
+		else
+			return "a";
 	}
 }
