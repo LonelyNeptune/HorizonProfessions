@@ -226,16 +226,18 @@ public class ProfessionHandler
 		//Check that the trainee is not already at the top tier
 		if (profTrainee.getTier(profession) >= 3)
 			throw new IllegalArgumentException("You cannot train " + traineeName + " because they are already an " 
-					+ getDeterminer(tiers.get(tiers.size()-1)) + " " + tiers.get(tiers.size()-1));
+					+ getDeterminer(tiers.get(tiers.size()-1)) + " " + tiers.get(tiers.size()-1) + ".");
 		
 		//Check that the trainee is not suffering from instruction fatigue.
 		if (profTrainee.isInstructionFatigued(profession))
 			throw new IllegalArgumentException(traineeName + " has already benefitted from instruction today.");
 		
 		//Check that the trainer and trainee are reasonably close together and in the same world.
+		if (!trainer.getWorld().equals(trainee.getWorld()))
+			throw new IllegalArgumentException("You are too far away to train " + traineeName + "!");
+		
 		double distance = trainer.getLocation().distance(trainee.getLocation());
-
-		if (!trainer.getWorld().equals(trainee.getWorld()) || Double.isNaN(distance) || distance > 20)
+		if (Double.isNaN(distance) || distance > 20)
 			throw new IllegalArgumentException("You are too far away to train " + traineeName + "!");
 		
 		//Set fatigue
