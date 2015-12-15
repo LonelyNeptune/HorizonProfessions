@@ -185,8 +185,12 @@ public class ProfessionListener implements Listener
 			return;
 		}
 		
-		//Check if the item in hand fits any of the items specified in the configuration file.		
-    	Set <String> items = config.getConfigurationSection("healing.").getKeys(false);
+		//Check if the item in hand fits any of the items specified in the configuration file.	
+		Set<String> items;
+    	try { items = config.getConfigurationSection("healing.").getKeys(false); }
+    	catch (NullPointerException e)
+    	{ return; }
+    	
     	String item = null;
     	for (String i: items)
     		if (player.getItemInHand().getType().toString().equalsIgnoreCase(i))
@@ -270,10 +274,9 @@ public class ProfessionListener implements Listener
 		for(String p: prof.getProfessions())
 			for (String t: prof.getTiers())
 			{
-				if (config.getConfigurationSection("breakBlocks." + p + "." + t) == null)
-					continue;
-				
-				configBlocks = config.getConfigurationSection("breakBlocks." + p + "." + t).getKeys(false);
+				try { configBlocks = config.getConfigurationSection("breakBlocks." + p + "." + t).getKeys(false); }
+				catch (NullPointerException e)
+				{ continue; }
 				
 				for (String b: configBlocks)
 					if (event.getBlock().getType().toString().equalsIgnoreCase(b))
@@ -327,7 +330,9 @@ public class ProfessionListener implements Listener
 		for(String p: prof.getProfessions())
 			for (String t: prof.getTiers())
 			{
-				configBlocks = config.getConfigurationSection("placeBlocks." + p + "." + t).getKeys(false);
+				try { configBlocks = config.getConfigurationSection("placeBlocks." + p + "." + t).getKeys(false); }
+				catch (NullPointerException e)
+				{ continue; }
 				
 				for (String b: configBlocks)
 					if (event.getBlock().getType().toString().equalsIgnoreCase(b))

@@ -131,11 +131,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				
 				//Player is attempting to force another player to forget a tier.
 				if (args.length == 3)
-					return forgetTier(sender, args[1], args[2]);
+					return forgetTier(sender, args[1].toLowerCase(), args[2]);
 				
 				//Player is attempting to forget a tier.
 				if (args.length == 2)
-					return forgetTier(sender, args[1], sender.getName());
+					return forgetTier(sender, args[1].toLowerCase(), sender.getName());
 			}
 			
 			//profession givetier [profession] [player] 
@@ -149,7 +149,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				}
 				
 				if (args.length == 3)
-					return giveTier(sender, args[1], args[2]);
+					return giveTier(sender, args[1].toLowerCase(), args[2]);
 			}
 			
 			//profession claim [profession]
@@ -194,7 +194,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					return false;
 				}
 				
-				return trainPlayer(sender, args[1], args[2]);
+				return trainPlayer(sender, args[1].toLowerCase(), args[2]);
 			}
 		}
 		
@@ -609,7 +609,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			trainerName = trainer.getName();
 		
 		sender.sendMessage(ChatColor.YELLOW + "You have trained " + traineeName + " in the " + profession + " profession.");
-		trainee.sendMessage(ChatColor.YELLOW + trainer.getCustomName() + " has trained you in the " + profession + " profession.");
+		trainee.sendMessage(ChatColor.YELLOW + trainerName + " has trained you in the " + profession + " profession.");
 		
 		//If the trainee gained a tier, let them know about that too.
 		if (tierUp != null)
