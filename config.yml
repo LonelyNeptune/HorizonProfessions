@@ -23,53 +23,8 @@ claimable_tiers: 3
 tier_cap: 6
 place_cooldown: 3600000
 slaying:
-  hunter:
-    chicken: 1
-    pig: 1
-    sheep: 1
-    cow: 1
-    squid: 1
-    mushroom_cow: 1
-    spider: 1
-    creeper: 1
-    skeleton: 1
-    giant: 1
-    slime: 1
-    ghast: 1
-    pig_zombie: 1
-    enderman: 1
-    cave_spider: 1
-    silverfish: 1
-    blaze: 1
-    magma_cube: 1
-    ender_dragon: 1
-    wolf: 1
-    snowman: 1
-    villager: 1
 damageModifier:
-  hunter:
-    unskilled: 50
-    novice: 100
-    adept: 150
-    expert: 200
 healing:
-  paper:
-    profession: medic
-    exp: 5
-    tier:
-      novice: 2
-      adept: 4
-      expert: 6
 recipes:
-  engineer:
-    diode: 5
 breakBlocks:
-  labourer:
-    novice:
-      dirt: 1
-      stone: 2
 placeBlocks:
-  labourer:
-    novice:
-      wheat: 1
-      melon_stem: 1

@@ -36,10 +36,11 @@ public final class Main extends JavaPlugin
     	
     	//Setup files for configuration and data storage.
     	config = new ConfigAccessor(this, "config.yml");
+    	config.getConfig().options().copyDefaults(true);
     	data = new ConfigAccessor(this, "data.yml");
     	
     	//Load configuration
-    	config.saveDefaultConfig();
+    	config.saveConfig();
 
     	//Vault integration for permissions
         if (!setupPermissions()) 
@@ -112,11 +113,11 @@ public final class Main extends JavaPlugin
     {
 		//Remove players from groups.
 		List<String> professions = config.getConfig().getStringList("professions");
+		
         List<String> tiers = new ArrayList<String>();
-		
-		for (String t: config.getConfig().getConfigurationSection("tiers").getKeys(false))
-			tiers.add(config.getConfig().getString("tiers." + t + ".name"));
-		
+        for (String t: config.getConfig().getConfigurationSection("tiers").getKeys(false))
+        	tiers.add(config.getConfig().getString("tiers." + t + ".name"));
+        
 		for (Player pl: Bukkit.getOnlinePlayers())
 			for (String pr: professions)
 				for (String t: tiers)
