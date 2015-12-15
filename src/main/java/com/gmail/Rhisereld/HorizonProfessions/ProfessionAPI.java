@@ -127,10 +127,10 @@ public class ProfessionAPI
 	 * @param player - the player for whom the fatigue value is being set.
 	 * @param profession - the profession for which the fatigue value is being set.
 	 */
-	public void setPracticeFatigue(Player player, String profession, int fatigue)
+	public void setPracticeFatigue(Player player, String profession)
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
-		prof.setPracticeFatigue(profession, fatigue);
+		prof.setPracticeFatigue(profession);
 	}
 	
 	/**
@@ -138,10 +138,10 @@ public class ProfessionAPI
 	 * @param player - the player for whom the fatigue value is being set.
 	 * @param profession - the profession for which the fatigue value is being set.
 	 */
-	public void setInstructionFatigue(Player player, String profession, int fatigue)
+	public void setInstructionFatigue(Player player, String profession)
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
-		prof.setInstructionFatigue(profession, fatigue);
+		prof.setInstructionFatigue(profession);
 	}
 	
 	/**
@@ -194,7 +194,7 @@ public class ProfessionAPI
 	 * @param player - the player for whom the fatigue value is being retrieved.
 	 * @param profession - the profession for which the fatigue value is being retrieved.
 	 */
-	public int getPracticeFatigue(Player player, String profession)
+	public Long getPracticeFatigue(Player player, String profession)
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		return prof.getPracticeFatigue(profession);
@@ -205,7 +205,7 @@ public class ProfessionAPI
 	 * @param player - the player for whom the fatigue value is being retrieved.
 	 * @param profession - the profession for which the fatigue value is being retrieved.
 	 */
-	public int getInstructionFatigue(Player player, String profession) 
+	public Long getInstructionFatigue(Player player, String profession) 
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		return prof.getInstructionFatigue(profession);

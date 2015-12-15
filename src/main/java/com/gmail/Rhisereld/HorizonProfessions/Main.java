@@ -91,15 +91,6 @@ public final class Main extends JavaPlugin
 				data.saveConfig();
 			}			
 		} , 36000, 36000);
-		
-		//Reduce fatigue time.
-		Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable()
-		{
-			public void run() 
-			{
-				updateFatigue();
-			}			
-		} , 20, 12000);
     }
 
 	/**
@@ -142,64 +133,6 @@ public final class Main extends JavaPlugin
         perms = rsp.getProvider();
         return perms != null;
     }
-    
-    /**
-     * updateFatigue() is called periodically (every 10 minutes) to update the fatigue values of all players.
-	 * Fatigue begins at FATIGUE_TIME (milliseconds) and decreases over time until it reaches zero.
-	 * Until fatigue reaches zero, players are prevented from gaining any experience.
-     */
-	private void updateFatigue() 
-    {    	
-    	long timeDifference;
-    	int practiceFatigue, instructionFatigue;
-    	
-    	//Try loading from config
-    	if (time == 0)
-    		time = data.getConfig().getLong("lasttimeupdated");
-    	
-    	//If no previous time available set to current time and don't update.
-    	if (time == 0)
-    	{
-    		data.getConfig().set("lasttimeupdated", System.currentTimeMillis());
-    		return;
-    	}
-    	
-    	timeDifference = System.currentTimeMillis() - time;
-    	
-    	//Get all saved players
-    	if (data.getConfig().getConfigurationSection("data") == null)
-    	{
-    		return;
-    	}
-    	
-		Set<String> savedPlayers = data.getConfig().getConfigurationSection("data").getKeys(false);
-		
-    	//Update fatigue for players
-		for (String savedPlayer: savedPlayers)
-		{
-			ProfessionStats prof = new ProfessionStats(perms, data.getConfig(), config.getConfig(), UUID.fromString(savedPlayer));
-			
-			for (String profession: prof.getProfessions())
-			{
-				practiceFatigue = (int) (prof.getPracticeFatigue(profession) - timeDifference);
-				instructionFatigue = (int) (prof.getInstructionFatigue(profession) - timeDifference);
-					
-				if (practiceFatigue < 0)
-					prof.setPracticeFatigue(profession, 0);
-				else
-					prof.setPracticeFatigue(profession, practiceFatigue);
-				
-				if (instructionFatigue < 0)
-					prof.setInstructionFatigue(profession, 0);
-				else
-					prof.setInstructionFatigue(profession, instructionFatigue);
-			}
-		}
-    	
-    	//New time
-		time = System.currentTimeMillis();
-		data.getConfig().set("lasttimeupdated", time);
-	}
 }
 
 

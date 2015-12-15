@@ -105,7 +105,8 @@ public class ProfessionListener implements Listener
 				//If found, award experience for it.
 				if (entity.getType().toString().equalsIgnoreCase(monster))
 				{
-		    		prof.addExperience(p, config.getInt("slaying." + p + "." + monster));
+					if (!prof.isPracticeFatigued(p))
+						prof.addExperience(p, config.getInt("slaying." + p + "." + monster));
 					return;
 				}
 		}
@@ -299,9 +300,10 @@ public class ProfessionListener implements Listener
 			event.setCancelled(true);
 		}
 		//Otherwise award some experience
-		//But only do it if the block wasn't placed recently.	
-		else if (!event.getBlock().hasMetadata("timeplaced") 
+		//But only do it if the block wasn't placed recently and the player is not currently suffering from fatigue.
+		else if ((!event.getBlock().hasMetadata("timeplaced") 
 				|| System.currentTimeMillis() - getMetadataLong(event.getBlock(), "timeplaced") > place_cooldown)
+				&& !prof.isPracticeFatigued(professionReq))
 			prof.addExperience(professionReq, exp);
 	}
 	
@@ -348,7 +350,7 @@ public class ProfessionListener implements Listener
 			event.setCancelled(true);
 		}
 		//Otherwise award some experience
-		else
+		else if (!prof.isPracticeFatigued(professionReq))
 			prof.addExperience(professionReq, exp);
 	}
 	
@@ -395,7 +397,7 @@ public class ProfessionListener implements Listener
 	    		//Award experience.
 	    		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 	    		
-	    		if (prof.getPracticeFatigue(profession) <= 0)
+	    		if (!prof.isPracticeFatigued(profession))
 	    			prof.addExperience(profession, config.getInt("healing." + item + ".exp"));
 	    			
 	    		//Notify both parties.

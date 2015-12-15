@@ -40,8 +40,8 @@ public class ProfessionHandler
 	{	
 		String tier;
 		int maxLevel;
-		int practiceFatigue;
-		int instructionFatigue;
+		boolean practiceFatigue;
+		boolean instructionFatigue;
 		String message = null;
 		ProfessionStats prof = new ProfessionStats(perms, data, config, player);
 
@@ -51,9 +51,9 @@ public class ProfessionHandler
 		for (String profession: prof.getProfessions())
 		{
 			tier = getTierName(prof.getTier(profession));
-			maxLevel = config.getInt("tiers." + prof.getTier(profession) + ".maxlevel");
-			practiceFatigue = prof.getPracticeFatigue(profession);
-			instructionFatigue = prof.getInstructionFatigue(profession);
+			maxLevel = config.getInt("tiers." + prof.getTier(profession) + ".maxLevel");
+			practiceFatigue = prof.isPracticeFatigued(profession);
+			instructionFatigue = prof.isInstructionFatigued(profession);
 			
 			//Build profession header for each profession.
 			int headerWidth;
@@ -74,18 +74,18 @@ public class ProfessionHandler
 			sender.sendMessage(message);
 			
 			//Build progress bar for each profession.
-			if (practiceFatigue > 0 && instructionFatigue > 0)
+			if (practiceFatigue && instructionFatigue)
 				message = "" + ChatColor.RED;
-			else if (practiceFatigue > 0 || instructionFatigue > 0)
+			else if (practiceFatigue || instructionFatigue)
 					message = "" + ChatColor.GOLD;
 			else 
 				message = "" + ChatColor.GREEN;
 			
-			for (int i2 = 0; i2 < PROGRESS_BAR_BLOCKS; i2++)
+			for (int i = 0; i < PROGRESS_BAR_BLOCKS; i++)
 			{
-				if (practiceFatigue > 0)
+				if (practiceFatigue)
 					message += "█";
-				else if (i2 < prof.getExperience(profession) / (config.getInt("max_exp")/PROGRESS_BAR_BLOCKS))
+				else if (i < prof.getExperience(profession) / (config.getInt("max_exp")/PROGRESS_BAR_BLOCKS))
 					message += "█";
 				else
 					message += ChatColor.DARK_GRAY + "█";
@@ -202,8 +202,9 @@ public class ProfessionHandler
 	 * @param sender
 	 * @param traineeName
 	 * @param profession
+	 * @return Returns true if the training resulted in a gained tier, false otherwise.
 	 */
-	public void train(CommandSender sender, String traineeName, String profession) throws IllegalArgumentException
+	public String train(CommandSender sender, String traineeName, String profession) throws IllegalArgumentException
 	{
 		Player trainee = Bukkit.getPlayer(traineeName);
 		Player trainer = (Player) sender;
@@ -228,7 +229,7 @@ public class ProfessionHandler
 					+ getDeterminer(tiers.get(tiers.size()-1)) + " " + tiers.get(tiers.size()-1));
 		
 		//Check that the trainee is not suffering from instruction fatigue.
-		if (profTrainee.getInstructionFatigue(profession) > 0)
+		if (profTrainee.isInstructionFatigued(profession))
 			throw new IllegalArgumentException(traineeName + " has already benefitted from instruction today.");
 		
 		//Check that the trainer and trainee are reasonably close together and in the same world.
@@ -237,11 +238,15 @@ public class ProfessionHandler
 		if (!trainer.getWorld().equals(trainee.getWorld()) || Double.isNaN(distance) || distance > 20)
 			throw new IllegalArgumentException("You are too far away to train " + traineeName + "!");
 		
-		//Give levels
-		profTrainee.addLevel(profession, 2);
-		
 		//Set fatigue
-		profTrainee.setInstructionFatigue(profession, config.getInt("fatigue_time"));
+		profTrainee.setInstructionFatigue(profession);
+		
+		//Give levels
+		if (profTrainee.addLevel(profession, 2))
+			return "Thanks to your training, you have become " + getDeterminer(profTrainee.getTierName(profTrainee.getTier(profession))
+					+ " " + profTrainee.getTier(profession) + " " + profession);
+		else 
+			return null;
 	}
 	
 	/**

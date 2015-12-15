@@ -24,8 +24,8 @@ public class ProfessionStats
 	HashMap<String, Integer> experience = new HashMap<String, Integer>();
 	HashMap<String, Integer> levels = new HashMap<String, Integer>();
 	HashMap<String, Integer> tiers = new HashMap<String, Integer>();
-	HashMap<String, Integer> instructionFatigue = new HashMap<String, Integer>();
-	HashMap<String, Integer> practiceFatigue = new HashMap<String, Integer>();
+	HashMap<String, Long> instructionFatigue = new HashMap<String, Long>();
+	HashMap<String, Long> practiceFatigue = new HashMap<String, Long>();
 	int claimed;
 	
 	/**
@@ -50,8 +50,8 @@ public class ProfessionStats
 			experience.put(p, data.getInt(path + "." + p + ".exp"));
 			levels.put(p, data.getInt(path + "." + p + ".level"));
 			tiers.put(p, data.getInt(path + "." + p + ".tier"));
-			instructionFatigue.put(p, data.getInt(path + "." + p + ".instructionFatigue"));
-			practiceFatigue.put(p, data.getInt(path + "." + p + ".practiceFatigue"));
+			instructionFatigue.put(p, data.getLong(path + "." + p + ".instructionFatigue"));
+			practiceFatigue.put(p, data.getLong(path + "." + p + ".practiceFatigue"));
 		}
 
 		claimed = data.getInt(path + ".claimed");
@@ -112,11 +112,11 @@ public class ProfessionStats
 	{
 		if (exp >= config.getInt("max_exp"))
 		{
-			exp = 0;
+			exp = exp - config.getInt("max_exp");
 			addLevel(profession, 1);
 			data.set(path + "." + profession + ".exp", exp);
 			experience.put(profession, exp);
-			setPracticeFatigue(profession, config.getInt("fatigue_time"));
+			setPracticeFatigue(profession);
 			return true;
 		}
 		else
@@ -128,7 +128,7 @@ public class ProfessionStats
 	}
 	
 	/**
-	 * addExperience() adds the amount of experience given to the profession given.If the experience is over the maximum experience, 
+	 * addExperience() adds the amount of experience given to the profession given. If the experience is over the maximum experience, 
 	 * the player gains a level and the experience is set to zero.
 	 * 
 	 * @param profession
@@ -140,11 +140,12 @@ public class ProfessionStats
 		int newExp = exp + experience.get(profession);
 		if (newExp >= config.getInt("max_exp"))
 		{
-			newExp = 0;
-			addLevel(profession, 1);
+			newExp = newExp - config.getInt("max_exp");
 			data.set(path + "." + profession + ".exp", newExp);
 			experience.put(profession, newExp);
-			setPracticeFatigue(profession, config.getInt("fatigue_time"));
+			setPracticeFatigue(profession);
+			addLevel(profession, 1);
+			notifyLevelUp(profession);
 			return true;
 		}
 		else
@@ -190,7 +191,7 @@ public class ProfessionStats
 	{
 		if (level >= config.getInt("tiers." + getTier(profession) + ".maxLevel"))
 		{
-			level = 0;
+			level =  level - config.getInt("tiers." + getTier(profession) + ".maxLevel");
 			addTier(profession, 1);
 			data.set(path + "." + profession + ".level", level);
 			levels.put(profession,  level);
@@ -217,15 +218,15 @@ public class ProfessionStats
 		
 		if (newLevel >= config.getInt("tiers." + getTier(profession) + ".maxLevel"))
 		{
-			newLevel = 0;
+			newLevel = newLevel - config.getInt("tiers." + getTier(profession) + ".maxLevel");
 			addTier(profession, 1);
-			data.get(path + "." + profession + ".level", newLevel);
+			data.set(path + "." + profession + ".level", newLevel);
 			levels.put(profession, newLevel);
 			return true;
 		}
 		else
 		{
-			data.get(path + "." + profession + ".level", newLevel);
+			data.set(path + "." + profession + ".level", newLevel);
 			levels.put(profession, newLevel);
 			return false;
 		}	
@@ -370,7 +371,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @return
 	 */
-	public int getInstructionFatigue(String profession)
+	public Long getInstructionFatigue(String profession)
 	{
 		return instructionFatigue.get(profession);
 	}
@@ -379,12 +380,25 @@ public class ProfessionStats
 	 * setInstructionFatigue() sets the instruction fatigue of the player in the given profession.
 	 * 
 	 * @param profession
-	 * @param fatigue
 	 */
-	public void setInstructionFatigue(String profession, int fatigue)
+	public void setInstructionFatigue(String profession)
 	{
-		data.set(path + "." + profession + ".instructionFatigue", fatigue);
-		instructionFatigue.put(profession,  fatigue);
+		data.set(path + "." + profession + ".instructionFatigue", System.currentTimeMillis());
+		instructionFatigue.put(profession,  System.currentTimeMillis());
+	}
+	
+	/**
+	 * isInstructionFatigued() returns true if the instruction cooldown has not yet been met, and false otherwise.
+	 * 
+	 * @param profession
+	 * @return
+	 */
+	public boolean isInstructionFatigued(String profession)
+	{
+		if (System.currentTimeMillis() - instructionFatigue.get(profession) < config.getLong("fatigue_time"))
+			return true;
+		else
+			return false;
 	}
 	
 	/**
@@ -393,7 +407,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @return
 	 */
-	public int getPracticeFatigue(String profession)
+	public Long getPracticeFatigue(String profession)
 	{
 		return practiceFatigue.get(profession);
 	}
@@ -404,10 +418,24 @@ public class ProfessionStats
 	 * @param profession
 	 * @param fatigue
 	 */
-	public void setPracticeFatigue(String profession, int fatigue)
+	public void setPracticeFatigue(String profession)
 	{
-		data.set(path + "." + profession + ".practiceFatigue", fatigue);
-		practiceFatigue.put(profession,  fatigue);
+		data.set(path + "." + profession + ".practiceFatigue", System.currentTimeMillis());
+		practiceFatigue.put(profession,  System.currentTimeMillis());
+	}
+	
+	/**
+	 * isPracticeFatigued() returns true if the practice cooldown has not yet been met, and false otherwise.
+	 * 
+	 * @param profession
+	 * @return
+	 */
+	public boolean isPracticeFatigued(String profession)
+	{
+		if (System.currentTimeMillis() - practiceFatigue.get(profession) < config.getLong("fatigue_time"))
+			return true;
+		else
+			return false;
 	}
 	
 	/**
@@ -421,8 +449,6 @@ public class ProfessionStats
 			setExperience(p, 0);
 			setLevel(p, 0);
 			setTier(p, 0);
-			setPracticeFatigue(p, 0);
-			setInstructionFatigue(p, 0);
 		}
 		
 		setClaimed(0);

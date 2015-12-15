@@ -594,7 +594,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		
 		//Perform the training.
 		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
-		try { profHandler.train(sender, traineeName, profession); }
+		String tierUp;
+		try { tierUp = profHandler.train(sender, traineeName, profession); }
 		catch (IllegalArgumentException e)
 		{
 			sender.sendMessage(ChatColor.YELLOW + e.getMessage());
@@ -607,8 +608,12 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		if (trainerName == null)
 			trainerName = trainer.getName();
 		
-		sender.sendMessage("You have trained " + traineeName + " in the " + profession + " profession.");
-		trainee.sendMessage(trainer.getCustomName() + " has trained you in the " + profession + " profession.");
+		sender.sendMessage(ChatColor.YELLOW + "You have trained " + traineeName + " in the " + profession + " profession.");
+		trainee.sendMessage(ChatColor.YELLOW + trainer.getCustomName() + " has trained you in the " + profession + " profession.");
+		
+		//If the trainee gained a tier, let them know about that too.
+		if (tierUp != null)
+			trainee.sendMessage(ChatColor.YELLOW + tierUp);
 		
 		String message = ChatColor.YELLOW + trainer.getName() + " just trained " + traineeName + " in the " + profession + " profession!";
 		
