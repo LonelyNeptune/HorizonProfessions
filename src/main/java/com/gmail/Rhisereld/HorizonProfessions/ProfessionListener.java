@@ -257,8 +257,25 @@ public class ProfessionListener implements Listener
 		double damage = event.getDamage();
 
 		for (String p: professions)
-			damage = damage * config.getInt("damageModifier." + p + "." + prof.getTierName(prof.getTier(p)), 100) / 100;
-		
+		{
+			//Check that the player is using the correct item
+			String weaponReq = config.getString("damageModifier." + p + ".weaponReq");
+			if (weaponReq != null && !weaponReq.equals("[ANY]") && !weaponReq.equals("ANY"))
+			{
+				List<String> weaponReqList = config.getStringList("damageModifier." + p + ".weaponReq");
+				boolean weaponFound = false;
+				for (String w: weaponReqList)
+					if (player.getItemInHand().getType().toString().equalsIgnoreCase(w))
+						weaponFound = true;
+				
+				if (!weaponFound)
+					return;
+			}
+			
+			if (config.getString("damageModifier." + p + ".weaponReq").equalsIgnoreCase("any"))
+					damage = damage * config.getInt("damageModifier." + p + "." + prof.getTierName(prof.getTier(p)), 100) / 100;
+		}
+
 		event.setDamage(damage);
 	}
 	
