@@ -101,30 +101,13 @@ public class ProfessionStats
 	}
 	
 	/**
-	 * setExperience() sets the amount of experience the player has in the profession given. If the experience is over the maximum experience, 
-	 * the player gains a level and the experience is set to zero.
+	 * resetExperience() sets the amount of experience the player has in the profession given to zero.
 	 * 
 	 * @param profession
-	 * @param exp
-	 * @return Returns true if setting the experience resulted in gaining a level, false otherwise.
 	 */
-	public boolean setExperience(String profession, int exp)
-	{
-		if (exp >= config.getInt("max_exp"))
-		{
-			exp = exp - config.getInt("max_exp");
-			addLevel(profession, 1);
-			data.set(path + "." + profession + ".exp", exp);
-			experience.put(profession, exp);
-			setPracticeFatigue(profession);
-			return true;
-		}
-		else
-		{
-			data.set(path + "." + profession + ".exp", exp);
-			experience.put(profession, exp);
-			return false;
-		}
+	public void resetExperience(String profession)
+	{		
+		experience.put(profession, 0);
 	}
 	
 	/**
@@ -137,6 +120,14 @@ public class ProfessionStats
 	 */
 	public boolean addExperience(String profession, int exp)
 	{
+		//If the player has reach the maximum possible tiers, they cannot progress.
+		if (getTotalTiers() >= config.getInt("tier_cap"))
+			return false;
+		
+		//If the player is the top tier in this profession, they cannot progress
+		if (getTier(profession) >= getTiers().size() - 1)
+			return false;
+		
 		int newExp = exp + experience.get(profession);
 		if (newExp >= config.getInt("max_exp"))
 		{
@@ -181,28 +172,15 @@ public class ProfessionStats
 	}
 	
 	/**
-	 * setLevel() set the level progress towards the next tier in the profession given.
+	 * resetLevel() set the level progress towards the next tier in the profession given to zero.
 	 * 
 	 * @param profession
 	 * @param level
-	 * @return Returns true if setting the level resulted in gaining a tier, false otherwise.
 	 */
-	public boolean setLevel(String profession, int level)
+	public void resetLevel(String profession)
 	{
-		if (level >= config.getInt("tiers." + getTier(profession) + ".maxLevel"))
-		{
-			level =  level - config.getInt("tiers." + getTier(profession) + ".maxLevel");
-			addTier(profession, 1);
-			data.set(path + "." + profession + ".level", level);
-			levels.put(profession,  level);
-			return true;
-		}
-		else
-		{
-			data.set(path + "." + profession + ".level", level);
-			levels.put(profession,  level);
-			return false;
-		}
+		data.set(path + "." + profession + ".level", 0);
+		levels.put(profession,  0);
 	}
 	
 	/**
@@ -219,7 +197,7 @@ public class ProfessionStats
 		if (newLevel >= config.getInt("tiers." + getTier(profession) + ".maxLevel"))
 		{
 			newLevel = newLevel - config.getInt("tiers." + getTier(profession) + ".maxLevel");
-			addTier(profession, 1);
+			addTier(profession);
 			data.set(path + "." + profession + ".level", newLevel);
 			levels.put(profession, newLevel);
 			return true;
@@ -244,32 +222,18 @@ public class ProfessionStats
 	}
 	
 	/**
-	 * setTier() sets the tier in the profession given.
+	 * resetTier() resets the tier in the profession given to zero.
 	 * 
 	 * @param profession
-	 * @return Returns true if the tier was set successfully. Returns false if the tier was modified because it was over the maximum tier.
 	 */
-	public boolean setTier(String profession, int tier)
+	public void resetTier(String profession)
 	{
-		boolean returnValue = true;
-		
-		//Make sure the tier doesn't go over the maximum.
-		if (tier >= getTiers().size())
-		{
-			tier = getTiers().size() - 1;
-			returnValue = false;
-		}
-		
-		data.set(path + "." + profession + ".tier", tier);
-		tiers.put(profession,  tier);
+		data.set(path + "." + profession + ".tier", 0);
+		tiers.put(profession,  0);
 		
 		//Set permissions for the tier.
 		for (String t: getTiers())
 			perms.playerRemoveGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + t);
-		
-		perms.playerAddGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + getTierName(tier));
-		
-		return returnValue;
 	}
 	
 	/**
@@ -277,19 +241,15 @@ public class ProfessionStats
 	 * 
 	 * @param profession
 	 * @param tier
-	 * @return Returns true if the tier was added successfully. Returns false if the tier was modified because it was over the maximum tier.
 	 */
-	public boolean addTier(String profession, int tier)
+	public void addTier(String profession)
 	{
-		boolean returnValue = true;
-		int newTier = getTier(profession) + tier;
+		int oldTier = getTier(profession);
+		int newTier = oldTier + 1;
 		
 		//Make sure the tier doesn't go over the maximum.
 		if (newTier >= getTiers().size())
-		{
 			newTier = getTiers().size() - 1;
-			returnValue = false;
-		}
 		
 		data.set(path + "." + profession + ".tier", newTier);
 		tiers.put(profession,  newTier);
@@ -298,9 +258,31 @@ public class ProfessionStats
 		for (String t: getTiers())
 			perms.playerRemoveGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + t);
 		
-		perms.playerAddGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + getTierName(tier));
+		perms.playerAddGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + getTierName(newTier));
+	}
+	
+	/**
+	 * loseTier() removes a tier from the profession given.
+	 * 
+	 * @param profession
+	 */
+	public void loseTier(String profession)
+	{
+		int oldTier = getTier(profession);
+		int newTier = oldTier - 1;
 		
-		return returnValue;
+		//Make sure the tier doesn't go under zero.
+		if (newTier < 0)
+			newTier = 0;
+		
+		data.set(path + "." + profession + ".tier", newTier);
+		tiers.put(profession,  newTier);
+		
+		//Set permissions for the tier.
+		for (String t: getTiers())
+			perms.playerRemoveGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + t);
+		
+		perms.playerAddGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + getTierName(newTier));
 	}
 	
 	/**
@@ -327,6 +309,21 @@ public class ProfessionStats
 			tierNames.add(config.getString("tiers." + t + ".name"));
 		
 		return tierNames;
+	}
+	
+	/**
+	 * getTotalTiers() returns the total number of tiers that the player holds in all professions.
+	 * 
+	 * @return
+	 */
+	public int getTotalTiers()
+	{
+		int total = 0;
+		
+		for (String p: getProfessions())
+			total += tiers.get(p);
+		
+		return total;
 	}
 	
 	/**
@@ -446,9 +443,9 @@ public class ProfessionStats
 	{
 		for (String p: getProfessions())
 		{
-			setExperience(p, 0);
-			setLevel(p, 0);
-			setTier(p, 0);
+			resetExperience(p);
+			resetLevel(p);
+			resetTier(p);
 		}
 		
 		setClaimed(0);

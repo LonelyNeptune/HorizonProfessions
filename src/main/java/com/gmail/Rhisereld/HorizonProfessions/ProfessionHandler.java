@@ -122,10 +122,10 @@ public class ProfessionHandler
 			throw new IllegalArgumentException("That player is already the lowest tier in that profession.");
 		
 		//Remove the tier
-		prof.setExperience(profession, 0);
-		prof.setLevel(profession, 0);
+		prof.resetExperience(profession);
+		prof.resetLevel(profession);
 		int newTier = prof.getTier(profession) - 1;
-		prof.setTier(profession, newTier);
+		prof.loseTier(profession);
 		return newTier;
 	}
 	
@@ -140,24 +140,23 @@ public class ProfessionHandler
 	{
 		//Check that the profession argument is one of the professions.
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
-		String professionFound = null;
+		boolean professionFound = false;
 		for (String existingProfession: prof.getProfessions())
 			if (profession.equalsIgnoreCase(existingProfession))
-				professionFound = existingProfession;
+				professionFound = true;
 		
-		if (professionFound == null)
+		if (!professionFound)
 			throw new IllegalArgumentException("That profession does not exist!");
 		
 		//Check that the player is not at the highest tier.
-		if (prof.getTier(professionFound) >= prof.getTiers().size() - 1)
+		if (prof.getTier(profession) >= prof.getTiers().size() - 1)
 			throw new IllegalArgumentException("That player is already the highest tier in that profession.");
 		
 		//Add the tier
-		prof.setExperience(profession, 0);
-		prof.setLevel(profession, 0);
-		int newTier = prof.getTier(profession) + 1;
-		prof.setTier(profession, newTier);
-		return newTier;
+		prof.resetExperience(profession);
+		prof.resetLevel(profession);
+		prof.addTier(profession);
+		return prof.getTier(profession);
 	}
 	
 	/**
@@ -180,14 +179,18 @@ public class ProfessionHandler
 		//Check if they are already maximum tier in that profession.
 		if (prof.getTier(profession) == 3)
 			throw new IllegalArgumentException("You are already the maximum tier in that profession!");
-			
+		
+		//Check if they have reached the maximum number of allowed tiers.
+		if (prof.getTotalTiers() >= config.getInt("tier_cap"))
+			throw new IllegalArgumentException("You have already reached the maximum number of tiers allowed.");	
+		
 		//Give them a tier.
 		int newTier = prof.getTier(profession) + 1;
-		prof.setTier(profession, newTier);
+		prof.addTier(profession);
 		
 		//Reset level and exp
-		prof.setExperience(profession, 0);
-		prof.setLevel(profession, 0);
+		prof.resetExperience(profession);
+		prof.resetLevel(profession);
 		
 		//Increment the number of tiers they have claimed.
 		prof.setClaimed(claimed + 1);
@@ -227,6 +230,11 @@ public class ProfessionHandler
 		if (profTrainee.getTier(profession) >= 3)
 			throw new IllegalArgumentException("You cannot train " + traineeName + " because they are already an " 
 					+ getDeterminer(tiers.get(tiers.size()-1)) + " " + tiers.get(tiers.size()-1) + ".");
+		
+		//Check that the trainee has not already got the maximum number of tiers
+		if (profTrainee.getTotalTiers() >= config.getInt("tier_cap"))
+			throw new IllegalArgumentException("You cannot train " + traineeName + " because they have already reached "
+					+ "the maximum number of tiers allowed.");
 		
 		//Check that the trainee is not suffering from instruction fatigue.
 		if (profTrainee.isInstructionFatigued(profession))

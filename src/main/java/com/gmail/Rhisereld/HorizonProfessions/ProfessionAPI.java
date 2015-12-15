@@ -82,7 +82,7 @@ public class ProfessionAPI
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		int newTier = prof.getTier(profession) + 1;
-		prof.setTier(profession, newTier);
+		prof.addTier(profession);
 		return newTier;
 	}
 	
@@ -96,32 +96,10 @@ public class ProfessionAPI
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		int newTier = prof.getTier(profession) - 1;
-		prof.setTier(profession, newTier);
+		prof.loseTier(profession);
 		return newTier;
 	}
 	
-	/**
-	 * setExp() sets the experience of a player for the specified profession.
-	 * @param player - the player for whom the experience is being set.
-	 * @param profession - the profession for which the experience is being set.
-	 */
-	public void setExp(Player player, String profession, int exp)
-	{
-		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
-		prof.setExperience(profession, exp);
-	}
-
-	/**
-	 * setLevel() sets the level of a player for the specified profession.
-	 * @param player - the player for whom the level is being set.
-	 * @param profession - the profession for which the level is being set.
-	 */
-	public void setLevel(Player player, String profession, int level)
-	{
-		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
-		prof.setLevel(profession, level);
-	}
-		
 	/**
 	 * setPracticeFatigue() sets the practice fatigue value of a player for the specified profession.
 	 * @param player - the player for whom the fatigue value is being set.
@@ -153,18 +131,6 @@ public class ProfessionAPI
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		prof.setClaimed(claimed);
-	}
-	
-	/**
-	 * setTier() sets the tier that a player has in the profession specified.
-	 * @param uuid - the uuid of the player.
-	 * @param profession - the profession for which to set the tier.
-	 * @param tier - the value of the tier.
-	 */
-	public void setTier(Player player, String profession, int tier)
-	{	
-		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
-		prof.setTier(profession, tier);
 	}
 
 	/**

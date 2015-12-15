@@ -303,7 +303,6 @@ public class ProfessionListener implements Listener
 			event.setCancelled(true);
 		}
 		//Otherwise award some experience
-		//But only do it if the block wasn't placed recently and the player is not currently suffering from fatigue.
 		else if ((!event.getBlock().hasMetadata("timeplaced") 
 				|| System.currentTimeMillis() - getMetadataLong(event.getBlock(), "timeplaced") > place_cooldown)
 				&& !prof.isPracticeFatigued(professionReq))
