@@ -9,7 +9,9 @@ import java.util.UUID;
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 
 public class ProfessionStats 
 {
@@ -99,28 +101,71 @@ public class ProfessionStats
 	}
 	
 	/**
-	 * setExperience() sets the amount of experience the player has in the profession given.
+	 * setExperience() sets the amount of experience the player has in the profession given. If the experience is over the maximum experience, 
+	 * the player gains a level and the experience is set to zero.
 	 * 
 	 * @param profession
 	 * @param exp
+	 * @return Returns true if setting the experience resulted in gaining a level, false otherwise.
 	 */
-	public void setExperience(String profession, int exp)
+	public boolean setExperience(String profession, int exp)
 	{
-		data.set(path + "." + profession + ".exp", exp);
-		experience.put(profession, exp);
+		if (exp >= config.getInt("max_exp"))
+		{
+			exp = 0;
+			addLevel(profession, 1);
+			data.set(path + "." + profession + ".exp", exp);
+			experience.put(profession, exp);
+			setPracticeFatigue(profession, config.getInt("fatigue_time"));
+			return true;
+		}
+		else
+		{
+			data.set(path + "." + profession + ".exp", exp);
+			experience.put(profession, exp);
+			return false;
+		}
 	}
 	
 	/**
-	 * addExperience() adds the amount of experience given to the profession given.
+	 * addExperience() adds the amount of experience given to the profession given.If the experience is over the maximum experience, 
+	 * the player gains a level and the experience is set to zero.
 	 * 
 	 * @param profession
 	 * @param exp
+	 * @return Returns true if the added experience resulted in gaining a level, false otherwise.
 	 */
-	public void addExperience(String profession, int exp)
+	public boolean addExperience(String profession, int exp)
 	{
 		int newExp = exp + experience.get(profession);
-		data.set(path + "." + profession + ".exp", newExp);
-		experience.put(profession, newExp);
+		if (newExp >= config.getInt("max_exp"))
+		{
+			newExp = 0;
+			addLevel(profession, 1);
+			data.set(path + "." + profession + ".exp", newExp);
+			experience.put(profession, newExp);
+			setPracticeFatigue(profession, config.getInt("fatigue_time"));
+			return true;
+		}
+		else
+		{
+			data.set(path + "." + profession + ".exp", newExp);
+			experience.put(profession, newExp);
+			return false;
+		}		
+	}
+	
+	/**
+	 * notifyLevelUp() sends the player a message notifying them that they have levelled up in a profession.
+	 * 
+	 * @param profession
+	 */
+	public void notifyLevelUp(String profession)
+	{
+		Player player = Bukkit.getPlayer(uuid);
+		
+		player.sendMessage(ChatColor.YELLOW + "You feel more knowledgeable as a " + profession + ". You will need to rest and "
+				+ "reflect on what you have learned, as you cannot benefit from any more practice today.");
 	}
 	
 	/**
@@ -139,11 +184,24 @@ public class ProfessionStats
 	 * 
 	 * @param profession
 	 * @param level
+	 * @return Returns true if setting the level resulted in gaining a tier, false otherwise.
 	 */
-	public void setLevel(String profession, int level)
+	public boolean setLevel(String profession, int level)
 	{
-		data.set(path + "." + profession + ".level", level);
-		levels.put(profession,  level);
+		if (level >= config.getInt("tiers." + getTier(profession) + ".maxLevel"))
+		{
+			level = 0;
+			addTier(profession, 1);
+			data.set(path + "." + profession + ".level", level);
+			levels.put(profession,  level);
+			return true;
+		}
+		else
+		{
+			data.set(path + "." + profession + ".level", level);
+			levels.put(profession,  level);
+			return false;
+		}
 	}
 	
 	/**
@@ -151,12 +209,26 @@ public class ProfessionStats
 	 * 
 	 * @param profession
 	 * @param level
+	 * @return Returns true if adding levels resulted in gaining a tier, false otherwise.
 	 */
-	public void addLevel(String profession, int level)
+	public boolean addLevel(String profession, int level)
 	{
 		int newLevel = levels.get(profession) + level;
-		data.get(path + "." + profession + ".level", newLevel);
-		levels.put(profession, newLevel);
+		
+		if (newLevel >= config.getInt("tiers." + getTier(profession) + ".maxLevel"))
+		{
+			newLevel = 0;
+			addTier(profession, 1);
+			data.get(path + "." + profession + ".level", newLevel);
+			levels.put(profession, newLevel);
+			return true;
+		}
+		else
+		{
+			data.get(path + "." + profession + ".level", newLevel);
+			levels.put(profession, newLevel);
+			return false;
+		}	
 	}
 	
 	/**
@@ -174,9 +246,19 @@ public class ProfessionStats
 	 * setTier() sets the tier in the profession given.
 	 * 
 	 * @param profession
+	 * @return Returns true if the tier was set successfully. Returns false if the tier was modified because it was over the maximum tier.
 	 */
-	public void setTier(String profession, int tier)
+	public boolean setTier(String profession, int tier)
 	{
+		boolean returnValue = true;
+		
+		//Make sure the tier doesn't go over the maximum.
+		if (tier >= getTiers().size())
+		{
+			tier = getTiers().size() - 1;
+			returnValue = false;
+		}
+		
 		data.set(path + "." + profession + ".tier", tier);
 		tiers.put(profession,  tier);
 		
@@ -185,6 +267,39 @@ public class ProfessionStats
 			perms.playerRemoveGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + t);
 		
 		perms.playerAddGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + getTierName(tier));
+		
+		return returnValue;
+	}
+	
+	/**
+	 * addTier() adds a tier to the profession given.
+	 * 
+	 * @param profession
+	 * @param tier
+	 * @return Returns true if the tier was added successfully. Returns false if the tier was modified because it was over the maximum tier.
+	 */
+	public boolean addTier(String profession, int tier)
+	{
+		boolean returnValue = true;
+		int newTier = getTier(profession) + tier;
+		
+		//Make sure the tier doesn't go over the maximum.
+		if (newTier >= getTiers().size())
+		{
+			newTier = getTiers().size() - 1;
+			returnValue = false;
+		}
+		
+		data.set(path + "." + profession + ".tier", newTier);
+		tiers.put(profession,  newTier);
+		
+		//Set permissions for the tier.
+		for (String t: getTiers())
+			perms.playerRemoveGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + t);
+		
+		perms.playerAddGroup((String) null, Bukkit.getPlayer(uuid), profession + "-" + getTierName(tier));
+		
+		return returnValue;
 	}
 	
 	/**

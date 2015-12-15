@@ -302,9 +302,7 @@ public class ProfessionListener implements Listener
 		//But only do it if the block wasn't placed recently.	
 		else if (!event.getBlock().hasMetadata("timeplaced") 
 				|| System.currentTimeMillis() - getMetadataLong(event.getBlock(), "timeplaced") > place_cooldown)
-		{
 			prof.addExperience(professionReq, exp);
-		}
 	}
 	
 	//Called when a block is placed.

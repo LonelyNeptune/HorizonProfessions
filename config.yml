@@ -7,18 +7,18 @@ professions:
 tiers:
   0:
     name: unskilled
-    maxlevel: 1
+    maxLevel: 1
   1:
     name: novice
-    maxlevel: 20
+    maxLevel: 20
   2:
     name: adept
-    maxlevel: 40
+    maxLevel: 40
   3:
     name: expert
 fatigue_time: 86400000
 permission_prefix: horizonprofessions
-max_exp: 100
+max_exp: 1000
 claimable_tiers: 3
 tier_cap: 6
 place_cooldown: 3600000
