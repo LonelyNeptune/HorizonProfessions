@@ -1,7 +1,9 @@
 package com.gmail.Rhisereld.HorizonProfessions;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import net.milkbowl.vault.permission.Permission;
 
@@ -39,7 +41,8 @@ public class ProfessionListener implements Listener
 	Permission perms;
 	FileConfiguration data;
 	FileConfiguration config;
-	boolean isHealingOther;				//Used to cancel healing self if the player is healing another.
+	boolean isHealingOther;							//Used to cancel healing self if the player is healing another.
+	Set<UUID> notified = new HashSet<UUID>();	//Used to ensure players are not spammed with the reason they are not gaining experience.
 	
 	public ProfessionListener(Plugin plugin, Permission perms, FileConfiguration data, FileConfiguration config) 
 	{
@@ -106,7 +109,7 @@ public class ProfessionListener implements Listener
 				if (entity.getType().toString().equalsIgnoreCase(monster))
 				{
 					if (!prof.isPracticeFatigued(p))
-						prof.addExperience(p, config.getInt("slaying." + p + "." + monster));
+						addExperience(player, p, config.getInt("slaying." + p + "." + monster));
 					return;
 				}
 		}
@@ -306,7 +309,7 @@ public class ProfessionListener implements Listener
 		else if ((!event.getBlock().hasMetadata("timeplaced") 
 				|| System.currentTimeMillis() - getMetadataLong(event.getBlock(), "timeplaced") > place_cooldown)
 				&& !prof.isPracticeFatigued(professionReq))
-			prof.addExperience(professionReq, exp);
+			addExperience(player, professionReq, exp);
 	}
 	
 	//Called when a block is placed.
@@ -355,7 +358,7 @@ public class ProfessionListener implements Listener
 		}
 		//Otherwise award some experience
 		else if (!prof.isPracticeFatigued(professionReq))
-			prof.addExperience(professionReq, exp);
+			addExperience(player, professionReq, exp);
 	}
 	
 	void makeDelayedTask(final Player player, final Player recipient, final double amountToHeal, final String item, 
@@ -402,7 +405,7 @@ public class ProfessionListener implements Listener
 	    		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 	    		
 	    		if (!prof.isPracticeFatigued(profession))
-	    			prof.addExperience(profession, config.getInt("healing." + item + ".exp"));
+	    			addExperience(player, profession, config.getInt("healing." + item + ".exp"));
 	    			
 	    		//Notify both parties.
 	    		if (!player.equals(recipient))
@@ -435,5 +438,41 @@ public class ProfessionListener implements Listener
 			}
 		}
 		return 0;
+	}
+	
+	/**
+	 * addExperience() calls ProfessionStats to add experience, and also provides messages to the player
+	 * if giving this experience fails.
+	 * 
+	 * @param prof
+	 * @param profession
+	 * @param exp
+	 */
+	private void addExperience(Player player, String profession, int exp)
+	{
+		UUID uuid = player.getUniqueId();
+		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
+		int result = prof.addExperience(profession, exp);
+		
+		if (notified.contains(uuid))
+			return;
+		
+		if (result == 4)
+		{
+			notified.add(uuid);
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have reached the maximum number of "
+					+ "tiers permitted.");
+		}
+		if (result == 3)
+		{
+			notified.add(uuid);
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have reached the maximum tier in "
+					+ profession);
+		}
+		if (result == 2)
+		{
+			notified.add(uuid);
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have not yet claimed all your tiers.");
+		}
 	}
 }

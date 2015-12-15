@@ -116,17 +116,26 @@ public class ProfessionStats
 	 * 
 	 * @param profession
 	 * @param exp
-	 * @return Returns true if the added experience resulted in gaining a level, false otherwise.
+	 * @return Returns a value which reflects the result.
+	 * 		0 - the experience was added
+	 * 		1 - the added experience resulted in a level-up
+	 * 		2 - the experience could not be added because the player still has unclaimed tiers.
+	 * 		3 - the experience could not be added because the player has reached the maximum tier in that profession.
+	 * 		4 - the experience could not be added because the player has reached the maximum number of permitted tiers.
 	 */
-	public boolean addExperience(String profession, int exp)
+	public int addExperience(String profession, int exp)
 	{
 		//If the player has reach the maximum possible tiers, they cannot progress.
 		if (getTotalTiers() >= config.getInt("tier_cap"))
-			return false;
+			return 4;
 		
 		//If the player is the top tier in this profession, they cannot progress
 		if (getTier(profession) >= getTiers().size() - 1)
-			return false;
+			return 3;
+		
+		//If the player has any unclaimed tiers, they cannot progress
+		if (getClaimed() < config.getInt("claimable_tiers"))
+			return 2;
 		
 		int newExp = exp + experience.get(profession);
 		if (newExp >= config.getInt("max_exp"))
@@ -137,13 +146,13 @@ public class ProfessionStats
 			setPracticeFatigue(profession);
 			addLevel(profession, 1);
 			notifyLevelUp(profession);
-			return true;
+			return 1;
 		}
 		else
 		{
 			data.set(path + "." + profession + ".exp", newExp);
 			experience.put(profession, newExp);
-			return false;
+			return 0;
 		}		
 	}
 	

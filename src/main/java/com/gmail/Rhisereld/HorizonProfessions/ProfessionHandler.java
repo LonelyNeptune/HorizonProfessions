@@ -152,6 +152,10 @@ public class ProfessionHandler
 		if (prof.getTier(profession) >= prof.getTiers().size() - 1)
 			throw new IllegalArgumentException("That player is already the highest tier in that profession.");
 		
+		//Check that the player hasn't exceeded the total number of players
+		if (prof.getTotalTiers() >= config.getInt("tier_cap"))
+			throw new IllegalArgumentException("That player already has the maximum number of tiers allowed.");
+		
 		//Add the tier
 		prof.resetExperience(profession);
 		prof.resetLevel(profession);

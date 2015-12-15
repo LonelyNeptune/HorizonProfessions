@@ -1,10 +1,7 @@
 package com.gmail.Rhisereld.HorizonProfessions;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 import net.milkbowl.vault.permission.Permission;
 
@@ -21,8 +18,6 @@ public final class Main extends JavaPlugin
 	ConfigAccessor config;						//Configuration file.
 	ConfigAccessor data;						//Data file.
 	
-	Set<UUID> claimNotified;
-	
 	/**
 	 * onEnable() is called when the server is started or the plugin is enabled.
 	 * It should contain everything that the plugin needs for its initial setup.
@@ -31,9 +26,7 @@ public final class Main extends JavaPlugin
 	 */
     @Override
     public void onEnable() 
-    {
-    	claimNotified = new HashSet<UUID>();
-    	
+    {    	
     	//Setup files for configuration and data storage.
     	config = new ConfigAccessor(this, "config.yml");
     	config.getConfig().options().copyDefaults(true);
@@ -117,7 +110,6 @@ public final class Main extends JavaPlugin
     	data.saveConfig();
     	config = null;
     	data = null;
-    	claimNotified = null;
     	perms = null;
     }
     
