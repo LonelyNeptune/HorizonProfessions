@@ -52,7 +52,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		String[] arguments;
 
 		//All commands that fall under /profession [additional arguments]
-		if (commandLabel.equalsIgnoreCase("profession"))
+		if (commandLabel.equalsIgnoreCase("profession") || commandLabel.equalsIgnoreCase("prof"))
 		{
 			//profession
 			if (args.length == 0)

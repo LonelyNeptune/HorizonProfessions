@@ -93,7 +93,7 @@ public final class Main extends JavaPlugin
         List<String> tiers = new ArrayList<String>();
         for (String t: config.getConfig().getConfigurationSection("tiers").getKeys(false))
         	tiers.add(config.getConfig().getString("tiers." + t + ".name"));
-        
+
 		for (Player pl: Bukkit.getOnlinePlayers())
 			for (String pr: professions)
 				for (String t: tiers)

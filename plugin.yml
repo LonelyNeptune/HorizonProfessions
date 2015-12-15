@@ -6,7 +6,7 @@ softdepend: [RecipeManager]
 commands:
   profession:
     description: All Horizon Profession commands.
-    aliases: hp
+    aliases: prof
     permissions: horizonprofessions.help
 
 permissions:
