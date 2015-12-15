@@ -45,22 +45,13 @@ public final class Main extends JavaPlugin
         
         //Setup permission groups
         List<String> professions = config.getConfig().getStringList("professions");
-        List<String> tiers = new ArrayList<String>();
 		
-		for (String t: config.getConfig().getConfigurationSection("tiers").getKeys(false))
-			tiers.add(config.getConfig().getString("tiers." + t + ".name"));
-        
-		for (String p: professions)
-			for (String t: tiers)
-				perms.groupAdd((String) null, p + "-" + t, config.getConfig().getString("permission_prefix") + "." + p + "." + t);
-		
-		//Add online players to groups
 		ProfessionStats prof;
 		for (Player pl: Bukkit.getOnlinePlayers())
 		{
 			prof = new ProfessionStats(perms, data.getConfig(), config.getConfig(), pl.getUniqueId());
 			for (String pr: professions)
-				perms.playerAddGroup((String) null, pl, pr + "-" + prof.getTierName(prof.getTier(pr)));
+				perms.playerAdd((String) null, pl, pr + "-" + prof.getTierName(prof.getTier(pr)));
 		}
         
         //RecipeManager integration for recipes.
@@ -105,7 +96,7 @@ public final class Main extends JavaPlugin
 		for (Player pl: Bukkit.getOnlinePlayers())
 			for (String pr: professions)
 				for (String t: tiers)
-					perms.playerRemoveGroup(pl, pr + "-" + t);
+					perms.playerRemove((String) null, pl, pr + "-" + t);
 		
     	data.saveConfig();
     	config = null;
