@@ -2,8 +2,14 @@ package com.gmail.Rhisereld.HorizonProfessions;
 
 import haveric.recipeManager.api.events.RecipeManagerCraftEvent;
 import haveric.recipeManager.recipes.WorkbenchRecipe;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
 import net.milkbowl.vault.permission.Permission;
 
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,6 +24,7 @@ public class CraftListener implements Listener
 	Permission perms;
 	FileConfiguration data;
 	static FileConfiguration config;
+	Set<UUID> notified = new HashSet<UUID>();	//Used to ensure players are not spammed with the reason they are not gaining experience.
 	
 	//Constructor passing a reference to main.
 	public CraftListener(Permission perms, FileConfiguration data, FileConfiguration config) 
@@ -50,14 +57,58 @@ public class CraftListener implements Listener
 		String profession = null;
 		
 		for (String p: prof.getProfessions())
-			for (String t: prof.getTiers())
-				if (config.getConfigurationSection("recipes." + p + "." + t).contains(recipe.getName()))
+		{
+			Set<String> recipes;
+			try { recipes = config.getConfigurationSection("recipes." + p).getKeys(false); }
+			catch (NullPointerException e)
+			{ continue; }
+			
+			for (String r: recipes)
+				if (r.equalsIgnoreCase(recipe.getName()))			
 				{
 					profession = p;
-					exp = config.getInt("recipes." + p + "." + t + "." + recipe.getName());
+					exp = config.getInt("recipes." + p + "." + r);
 				}
+		}
 
-		if (profession != null & exp != 0)
-			prof.addExperience(profession, exp);
+		if (profession != null && exp != 0)
+			addExperience(player, profession, exp);
+	}
+	
+	
+	/**
+	 * addExperience() calls ProfessionStats to add experience, and also provides messages to the player
+	 * if giving this experience fails.
+	 * 
+	 * @param prof
+	 * @param profession
+	 * @param exp
+	 */
+	private void addExperience(Player player, String profession, int exp)
+	{
+		UUID uuid = player.getUniqueId();
+		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
+		int result = prof.addExperience(profession, exp);
+		
+		if (notified.contains(uuid))
+			return;
+		
+		if (result == 4)
+		{
+			notified.add(uuid);
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have reached the maximum number of "
+					+ "tiers permitted.");
+		}
+		if (result == 3)
+		{
+			notified.add(uuid);
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have reached the maximum tier in "
+					+ profession);
+		}
+		if (result == 2)
+		{
+			notified.add(uuid);
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have not yet claimed all your tiers.");
+		}
 	}
 }
