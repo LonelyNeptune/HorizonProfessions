@@ -19,11 +19,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class ProfessionCommandExecutor implements CommandExecutor
 {	
-	Plugin plugin;
+	JavaPlugin plugin;
 	Permission perms;
 	FileConfiguration data;
 	FileConfiguration config;
@@ -31,7 +31,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	HashMap<String, String> confirmForget = new HashMap<String, String>();	//Used to confirm commands
 	HashMap<String, String> confirmReset = new HashMap<String, String>();
 	
-    public ProfessionCommandExecutor(Plugin plugin, Permission perms, FileConfiguration data, FileConfiguration config) 
+    public ProfessionCommandExecutor(JavaPlugin plugin, Permission perms, FileConfiguration data, FileConfiguration config) 
     {
     	this.plugin = plugin;
     	this.perms = perms;
@@ -63,6 +63,23 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					sender.sendMessage(ChatColor.RED + "You don't have permission to use this command!");
 				return true;
 			}	
+			
+			//profession reload
+			if (args[0].equalsIgnoreCase("reload"))
+				if (!(sender instanceof Player) || sender.hasPermission("horizonprofessions.reload"))
+				{
+					config = new ConfigAccessor(plugin, "config.yml").getConfig();
+					ProfessionListener.updateConfig(config);
+					CraftListener.updateConfig(config);
+					
+					sender.sendMessage(ChatColor.YELLOW + "Horizon Professions config reloaded.");
+					return true;
+				}
+				else
+				{
+					sender.sendMessage(ChatColor.RED + "You don't have permission to use this commend!");
+					return false;
+				}
 			
 			//profession confirm 
 			if (args[0].equalsIgnoreCase("confirm"))

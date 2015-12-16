@@ -40,7 +40,7 @@ public class ProfessionListener implements Listener
 	Plugin plugin;
 	Permission perms;
 	FileConfiguration data;
-	FileConfiguration config;
+	static FileConfiguration config;
 	boolean isHealingOther;							//Used to cancel healing self if the player is healing another.
 	Set<UUID> notified = new HashSet<UUID>();	//Used to ensure players are not spammed with the reason they are not gaining experience.
 	
@@ -49,7 +49,17 @@ public class ProfessionListener implements Listener
 		this.perms = perms;
 		this.plugin = plugin;
 		this.data = data;
-		this.config = config;
+		ProfessionListener.config = config;
+	}
+	
+	/**
+	 * updateConfig() updates the config file in the event of a configuration reload.
+	 * 
+	 * @param config
+	 */
+	public static void updateConfig(FileConfiguration config)
+	{
+		ProfessionListener.config = config;
 	}
 	
 	//Called when a player joins the server
@@ -133,7 +143,11 @@ public class ProfessionListener implements Listener
 			return;
 
     	//Check if the item in hand fits any of the items specified in the configuration file.		
-    	Set <String> items = config.getConfigurationSection("healing.").getKeys(false);
+    	Set <String> items;
+    	try { items = config.getConfigurationSection("healing.").getKeys(false); }
+    	catch (NullPointerException e)
+    	{ return; }
+    	
     	String item = null;
     	for (String i: items)
     		if (player.getItemInHand().getType().toString().equalsIgnoreCase(i))
@@ -272,8 +286,7 @@ public class ProfessionListener implements Listener
 					return;
 			}
 			
-			if (config.getString("damageModifier." + p + ".weaponReq").equalsIgnoreCase("any"))
-					damage = damage * config.getInt("damageModifier." + p + "." + prof.getTierName(prof.getTier(p)), 100) / 100;
+			damage = damage * config.getInt("damageModifier." + p + "." + prof.getTierName(prof.getTier(p)), 100) / 100;
 		}
 
 		event.setDamage(damage);

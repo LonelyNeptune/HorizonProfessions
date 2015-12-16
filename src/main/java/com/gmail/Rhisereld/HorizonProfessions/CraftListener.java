@@ -17,14 +17,24 @@ public class CraftListener implements Listener
 {
 	Permission perms;
 	FileConfiguration data;
-	FileConfiguration config;
+	static FileConfiguration config;
 	
 	//Constructor passing a reference to main.
 	public CraftListener(Permission perms, FileConfiguration data, FileConfiguration config) 
 	{
 		this.perms = perms;
 		this.data = data;
-		this.config = config;
+		CraftListener.config = config;
+	}
+	
+	/**
+	 * updateConfig() updates the config file in the event of a configuration reload.
+	 * 
+	 * @param config
+	 */
+	public static void updateConfig(FileConfiguration config)
+	{
+		CraftListener.config = config;
 	}
 
 	//Called when a player crafts a custom recipe.
