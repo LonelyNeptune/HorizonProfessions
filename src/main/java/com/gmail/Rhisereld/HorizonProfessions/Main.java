@@ -12,8 +12,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Main extends JavaPlugin
 {
-	public static Permission perms = null;		//Reference to permission object from Vault.
+	public Permission perms = null;				//Reference to permission object from Vault.
 	long time = 0;								//Time of last fatigue update.
+	JavaPlugin plugin;
 	
 	ConfigAccessor config;						//Configuration file.
 	ConfigAccessor data;						//Data file.
@@ -27,6 +28,8 @@ public final class Main extends JavaPlugin
     @Override
     public void onEnable() 
     {    	
+    	plugin = this;
+    	
     	//Setup files for configuration and data storage.
     	config = new ConfigAccessor(this, "config.yml");
     	config.getConfig().options().copyDefaults(true);
@@ -36,7 +39,7 @@ public final class Main extends JavaPlugin
     	config.saveConfig();
 
     	//Vault integration for permissions
-        if (!setupPermissions()) 
+        if (!setupPermissions())
         {
             getLogger().severe(String.format("[%s] - Disabled due to no Vault dependency found!", getDescription().getName()));
             getServer().getPluginManager().disablePlugin(this);
@@ -52,7 +55,7 @@ public final class Main extends JavaPlugin
 			prof = new ProfessionStats(perms, data.getConfig(), config.getConfig(), pl.getUniqueId());
 			for (String pr: professions)
 				perms.playerAdd((String) null, pl, config.getConfig().getString("permission_prefix") + "." + pr + "." 
-			+ ProfessionStats.getTierName(prof.getTier(pr)));
+			+ prof.getTierName(prof.getTier(pr)));
 		}
         
         //RecipeManager integration for recipes.
@@ -67,6 +70,9 @@ public final class Main extends JavaPlugin
         //Listeners and commands.
         getServer().getPluginManager().registerEvents(new ProfessionListener(this, perms, data.getConfig(), config.getConfig()), this);
     	this.getCommand("profession").setExecutor(new ProfessionCommandExecutor(this, perms, data.getConfig(), config.getConfig()));
+    	
+    	//Setup API.
+    	new ProfessionAPI(perms, data.getConfig(), config.getConfig());
     	
     	//Save every 30 minutes.
 		Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable()

@@ -17,9 +17,9 @@ public class ProfessionStats
 {
 	Permission perms;
 	FileConfiguration data;
-	static FileConfiguration config;
+	FileConfiguration config;
 	String path;
-	static List<String> professions;
+	List<String> professions;
 	UUID uuid;
 	HashMap<String, Integer> experience = new HashMap<String, Integer>();
 	HashMap<String, Integer> levels = new HashMap<String, Integer>();
@@ -38,7 +38,7 @@ public class ProfessionStats
 	{		
 		this.perms = perms;
 		this.data = data;
-		ProfessionStats.config = config;
+		this.config = config;
 		
 		this.uuid = uuid;
 		
@@ -63,7 +63,7 @@ public class ProfessionStats
 	 * 
 	 * @return
 	 */
-	public static List<String> getProfessions()
+	public List<String> getProfessions()
 	{
 		return professions;
 	}
@@ -302,7 +302,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @return
 	 */
-	public static String getTierName(int tier)
+	public String getTierName(int tier)
 	{
 		return config.getString("tiers." + tier + ".name");
 	}

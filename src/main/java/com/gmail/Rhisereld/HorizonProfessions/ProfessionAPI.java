@@ -1,35 +1,31 @@
 package com.gmail.Rhisereld.HorizonProfessions;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import net.milkbowl.vault.permission.Permission;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.RegisteredServiceProvider;
-import org.bukkit.plugin.java.JavaPlugin;
 
 public class ProfessionAPI 
 {
-	private Permission perms;
-	private FileConfiguration data;
-	private FileConfiguration config;
+	private static Permission perms;
+	private static FileConfiguration data;
+	private static FileConfiguration config;
 	
-	public ProfessionAPI()
+	ProfessionAPI(Permission perms, FileConfiguration data, FileConfiguration config)
 	{
-		//Vault integration for permissions
-        if (!setupPermissions()) 
-        {
-            Bukkit.getLogger().info("[%s] - Disabled due to no Vault dependency found!");
-            return;
-        }
-        
-    	config = new ConfigAccessor(JavaPlugin.getProvidingPlugin(ProfessionAPI.class), "config.yml").getConfig();
-    	data = new ConfigAccessor(JavaPlugin.getProvidingPlugin(ProfessionAPI.class), "data.yml").getConfig();
+		ProfessionAPI.perms = perms;
+        ProfessionAPI.data = data;
+        ProfessionAPI.config = config;
 	}
 	
+	public ProfessionAPI()
+	{	}
+
 	/**
 	 * updateConfig() updates the config file in the event of a configuration reload.
 	 * THIS METHOD IS FOR INTERNAL USE ONLY.
@@ -40,19 +36,6 @@ public class ProfessionAPI
 	{
 		CraftListener.config = config;
 	}
-	
-	/**
-	 * setupPermissions() sets up Vault permissions integration which allows this plugin to communicate with
-	 * permissions plugins in a standardised fashion.
-	 * 
-	 * @return
-	 */
-    private boolean setupPermissions() 
-    {
-        RegisteredServiceProvider<Permission> rsp = Bukkit.getServer().getServicesManager().getRegistration(Permission.class);
-        perms = rsp.getProvider();
-        return perms != null;
-    }
 
 	/**
 	 * getProfessions() gets the professions names that Horizon Professions is currently configured to use.
@@ -61,7 +44,7 @@ public class ProfessionAPI
 	 */
 	public List<String> getProfessions()
 	{
-		return ProfessionStats.getProfessions();
+		return config.getStringList("professions");
 	}
 	
 	/**
@@ -73,7 +56,7 @@ public class ProfessionAPI
 	 */
 	public boolean isValidProfession(String profession)
 	{
-		for (String p: ProfessionStats.getProfessions())
+		for (String p: getProfessions())
 			if (profession.equalsIgnoreCase(p))
 				return true;
 		return false;
@@ -86,9 +69,17 @@ public class ProfessionAPI
 	 */
 	public List<String> getTiers()
 	{
-		UUID uuid = UUID.fromString("null");
-		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
-		return prof.getTiers();
+		List<String> tierNames = new ArrayList<String>();
+		Set<String> configTiers;
+		
+		try { configTiers = config.getConfigurationSection("tiers").getKeys(false); }
+		catch (NullPointerException e)
+		{ return null; }
+		
+		for (String t: configTiers)
+			tierNames.add(config.getString("tiers." + t + ".name"));
+		
+		return tierNames;
 	}
 	
 	/**
@@ -260,7 +251,7 @@ public class ProfessionAPI
 	 */
 	public String getTierName(int tier)
 	{
-		return ProfessionStats.getTierName(tier);
+		return config.getString("tiers." + tier + ".name");
 	}
 	
 	/**

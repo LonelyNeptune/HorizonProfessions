@@ -26,7 +26,6 @@ public class CraftListener implements Listener
 	static FileConfiguration config;
 	Set<UUID> notified = new HashSet<UUID>();	//Used to ensure players are not spammed with the reason they are not gaining experience.
 	
-	//Constructor passing a reference to main.
 	public CraftListener(Permission perms, FileConfiguration data, FileConfiguration config) 
 	{
 		this.perms = perms;
@@ -54,8 +53,9 @@ public class CraftListener implements Listener
 		//Go through configuration file, if a recipe matches add the corresponding experience.
 		int exp = 0;
 		String profession = null;
+		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		
-		for (String p: ProfessionStats.getProfessions())
+		for (String p: prof.getProfessions())
 		{
 			Set<String> recipes;
 			try { recipes = config.getConfigurationSection("recipes." + p).getKeys(false); }
