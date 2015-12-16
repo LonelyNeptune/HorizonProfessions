@@ -51,7 +51,7 @@ public final class Main extends JavaPlugin
 		{
 			prof = new ProfessionStats(perms, data.getConfig(), config.getConfig(), pl.getUniqueId());
 			for (String pr: professions)
-				perms.playerAdd((String) null, pl, config.getConfig().getString("permission_prefix") + "." + pr + "-" 
+				perms.playerAdd((String) null, pl, config.getConfig().getString("permission_prefix") + "." + pr + "." 
 			+ prof.getTierName(prof.getTier(pr)));
 		}
         
@@ -97,7 +97,7 @@ public final class Main extends JavaPlugin
 		for (Player pl: Bukkit.getOnlinePlayers())
 			for (String pr: professions)
 				for (String t: tiers)
-					perms.playerRemove((String) null, pl, config.getConfig().getString("permission_prefix") + "." + pr + "-" + t);
+					perms.playerRemove((String) null, pl, config.getConfig().getString("permission_prefix") + "." + pr + "." + t);
 		
     	data.saveConfig();
     	config = null;

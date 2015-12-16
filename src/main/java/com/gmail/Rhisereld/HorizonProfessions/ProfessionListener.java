@@ -71,7 +71,7 @@ public class ProfessionListener implements Listener
 		UUID uuid = player.getUniqueId();
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		for (String pr: prof.getProfessions())
-			perms.playerAdd((String) null, player, config.getString("permission_prefix") + "." + pr + "-" 
+			perms.playerAdd((String) null, player, config.getString("permission_prefix") + "." + pr + "." 
 					+ prof.getTierName(prof.getTier(pr)));
 		
 		//Add the player's name and UUID to file.
@@ -85,7 +85,7 @@ public class ProfessionListener implements Listener
 		//Remove the player from all permission groups for professions
 		ProfessionStats prof = new ProfessionStats(perms, data, config, event.getPlayer().getUniqueId());
 		for (String pr: prof.getProfessions())
-			perms.playerRemove((String) null, event.getPlayer(), config.getString("permission_prefix") + "." + pr + "-" 
+			perms.playerRemove((String) null, event.getPlayer(), config.getString("permission_prefix") + "." + pr + "." 
 					+ prof.getTierName(prof.getTier(pr)));
 	}
 	
