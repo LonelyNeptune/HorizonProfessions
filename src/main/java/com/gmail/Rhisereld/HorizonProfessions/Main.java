@@ -52,7 +52,7 @@ public final class Main extends JavaPlugin
 			prof = new ProfessionStats(perms, data.getConfig(), config.getConfig(), pl.getUniqueId());
 			for (String pr: professions)
 				perms.playerAdd((String) null, pl, config.getConfig().getString("permission_prefix") + "." + pr + "." 
-			+ prof.getTierName(prof.getTier(pr)));
+			+ ProfessionStats.getTierName(prof.getTier(pr)));
 		}
         
         //RecipeManager integration for recipes.

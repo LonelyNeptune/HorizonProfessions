@@ -71,6 +71,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					config = new ConfigAccessor(plugin, "config.yml").getConfig();
 					ProfessionListener.updateConfig(config);
 					CraftListener.updateConfig(config);
+					ProfessionAPI.updateConfig(config);
 					
 					sender.sendMessage(ChatColor.YELLOW + "Horizon Professions config reloaded.");
 					return true;

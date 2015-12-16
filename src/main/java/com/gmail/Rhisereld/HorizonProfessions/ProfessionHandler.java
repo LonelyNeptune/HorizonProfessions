@@ -49,7 +49,7 @@ public class ProfessionHandler
 		sender.sendMessage("--------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">--------------");
 		sender.sendMessage(ChatColor.GOLD + "  Viewing " + name);
 		
-		for (String profession: prof.getProfessions())
+		for (String profession: ProfessionStats.getProfessions())
 		{
 			tier = getTierName(prof.getTier(profession));
 			maxLevel = config.getInt("tiers." + prof.getTier(profession) + ".maxLevel");
@@ -111,7 +111,7 @@ public class ProfessionHandler
 		//Check that the profession argument is one of the professions.
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		String professionFound = null;
-		for (String existingProfession: prof.getProfessions())
+		for (String existingProfession: ProfessionStats.getProfessions())
 			if (profession.equalsIgnoreCase(existingProfession))
 				professionFound = existingProfession;
 		
@@ -142,7 +142,7 @@ public class ProfessionHandler
 		//Check that the profession argument is one of the professions.
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		boolean professionFound = false;
-		for (String existingProfession: prof.getProfessions())
+		for (String existingProfession: ProfessionStats.getProfessions())
 			if (profession.equalsIgnoreCase(existingProfession))
 				professionFound = true;
 		
@@ -259,8 +259,8 @@ public class ProfessionHandler
 		//Give levels
 		String message = null;
 		if (profTrainee.addLevel(profession, 2))
-			message = "Thanks to your training, you have become " + getDeterminer(profTrainee.getTierName(profTrainee.getTier(profession)))
-					+ " " + profTrainee.getTierName(profTrainee.getTier(profession)) + " " + profession + ".";
+			message = "Thanks to your training, you have become " + getDeterminer(ProfessionStats.getTierName(profTrainee.getTier(profession)))
+					+ " " + ProfessionStats.getTierName(profTrainee.getTier(profession)) + " " + profession + ".";
 		
 		return message;
 	}

@@ -52,11 +52,10 @@ public class CraftListener implements Listener
 		WorkbenchRecipe recipe = event.getRecipe();
 		
 		//Go through configuration file, if a recipe matches add the corresponding experience.
-		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
 		int exp = 0;
 		String profession = null;
 		
-		for (String p: prof.getProfessions())
+		for (String p: ProfessionStats.getProfessions())
 		{
 			Set<String> recipes;
 			try { recipes = config.getConfigurationSection("recipes." + p).getKeys(false); }

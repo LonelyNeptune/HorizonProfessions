@@ -17,9 +17,9 @@ public class ProfessionStats
 {
 	Permission perms;
 	FileConfiguration data;
-	FileConfiguration config;
+	static FileConfiguration config;
 	String path;
-	List<String> professions;
+	static List<String> professions;
 	UUID uuid;
 	HashMap<String, Integer> experience = new HashMap<String, Integer>();
 	HashMap<String, Integer> levels = new HashMap<String, Integer>();
@@ -38,7 +38,7 @@ public class ProfessionStats
 	{		
 		this.perms = perms;
 		this.data = data;
-		this.config = config;
+		ProfessionStats.config = config;
 		
 		this.uuid = uuid;
 		
@@ -63,7 +63,7 @@ public class ProfessionStats
 	 * 
 	 * @return
 	 */
-	public List<String> getProfessions()
+	public static List<String> getProfessions()
 	{
 		return professions;
 	}
@@ -161,7 +161,7 @@ public class ProfessionStats
 	 * 
 	 * @param profession
 	 */
-	public void notifyLevelUp(String profession)
+	private void notifyLevelUp(String profession)
 	{
 		Player player = Bukkit.getPlayer(uuid);
 		
@@ -302,7 +302,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @return
 	 */
-	public String getTierName(int tier)
+	public static String getTierName(int tier)
 	{
 		return config.getString("tiers." + tier + ".name");
 	}
@@ -374,17 +374,6 @@ public class ProfessionStats
 	}
 	
 	/**
-	 * getInstructionFatigue() returns the instruction fatigue of the player in the given profession.
-	 * 
-	 * @param profession
-	 * @return
-	 */
-	public Long getInstructionFatigue(String profession)
-	{
-		return instructionFatigue.get(profession);
-	}
-	
-	/**
 	 * setInstructionFatigue() sets the instruction fatigue of the player in the given profession.
 	 * 
 	 * @param profession
@@ -407,17 +396,6 @@ public class ProfessionStats
 			return true;
 		else
 			return false;
-	}
-	
-	/**
-	 * getPracticeFatigue() returns the practice fatigue of the player in the given profession.
-	 * 
-	 * @param profession
-	 * @return
-	 */
-	public Long getPracticeFatigue(String profession)
-	{
-		return practiceFatigue.get(profession);
 	}
 	
 	/**
