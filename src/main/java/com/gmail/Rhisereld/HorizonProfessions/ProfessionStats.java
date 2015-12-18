@@ -41,7 +41,7 @@ public class ProfessionStats
 		this.config = config;
 		
 		this.uuid = uuid;
-		
+
 		path = "data." + uuid.toString();
 		professions = config.getStringList("professions");
 		
@@ -425,7 +425,7 @@ public class ProfessionStats
 	}
 	
 	/**
-	 * reset() sets all of the player's experience, levels and tiers to 0 in all professions, and removes all types of fatigue.
+	 * reset() sets all of the player's experience, levels and tiers to 0 in all professions.
 	 * 
 	 */
 	public void reset()

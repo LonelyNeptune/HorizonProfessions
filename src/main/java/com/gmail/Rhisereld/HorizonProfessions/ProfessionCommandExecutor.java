@@ -341,25 +341,30 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
 		Player player = Bukkit.getPlayer(name);
 		int newTier;
+		UUID uuid;
 		
 		//Stop waiting for confirmation
 		confirmForget.remove(sender.getName());
 		
 		//Perform the action
 		if (player == null)
-			try {newTier = profHandler.forgetTier(profHandler.getUUID(name), profession);}
-			catch (IllegalArgumentException e) 
-			{
-				sender.sendMessage(ChatColor.RED + e.getMessage());
-				return false;
-			}
+			uuid = profHandler.getUUID(name);
 		else
-			try {newTier = profHandler.forgetTier(player.getUniqueId(), profession);} 
-			catch (IllegalArgumentException e) 
-			{
-				sender.sendMessage(ChatColor.RED + e.getMessage());
-				return false;
-			}
+			uuid = player.getUniqueId();
+		
+		//If uuid is null then player is not saved.
+		if (uuid == null)
+		{
+			sender.sendMessage(ChatColor.RED + "That player does not exist!");
+			return false;
+		}
+		
+		try {newTier = profHandler.forgetTier(uuid, profession);}
+		catch (IllegalArgumentException e) 
+		{
+			sender.sendMessage(ChatColor.RED + e.getMessage());
+			return false;
+		}
 		
 		String tierName = profHandler.getTierName(newTier);
 
@@ -410,21 +415,26 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
 		Player player = Bukkit.getPlayer(name);
 		int newTier;
+		UUID uuid;
 		
 		if (player == null)
-			try {newTier = profHandler.giveTier(profHandler.getUUID(name), profession);}
-			catch (IllegalArgumentException e)
-			{
-				sender.sendMessage(ChatColor.RED + e.getMessage());
-				return false;
-			}
+			uuid = profHandler.getUUID(name);
 		else
-			try {newTier = profHandler.giveTier(player.getUniqueId(), profession);}
-			catch (IllegalArgumentException e)
-			{
-				sender.sendMessage(ChatColor.RED + e.getMessage());
-				return false;
-			}
+			uuid = player.getUniqueId();
+		
+		//If uuid is null then player is not saved.
+		if (uuid == null)
+		{
+			sender.sendMessage(ChatColor.RED + "That player does not exist!");
+			return false;
+		}
+		
+		try { newTier = profHandler.giveTier(uuid, profession);}
+		catch (IllegalArgumentException e)
+		{
+			sender.sendMessage(ChatColor.RED + e.getMessage());
+			return false;
+		}
 		
 		String tierName = profHandler.getTierName(newTier);
 
@@ -558,10 +568,20 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		confirmReset.remove(sender.getName());
 		
 		//Reset all stats
+		UUID uuid;
 		if (player == null)
-			profHandler.reset(profHandler.getUUID(name));
+			uuid = profHandler.getUUID(name);
 		else
-			profHandler.reset(player.getUniqueId());
+			uuid = player.getUniqueId();
+		
+		//If uuid is null then player is not saved.
+		if (uuid == null)
+		{
+			sender.sendMessage(ChatColor.RED + "That player does not exist!");
+			return false;
+		}
+		
+		profHandler.reset(uuid);
 
 		//Notify sender.
 		sender.sendMessage(ChatColor.YELLOW + name + " has lost all their knowledge.");
