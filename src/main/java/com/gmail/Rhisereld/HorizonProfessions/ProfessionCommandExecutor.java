@@ -745,7 +745,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 */
 	private void createLog(String message, String filename)
     {
-		File saveTo = new File("plugins\\horizonprofessions\\" + filename);
+		File saveTo = new File("plugins" + File.separator + "horizonprofessions" + File.separator + filename);
 		long time = System.currentTimeMillis();
 		Timestamp timestamp = new Timestamp(time);
 		PrintWriter out = null;
