@@ -448,8 +448,6 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			player.sendMessage(ChatColor.YELLOW + name + " has gained some knowledge. They are now "  + 
 					getDeterminer(tierName) + " " + tierName + " " + profession + ".");
 		}
-		else
-			return true;
 
 		String message = ChatColor.GOLD + sender.getName() + " has given a tier in " + profession + " to " + name;
 				
@@ -745,7 +743,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 */
 	private void createLog(String message, String filename)
     {
-		File saveTo = new File("plugins" + File.separator + "horizonprofessions" + File.separator + filename);
+		File saveTo = new File("plugins" + File.separator + "HorizonProfessions" + File.separator + filename);
 		long time = System.currentTimeMillis();
 		Timestamp timestamp = new Timestamp(time);
 		PrintWriter out = null;

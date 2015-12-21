@@ -241,8 +241,14 @@ public class ProfessionStats
 		tiers.put(profession,  0);
 		
 		//Set permissions for the tier.
-		for (String t: getTiers())
-			perms.playerRemove((String) null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." + t);
+		Player player = Bukkit.getPlayer(uuid);
+		
+		if (player == null)
+			for (String t: getTiers())
+				perms.playerRemove((String) null, Bukkit.getOfflinePlayer(uuid), config.getString("permission_prefix") + "." + profession + "." + t);
+		else		
+			for (String t: getTiers())
+				perms.playerRemove((String) null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." + t);
 	}
 	
 	/**

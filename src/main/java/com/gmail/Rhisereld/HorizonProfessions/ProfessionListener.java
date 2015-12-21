@@ -12,6 +12,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -290,6 +291,47 @@ public class ProfessionListener implements Listener
 		}
 
 		event.setDamage(damage);
+	}
+	
+	@EventHandler(priority = EventPriority.NORMAL)
+	void onArrowShoot(EntityDamageByEntityEvent event)
+	{
+		if (event.getDamager() instanceof Arrow)
+	    {
+	        Arrow arrow = (Arrow) event.getDamager();
+	        if (arrow.getShooter() instanceof Player)
+	        {
+	        	Player shooter = (Player) arrow.getShooter();
+	        	
+	    		//Get the damage and multiply it by the relevant modifiers.
+	        	Set<String> professions;
+	    		try {professions = config.getConfigurationSection("damageModifier").getKeys(false);}
+	    		catch (NullPointerException e)
+	    		{ return; }
+	    		
+	    		ProfessionStats prof = new ProfessionStats(perms, data, config, shooter.getUniqueId());
+	    		double damage = event.getDamage();
+
+	    		for (String p: professions)
+	    		{
+	    			//Check that the player is using the correct item
+	    			String weaponReq = config.getString("damageModifier." + p + ".weaponReq");
+	    			if (weaponReq != null && !weaponReq.equals("[ANY]") && !weaponReq.equals("ANY"))
+	    			{
+	    				List<String> weaponReqList = config.getStringList("damageModifier." + p + ".weaponReq");
+	    				boolean weaponFound = false;
+	    				for (String w: weaponReqList)
+	    					if (shooter.getItemInHand().getType().toString().equalsIgnoreCase(w))
+	    						weaponFound = true;
+	    				
+	    				if (!weaponFound)
+	    					return;
+	    			}	
+	    			damage = damage * config.getInt("damageModifier." + p + "." + prof.getTierName(prof.getTier(p)), 100) / 100;
+	    		}
+	    		event.setDamage(damage);
+	        }
+	    }
 	}
 	
 	//Called when a block is broken
