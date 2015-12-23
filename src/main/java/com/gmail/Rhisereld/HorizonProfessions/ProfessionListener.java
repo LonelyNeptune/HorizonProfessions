@@ -159,37 +159,48 @@ public class ProfessionListener implements Listener
     		return;
     	
 		//Check if the amount to heal is in the config
-    	String professionRequired = config.getString("healing." + item + ".profession");
-    	ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
-    	ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
+    	Set<String> professionsRequired;
+    	try { professionsRequired = config.getConfigurationSection("healing." + item).getKeys(false); }
+    	catch (NullPointerException e)
+    	{ return; }
     	
-    	double amountToHeal = config.getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
-    	if (amountToHeal == 0)
+    	for (String p: professionsRequired)
     	{
-    		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
-    		return;
+    		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
+    		
+    		if (p == null)
+    			continue;
+    		
+        	ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
+        	
+        	double amountToHeal = config.getInt("healing." + item + "." + p + "." + profHandler.getTierName(prof.getTier(p)));
+        	if (amountToHeal == 0)
+        	{
+        		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
+        		return;
+        	}
+        	
+        	//Check that the recipient has missing health.
+    		Player recipient = (Player) event.getRightClicked();
+    		if (recipient.getHealth() >= 20)
+    		{
+    			player.sendMessage(ChatColor.YELLOW + recipient.getName() + " does not need bandaging!");
+    			return;
+    		}  
+    		
+        	//Check that it won't take you over the maximum amount of health.
+        	if (recipient.getHealth() + amountToHeal > 20)
+        		amountToHeal = 20 - recipient.getHealth();
+    		
+    		player.sendMessage(ChatColor.YELLOW + "Bandaging...");
+    		String name = player.getCustomName();
+    		if (name == null)
+    			name = player.getName();
+    		recipient.sendMessage(ChatColor.YELLOW + name + " is bandaging you...");
+    		
+    		//Schedule the task in one second.
+    		makeDelayedTask(player, recipient, amountToHeal, item, p, player.getLocation(), recipient.getLocation());
     	}
-    	
-    	//Check that the recipient has missing health.
-		Player recipient = (Player) event.getRightClicked();
-		if (recipient.getHealth() >= 20)
-		{
-			player.sendMessage(ChatColor.YELLOW + recipient.getName() + " does not need bandaging!");
-			return;
-		}  
-		
-    	//Check that it won't take you over the maximum amount of health.
-    	if (recipient.getHealth() + amountToHeal > 20)
-    		amountToHeal = 20 - recipient.getHealth();
-		
-		player.sendMessage(ChatColor.YELLOW + "Bandaging...");
-		String name = player.getCustomName();
-		if (name == null)
-			name = player.getName();
-		recipient.sendMessage(ChatColor.YELLOW + name + " is bandaging you...");
-		
-		//Schedule the task in one second.
-		makeDelayedTask(player, recipient, amountToHeal, item, professionRequired, player.getLocation(), recipient.getLocation());
 	}
 	
 	//Called when a player right-clicks
@@ -224,33 +235,43 @@ public class ProfessionListener implements Listener
     	if (item == null)
     		return;
     	
-		//Check if the amount to heal is in the config
-    	String professionRequired = config.getString("healing." + item + ".profession");
-    	ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
-    	ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
+    	Set<String> professionReqs;
+    	try { professionReqs = config.getConfigurationSection("healing." + item).getKeys(false); }
+    	catch (NullPointerException e)
+    	{ return; }
     	
-    	double amountToHeal = config.getInt("healing." + item + ".tier." + profHandler.getTierName(prof.getTier(professionRequired)));
-    	if (amountToHeal == 0)
+    	for (String p: professionReqs)
     	{
-    		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
-    		return;
+    		if (p == null)
+    			continue;
+    		
+    		//Check if the amount to heal is in the config
+        	ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
+        	ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
+        	
+        	double amountToHeal = config.getInt("healing." + item + "." + p + "." + profHandler.getTierName(prof.getTier(p)));
+        	if (amountToHeal == 0)
+        	{
+        		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
+        		return;
+        	}
+        	    	
+        	//Check that the player has missing health.
+        	if (player.getHealth() >= 20)
+        	{
+        		player.sendMessage(ChatColor.YELLOW + "You do not need bandaging!");
+        		return;
+        	}  
+        	
+        	//Check that it won't take you over the maximum amount of health.
+        	if (player.getHealth() + amountToHeal > 20)
+        		amountToHeal = 20 - player.getHealth();
+        			
+        	player.sendMessage(ChatColor.YELLOW + "Bandaging...");
+        			
+        	//Schedule the task in one second.
+        	makeDelayedTask(player, player, amountToHeal, item, p, player.getLocation(),  player.getLocation());
     	}
-    	    	
-    	//Check that the player has missing health.
-    	if (player.getHealth() >= 20)
-    	{
-    		player.sendMessage(ChatColor.YELLOW + "You do not need bandaging!");
-    		return;
-    	}  
-    	
-    	//Check that it won't take you over the maximum amount of health.
-    	if (player.getHealth() + amountToHeal > 20)
-    		amountToHeal = 20 - player.getHealth();
-    			
-    	player.sendMessage(ChatColor.YELLOW + "Bandaging...");
-    			
-    	//Schedule the task in one second.
-    	makeDelayedTask(player, player, amountToHeal, item, professionRequired, player.getLocation(),  player.getLocation());
 	}
 	
 	@EventHandler(priority = EventPriority.NORMAL)

@@ -487,7 +487,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		Player player = (Player) sender;
 		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
 		String newTier;
-		
+			
 		try {newTier = profHandler.getTierName(profHandler.claimTier(player.getUniqueId(), profession));}
 		catch (IllegalArgumentException e)
 		{

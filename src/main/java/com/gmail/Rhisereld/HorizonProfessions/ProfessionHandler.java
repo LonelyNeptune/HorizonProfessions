@@ -108,18 +108,13 @@ public class ProfessionHandler
 	 */
 	public int forgetTier(UUID uuid, String profession) throws IllegalArgumentException
 	{
-		//Check that the profession argument is one of the professions.
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
-		String professionFound = null;
-		for (String existingProfession: prof.getProfessions())
-			if (profession.equalsIgnoreCase(existingProfession))
-				professionFound = existingProfession;
-		
-		if (professionFound == null)
-			throw new IllegalArgumentException("That profession does not exist!");
+		//Check if the profession is valid
+		if (!isValidProfession(profession))
+			throw new IllegalArgumentException("That is not a valid profession.");
 		
 		//Check that the player is not at the lowest tier.
-		if (prof.getTier(professionFound) == 0)
+		if (prof.getTier(profession) == 0)
 			throw new IllegalArgumentException("That player is already the lowest tier in that profession.");
 		
 		//Remove the tier
@@ -139,15 +134,10 @@ public class ProfessionHandler
 	 */
 	public int giveTier(UUID uuid, String profession) throws IllegalArgumentException
 	{
-		//Check that the profession argument is one of the professions.
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
-		boolean professionFound = false;
-		for (String existingProfession: prof.getProfessions())
-			if (profession.equalsIgnoreCase(existingProfession))
-				professionFound = true;
-		
-		if (!professionFound)
-			throw new IllegalArgumentException("That profession does not exist!");
+		//Check if the profession is valid
+		if (!isValidProfession(profession))
+			throw new IllegalArgumentException("That is not a valid profession.");
 		
 		//Check that the player is not at the highest tier.
 		if (prof.getTier(profession) >= prof.getTiers().size() - 1)
@@ -180,6 +170,10 @@ public class ProfessionHandler
 		//Check if they have reached the maximum number of claimable tiers.
 		if (claimed >= config.getInt("claimable_tiers"))
 			throw new IllegalArgumentException("You do not have any claimable tiers left!");
+		
+		//Check if the profession is valid
+		if (!isValidProfession(profession))
+			throw new IllegalArgumentException("That is not a valid profession.");
 		
 		//Check if they are already maximum tier in that profession.
 		if (prof.getTier(profession) == 3)
@@ -219,6 +213,10 @@ public class ProfessionHandler
 
 		ProfessionStats profTrainer = new ProfessionStats(perms, data, config, trainer.getUniqueId());
 		ProfessionStats profTrainee = new ProfessionStats(perms, data, config, trainee.getUniqueId());
+		
+		//Check if the profession is valid
+		if (!isValidProfession(profession))
+			throw new IllegalArgumentException("That is not a valid profession.");
 		
 		//Check that the trainer is the top tier
 		List<String> tiers = profTrainer.getTiers();
@@ -351,5 +349,22 @@ public class ProfessionHandler
 	public void reset(UUID uuid)
 	{
 		new ProfessionStats(perms, data, config, uuid).reset();
+	}
+	
+	/**
+	 * isValidProfession() returns true if the given profession is a valid profession in current Horizon Professions configuration,
+	 * and false otherwise.
+	 * 
+	 * @param profession
+	 * @return
+	 */
+	public boolean isValidProfession(String profession)
+	{
+		List<String> professions = config.getStringList("professions");
+		
+		for (String p: professions)
+			if (profession.equalsIgnoreCase(p))
+				return true;
+		return false;
 	}
 }
