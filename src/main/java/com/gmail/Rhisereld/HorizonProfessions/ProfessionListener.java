@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import net.milkbowl.vault.permission.Permission;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -242,12 +243,13 @@ public class ProfessionListener implements Listener
     	
     	for (String p: professionReqs)
     	{
-    		if (p == null)
+    		ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
+    		
+    		if (p == null || !profHandler.isValidProfession(p))
     			continue;
     		
     		//Check if the amount to heal is in the config
         	ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
-        	ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
         	
         	double amountToHeal = config.getInt("healing." + item + "." + p + "." + profHandler.getTierName(prof.getTier(p)));
         	if (amountToHeal == 0)

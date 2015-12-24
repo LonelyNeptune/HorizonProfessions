@@ -271,7 +271,7 @@ public class ProfessionStats
 		
 		//Set permissions for the tier.
 		for (String t: getTiers())
-			perms.playerRemove((String) null, Bukkit.getPlayer(uuid), profession + "-" + t);
+			perms.playerRemove((String) null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." + t);
 		
 		perms.playerAdd((String) null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." 
 				+ getTierName(newTier));
@@ -296,7 +296,7 @@ public class ProfessionStats
 		
 		//Set permissions for the tier.
 		for (String t: getTiers())
-			perms.playerRemove((String) null, Bukkit.getPlayer(uuid), profession + "-" + t);
+			perms.playerRemove((String) null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." + t);
 		
 		perms.playerAdd((String) null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." 
 				+ getTierName(newTier));
