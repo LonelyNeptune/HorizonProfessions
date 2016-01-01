@@ -99,38 +99,67 @@ public class ProfessionListener implements Listener
 		EntityDamageByEntityEvent dEvent;
 		Player player;
 		Set<String> list;
-		
-		//Check that it was killed by another entity
+
+		//Check that it was killed by another entity		
 		if(!(entity.getLastDamageCause() instanceof EntityDamageByEntityEvent))
 			return;
 		
 		dEvent = (EntityDamageByEntityEvent) entity.getLastDamageCause();
 		
 		//Check that it was killed by a player
-		if(!(dEvent.getDamager() instanceof Player))
-			return;
-		
-		player = (Player) dEvent.getDamager();
-		
-		//Check if the monster is contained within the config
-		ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
-		
-		for (String p: prof.getProfessions())
+		if(dEvent.getDamager() instanceof Player)
 		{
-			//If there's no configuration for that profession, skip it.
-			try {list = config.getConfigurationSection("slaying." + p).getKeys(false);}
-			catch (NullPointerException e)
-			{ continue; }
+			player = (Player) dEvent.getDamager();
 			
-			for (String monster: list)
-				//If found, award experience for it.
-				if (entity.getType().toString().equalsIgnoreCase(monster))
-				{
-					if (!prof.isPracticeFatigued(p))
-						addExperience(player, p, config.getInt("slaying." + p + "." + monster));
-					return;
-				}
+			//Check if the monster is contained within the config
+			ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
+			
+			for (String p: prof.getProfessions())
+			{
+				//If there's no configuration for that profession, skip it.
+				try {list = config.getConfigurationSection("slaying." + p).getKeys(false);}
+				catch (NullPointerException e)
+				{ continue; }
+				
+				for (String monster: list)
+					//If found, award experience for it.
+					if (entity.getType().toString().equalsIgnoreCase(monster))
+					{
+						if (!prof.isPracticeFatigued(p))
+							addExperience(player, p, config.getInt("slaying." + p + "." + monster));
+						return;
+					}
+			}
 		}
+		else if (dEvent.getDamager() instanceof Arrow)
+		{	
+			Arrow arrow = (Arrow) dEvent.getDamager();
+	        if (!(arrow.getShooter() instanceof Player))
+	        	return;
+	        
+	        player = (Player) arrow.getShooter();
+			
+			//Check if the monster is contained within the config
+			ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
+			
+			for (String p: prof.getProfessions())
+			{
+				//If there's no configuration for that profession, skip it.
+				try {list = config.getConfigurationSection("slaying." + p).getKeys(false);}
+				catch (NullPointerException e)
+				{ continue; }
+				
+				for (String monster: list)
+					//If found, award experience for it.
+					if (entity.getType().toString().equalsIgnoreCase(monster))
+					{
+						if (!prof.isPracticeFatigued(p))
+							addExperience(player, p, config.getInt("slaying." + p + "." + monster));
+						return;
+					}
+			}
+		}
+
 	}
 	
 	//Called when a player right clicks something
