@@ -7,7 +7,6 @@ import java.util.UUID;
 
 import net.milkbowl.vault.permission.Permission;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -21,6 +20,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -461,6 +461,14 @@ public class ProfessionListener implements Listener
 		else if (!prof.isPracticeFatigued(professionReq))
 			addExperience(player, professionReq, exp);
 	}
+	
+	@EventHandler (ignoreCancelled = true)
+    public void onWaterBreakingWheat(BlockFromToEvent event) 
+	{
+        if ((event.getBlock().getType().equals(Material.WATER) || event.getBlock().getType().equals(Material.STATIONARY_WATER))
+        		&& event.getToBlock().getType().equals(Material.CROPS))
+            event.getToBlock().setType(Material.AIR);
+    }
 	
 	void makeDelayedTask(final Player player, final Player recipient, final double amountToHeal, final String item, 
 			final String profession, final Location playerLoc, final Location recipientLoc)
