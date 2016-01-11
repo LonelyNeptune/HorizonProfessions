@@ -47,6 +47,9 @@ public class CraftListener implements Listener
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void RecipeManagerCraftEvent(final RecipeManagerCraftEvent event)
 	{
+		if (event.isShiftClick())
+			return;
+		
 		Player player = event.getPlayer();
 		WorkbenchRecipe recipe = event.getRecipe();
 		
