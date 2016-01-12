@@ -18,6 +18,7 @@ tiers:
     name: expert
 fatigue_time: 86400000
 permission_prefix: horizonprofessions
+enable_training: true
 max_exp: 1000
 claimable_tiers: 3
 tier_cap: 6

@@ -205,6 +205,12 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			//profession train [profession] [player]
 			if (args[0].equalsIgnoreCase("train"))
 			{
+				if (!config.getBoolean("enable_training", false))
+				{
+					sender.sendMessage(ChatColor.RED + "Training is not enabled on this server.");
+					return false;
+				}
+				
 				if (args.length != 3)
 				{
 					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession train [profession] [player]");
