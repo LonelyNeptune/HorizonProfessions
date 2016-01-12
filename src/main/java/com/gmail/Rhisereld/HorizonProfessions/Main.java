@@ -35,8 +35,11 @@ public final class Main extends JavaPlugin
     	config.getConfig().options().copyDefaults(true);
     	data = new ConfigAccessor(this, "data.yml");
     	
+    	//Write header.
+    	config.getConfig().options().copyHeader(true);
+    	
     	//Load configuration
-    	config.saveConfig();
+    	config.saveDefaultConfig();
 
     	//Vault integration for permissions
         if (!setupPermissions())
