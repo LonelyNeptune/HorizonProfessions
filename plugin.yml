@@ -25,6 +25,7 @@ permissions:
       horizonprofessions.reset.admin: true
       horizonprofessions.train: true
       horizonprofessions.train.admin: true
+      horizonprofessions.reload: true
       
   horizonprofessions.admin:
     description: Gives access to all Horizon Profession commands for admins and normal players.
