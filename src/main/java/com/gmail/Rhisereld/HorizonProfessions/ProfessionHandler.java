@@ -37,7 +37,7 @@ public class ProfessionHandler
 	 * @param name
 	 * @param sender
 	 */
-	public void displayStats(UUID player, String name, CommandSender sender)
+	void displayStats(UUID player, String name, CommandSender sender)
 	{	
 		String tier;
 		int maxLevel;
@@ -106,7 +106,7 @@ public class ProfessionHandler
 	 * @param profession
 	 * @return
 	 */
-	public int forgetTier(UUID uuid, String profession) throws IllegalArgumentException
+	int forgetTier(UUID uuid, String profession) throws IllegalArgumentException
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		//Check if the profession is valid
@@ -132,7 +132,7 @@ public class ProfessionHandler
 	 * @param profession
 	 * @return
 	 */
-	public int giveTier(UUID uuid, String profession) throws IllegalArgumentException
+	int giveTier(UUID uuid, String profession) throws IllegalArgumentException
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		//Check if the profession is valid
@@ -162,7 +162,7 @@ public class ProfessionHandler
 	 * @return
 	 * @throws IllegalArgumentException
 	 */
-	public int claimTier(UUID uuid, String profession) throws IllegalArgumentException
+	int claimTier(UUID uuid, String profession) throws IllegalArgumentException
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		int claimed = prof.getClaimed();
@@ -206,7 +206,7 @@ public class ProfessionHandler
 	 * @param profession
 	 * @return Returns true if the training resulted in a gained tier, false otherwise.
 	 */
-	public String train(CommandSender sender, String traineeName, String profession) throws IllegalArgumentException
+	String train(CommandSender sender, String traineeName, String profession) throws IllegalArgumentException
 	{
 		Player trainee = Bukkit.getPlayer(traineeName);
 		Player trainer = (Player) sender;
@@ -300,7 +300,7 @@ public class ProfessionHandler
 	 * @param profession
 	 * @return
 	 */
-	public String getTierName(int tier)
+	String getTierName(int tier)
 	{
 		return config.getString("tiers." + tier + ".name");
 	}
@@ -325,7 +325,7 @@ public class ProfessionHandler
 	 * @param name
 	 * @return
 	 */
-	public UUID getUUID(String name)
+	UUID getUUID(String name)
 	{
 		Set<String> uuids;
 		try { uuids = data.getConfigurationSection("data").getKeys(false); }
@@ -346,7 +346,7 @@ public class ProfessionHandler
 	 * reset() sets all of the player's experience, levels and tiers to 0 in all professions, and removes all types of fatigue.
 	 * 
 	 */
-	public void reset(UUID uuid)
+	void reset(UUID uuid)
 	{
 		new ProfessionStats(perms, data, config, uuid).reset();
 	}
@@ -358,7 +358,7 @@ public class ProfessionHandler
 	 * @param profession
 	 * @return
 	 */
-	public boolean isValidProfession(String profession)
+	boolean isValidProfession(String profession)
 	{
 		List<String> professions = config.getStringList("professions");
 		

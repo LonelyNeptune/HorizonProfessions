@@ -38,7 +38,7 @@ public final class Main extends JavaPlugin
     	//Write header.
     	config.getConfig().options().copyHeader(true);
     	
-    	//Load configuration
+    	//Save configuration
     	config.saveDefaultConfig();
 
     	//Vault integration for permissions

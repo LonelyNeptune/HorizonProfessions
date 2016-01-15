@@ -63,7 +63,7 @@ public class ProfessionStats
 	 * 
 	 * @return
 	 */
-	public List<String> getProfessions()
+	List<String> getProfessions()
 	{
 		return professions;
 	}
@@ -73,7 +73,7 @@ public class ProfessionStats
 	 * 
 	 * @return
 	 */
-	public int getClaimed()
+	int getClaimed()
 	{
 		return claimed;
 	}
@@ -83,7 +83,7 @@ public class ProfessionStats
 	 * 
 	 * @param claimed
 	 */
-	public void setClaimed(int claimed)
+	void setClaimed(int claimed)
 	{
 		data.set(path + ".claimed", claimed);
 		this.claimed = claimed;
@@ -95,7 +95,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @return
 	 */
-	public int getExperience(String profession)
+	int getExperience(String profession)
 	{
 		return experience.get(profession);
 	}
@@ -105,7 +105,7 @@ public class ProfessionStats
 	 * 
 	 * @param profession
 	 */
-	public void resetExperience(String profession)
+	void resetExperience(String profession)
 	{		
 		experience.put(profession, 0);
 	}
@@ -123,7 +123,7 @@ public class ProfessionStats
 	 * 		3 - the experience could not be added because the player has reached the maximum tier in that profession.
 	 * 		4 - the experience could not be added because the player has reached the maximum number of permitted tiers.
 	 */
-	public int addExperience(String profession, int exp)
+	int addExperience(String profession, int exp)
 	{
 		//If the player has reach the maximum possible tiers, they cannot progress.
 		if (getTotalTiers() >= config.getInt("tier_cap"))
@@ -175,7 +175,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @return
 	 */
-	public int getLevel(String profession)
+	int getLevel(String profession)
 	{
 		return levels.get(profession);
 	}
@@ -186,7 +186,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @param level
 	 */
-	public void resetLevel(String profession)
+	void resetLevel(String profession)
 	{
 		data.set(path + "." + profession + ".level", 0);
 		levels.put(profession,  0);
@@ -199,7 +199,7 @@ public class ProfessionStats
 	 * @param level
 	 * @return Returns true if adding levels resulted in gaining a tier, false otherwise.
 	 */
-	public boolean addLevel(String profession, int level)
+	boolean addLevel(String profession, int level)
 	{
 		int newLevel = levels.get(profession) + level;
 		
@@ -225,7 +225,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @return
 	 */
-	public int getTier(String profession)
+	int getTier(String profession)
 	{
 		return tiers.get(profession);
 	}
@@ -235,7 +235,7 @@ public class ProfessionStats
 	 * 
 	 * @param profession
 	 */
-	public void resetTier(String profession)
+	void resetTier(String profession)
 	{
 		data.set(path + "." + profession + ".tier", 0);
 		tiers.put(profession,  0);
@@ -257,7 +257,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @param tier
 	 */
-	public void addTier(String profession)
+	void addTier(String profession)
 	{
 		int oldTier = getTier(profession);
 		int newTier = oldTier + 1;
@@ -282,7 +282,7 @@ public class ProfessionStats
 	 * 
 	 * @param profession
 	 */
-	public void loseTier(String profession)
+	void loseTier(String profession)
 	{
 		int oldTier = getTier(profession);
 		int newTier = oldTier - 1;
@@ -308,7 +308,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @return
 	 */
-	public String getTierName(int tier)
+	String getTierName(int tier)
 	{
 		return config.getString("tiers." + tier + ".name");
 	}
@@ -318,7 +318,7 @@ public class ProfessionStats
 	 * 
 	 * @return
 	 */
-	public List<String> getTiers()
+	List<String> getTiers()
 	{
 		List<String> tierNames = new ArrayList<String>();
 		
@@ -333,7 +333,7 @@ public class ProfessionStats
 	 * 
 	 * @return
 	 */
-	public int getTotalTiers()
+	int getTotalTiers()
 	{
 		int total = 0;
 		
@@ -350,7 +350,7 @@ public class ProfessionStats
 	 * @param tierNum
 	 * @return
 	 */
-	public boolean hasTier(String profession, int tierNum)
+	boolean hasTier(String profession, int tierNum)
 	{
 		if (tiers.get(profession) >= tierNum)
 			return true;
@@ -364,7 +364,7 @@ public class ProfessionStats
 	 * @param tierName
 	 * @return
 	 */
-	public boolean hasTier(String profession, String tierName)
+	boolean hasTier(String profession, String tierName)
 	{
 		int tierNum = 0;
 		Set<String> configTiers = config.getConfigurationSection("tiers").getKeys(false);
@@ -384,7 +384,7 @@ public class ProfessionStats
 	 * 
 	 * @param profession
 	 */
-	public void setInstructionFatigue(String profession)
+	void setInstructionFatigue(String profession)
 	{
 		data.set(path + "." + profession + ".instructionFatigue", System.currentTimeMillis());
 		instructionFatigue.put(profession,  System.currentTimeMillis());
@@ -396,7 +396,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @return
 	 */
-	public boolean isInstructionFatigued(String profession)
+	boolean isInstructionFatigued(String profession)
 	{
 		if (System.currentTimeMillis() - instructionFatigue.get(profession) < config.getLong("fatigue_time"))
 			return true;
@@ -410,7 +410,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @param fatigue
 	 */
-	public void setPracticeFatigue(String profession)
+	void setPracticeFatigue(String profession)
 	{
 		data.set(path + "." + profession + ".practiceFatigue", System.currentTimeMillis());
 		practiceFatigue.put(profession,  System.currentTimeMillis());
@@ -422,7 +422,7 @@ public class ProfessionStats
 	 * @param profession
 	 * @return
 	 */
-	public boolean isPracticeFatigued(String profession)
+	boolean isPracticeFatigued(String profession)
 	{
 		if (System.currentTimeMillis() - practiceFatigue.get(profession) < config.getLong("fatigue_time"))
 			return true;
@@ -434,7 +434,7 @@ public class ProfessionStats
 	 * reset() sets all of the player's experience, levels and tiers to 0 in all professions.
 	 * 
 	 */
-	public void reset()
+	void reset()
 	{
 		for (String p: getProfessions())
 		{
