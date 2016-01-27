@@ -122,9 +122,14 @@ public class ProfessionStats
 	 * 		2 - the experience could not be added because the player still has unclaimed tiers.
 	 * 		3 - the experience could not be added because the player has reached the maximum tier in that profession.
 	 * 		4 - the experience could not be added because the player has reached the maximum number of permitted tiers.
+	 *      5 - the experience could not be added because the player is on cooldown.
 	 */
 	int addExperience(String profession, int exp)
 	{
+		//If the player is on cooldown, they cannot progress
+		if (isPracticeFatigued(profession))
+			return 5;
+		
 		//If the player has reach the maximum possible tiers, they cannot progress.
 		if (getTotalTiers() >= config.getInt("tier_cap"))
 			return 4;

@@ -95,6 +95,12 @@ public class CraftListener implements Listener
 		if (notified.contains(uuid))
 			return;
 		
+		if (result == 5)
+		{
+			notified.add(uuid);
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you are on cooldown.");
+		}
+		
 		if (result == 4)
 		{
 			notified.add(uuid);
