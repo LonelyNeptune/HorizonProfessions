@@ -196,7 +196,7 @@ public class ProfessionStats
 		data.set(path + "." + profession + ".level", 0);
 		levels.put(profession,  0);
 	}
-	
+
 	/**
 	 * addLevel() adds level progress towards the next tier in the profession given.
 	 * 
@@ -255,7 +255,7 @@ public class ProfessionStats
 			for (String t: getTiers())
 				perms.playerRemove((String) null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." + t);
 	}
-	
+
 	/**
 	 * addTier() adds a tier to the profession given.
 	 * 
@@ -347,7 +347,7 @@ public class ProfessionStats
 		
 		return total;
 	}
-	
+
 	/**
 	 * hasTier() returns true if the player has a tier that is equal or higher in the profession given, and false otherwise.
 	 * 
@@ -380,7 +380,7 @@ public class ProfessionStats
 		
 		if (tiers.get(profession) >= tierNum)
 			return true;
-		else		
+		else
 			return false;
 	}
 	

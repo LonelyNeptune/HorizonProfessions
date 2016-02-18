@@ -50,6 +50,7 @@
 #Multiple professions may be defined. Mobs can appear under more than 
 #one profession.
 #Example configuration:
+#
 #slaying:
 #  hunter:
 #    chicken: 1
@@ -61,6 +62,17 @@
 #This configuration awards 1 experience to hunters for killing
 #chickens and pigs, and 1 experience to pilots for killing sheep and
 #cows.
+#
+#FISHING
+#The amount of experience for successfully catching a fish is
+#configurable. 
+#Example configuration:
+#
+#fishing:
+#  professionReq: labourer
+#  tierReq: unskilled
+#  exp: 10
+#
 #DAMAGE MODIFIER
 #The amount of damage a player deals is configurable.
 #Multiple professions and tiers may be defined. It can be required
@@ -84,6 +96,7 @@
 #However, this modifier only applies if the player is holding any of
 #the items listed. For a list of items, view here:
 #https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+#
 #HEALING
 #Certain professions can be configured with the ability to heal
 #themselves and other players.
@@ -103,6 +116,7 @@
 #In this configuration, medics can heal using paper. A novice heals
 #2HP, an adept heals 4HP, and an expert heals 6HP. 2HP = 1 heart.
 #Unskilled is not listed, so unskilled medics cannot heal.
+#
 #RECIPES
 #The plugin can be configured to award experience when a player
 #crafts an item.
@@ -157,6 +171,7 @@
 #
 #This format is recommended if you wish to restrict recipes or 
 #provide extra boons to certain professions.
+#
 #BREAK BLOCKS
 #Each block can be configured to only be broken by players with a
 #certain profession and tier. If the player has a tier HIGHER than
@@ -177,6 +192,7 @@
 #break stone (unskilled labourers can't). When a player breaks stone
 #they get 1 experience. Any labourer (unskilled and above) can break
 #dirt and they get 1 experience for doing so.
+#
 #PLACE BLOCKS
 #Identical in concept and configuration to break blocks.
 #Example configuration:
@@ -215,6 +231,7 @@ tier_cap: 6
 place_cooldown: 3600000
 
 slaying:
+fishing:
 damageModifier:
 healing:
 recipes:

@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import net.milkbowl.vault.permission.Permission;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -24,6 +25,8 @@ import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerFishEvent.State;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -498,6 +501,45 @@ public class ProfessionListener implements Listener
         		&& event.getToBlock().getType().equals(Material.CROPS))
             event.getToBlock().setType(Material.AIR);
     }
+	
+	//Called when a player successfully catches a fish.
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onFishing(PlayerFishEvent event)
+	{
+		if (!event.getState().equals(State.CAUGHT_FISH))
+			return;
+		
+		ProfessionStats prof = new ProfessionStats(perms, data, config, event.getPlayer().getUniqueId());
+		String professionReq = config.getString("fishing.professionReq");
+		Bukkit.getLogger().info("professionReq: " + professionReq); //TODO
+		if (professionReq == null)
+			return;
+		String tierReq = config.getString("fishing.tierReq");
+		Bukkit.getLogger().info("tierReq: " + tierReq); //TODO
+		if (tierReq == null)
+			return;
+		int exp = config.getInt("fishing.exp");
+		
+		List<String> professions = prof.getProfessions();
+		
+		for (String p: professions)
+			if (professionReq.equalsIgnoreCase(p))
+			{
+				Bukkit.getLogger().info("Profession matched: " + p); //TODO
+				
+				if (!prof.hasTier(professionReq, tierReq))
+				{
+					event.setCancelled(true);
+					Bukkit.getLogger().info("Drop cancelled."); //TODO
+				}
+				else
+					if (!prof.isPracticeFatigued(professionReq))
+					{
+						addExperience(event.getPlayer(), professionReq, exp);
+						Bukkit.getLogger().info("Experience added."); //TODO
+					}
+			}
+	}
 	
 	void makeDelayedTask(final Player player, final Player recipient, final double amountToHeal, final String item, 
 			final String profession, final Location playerLoc, final Location recipientLoc)
