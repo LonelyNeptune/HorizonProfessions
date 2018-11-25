@@ -1,14 +1,11 @@
-package com.gmail.Rhisereld.HorizonProfessions;
+package io.github.LonelyNeptune.HorizonProfessions;
 
 import haveric.recipeManager.api.events.RecipeManagerCraftEvent;
 import haveric.recipeManager.recipes.WorkbenchRecipe;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-
 import net.milkbowl.vault.permission.Permission;
-
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -16,29 +13,23 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
-/**
- * ProfessionListener contains all the methods that are called when certain crafting events happen in game.
- */
 public class CraftListener implements Listener 
 {
-	Permission perms;
-	FileConfiguration data;
+	private Permission perms;
+	private FileConfiguration data;
 	static FileConfiguration config;
-	Set<UUID> notified = new HashSet<UUID>();	//Used to ensure players are not spammed with the reason they are not gaining experience.
+	private Set<UUID> notified = new HashSet<>();	//Used to ensure players are not spammed with the reason they are
+													// not gaining experience.
 	
-	public CraftListener(Permission perms, FileConfiguration data, FileConfiguration config) 
+	CraftListener(Permission perms, FileConfiguration data, FileConfiguration config)
 	{
 		this.perms = perms;
 		this.data = data;
 		CraftListener.config = config;
 	}
 	
-	/**
-	 * updateConfig() updates the config file in the event of a configuration reload.
-	 * 
-	 * @param config
-	 */
-	public static void updateConfig(FileConfiguration config)
+	// updateConfig() updates the config file in the event of a configuration reload.
+	static void updateConfig(FileConfiguration config)
 	{
 		CraftListener.config = config;
 	}
@@ -78,14 +69,8 @@ public class CraftListener implements Listener
 	}
 	
 	
-	/**
-	 * addExperience() calls ProfessionStats to add experience, and also provides messages to the player
-	 * if giving this experience fails.
-	 * 
-	 * @param prof
-	 * @param profession
-	 * @param exp
-	 */
+	// addExperience() calls ProfessionStats to add experience, and also provides messages to the player if giving this
+	// experience fails.
 	private void addExperience(Player player, String profession, int exp)
 	{
 		UUID uuid = player.getUniqueId();
@@ -104,19 +89,20 @@ public class CraftListener implements Listener
 		if (result == 4)
 		{
 			notified.add(uuid);
-			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have reached the maximum number of "
-					+ "tiers permitted.");
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have reached the " +
+					"maximum number of tiers permitted.");
 		}
 		if (result == 3)
 		{
 			notified.add(uuid);
-			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have reached the maximum tier in "
-					+ profession);
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have reached the " +
+					"maximum tier in " + profession);
 		}
 		if (result == 2)
 		{
 			notified.add(uuid);
-			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have not yet claimed all your tiers.");
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have not yet claimed " +
+					"all your tiers.");
 		}
 	}
 }

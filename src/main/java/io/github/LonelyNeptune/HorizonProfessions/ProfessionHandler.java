@@ -1,4 +1,4 @@
-package com.gmail.Rhisereld.HorizonProfessions;
+package io.github.LonelyNeptune.HorizonProfessions;
 
 import java.util.List;
 import java.util.Set;
@@ -15,38 +15,36 @@ import org.bukkit.entity.Player;
 
 public class ProfessionHandler 
 {
-	Permission perms;
-	FileConfiguration data;
-	FileConfiguration config;
+	private Permission perms;
+	private FileConfiguration data;
+	private FileConfiguration config;
 	
-	private final int PROGRESS_BAR_BLOCKS = 30; //The number of blocks that appear in the progress bar for command /profession view
-	private final int HEADER_WIDTH = 30; 		//The width of the header for each profession when viewing stats.
-	private final int CONSOLE_HEADER_WIDTH = 25;//The width of the header for the console.
+	private final int PROGRESS_BAR_BLOCKS; //The number of blocks that appear in the progress bar for command /profession view
+	private final int HEADER_WIDTH; 		//The width of the header for each profession when viewing stats.
+	private final int CONSOLE_HEADER_WIDTH;//The width of the header for the console.
 	
 	public ProfessionHandler(Permission perms, FileConfiguration data, FileConfiguration config)
 	{
 		this.perms = perms;
 		this.data = data;
 		this.config = config;
+		PROGRESS_BAR_BLOCKS = 30;
+		CONSOLE_HEADER_WIDTH = 25;
+		HEADER_WIDTH = 30;
 	}
 	
-	/**
-	 * displayStats() retrieves the profession stats of the UUID provided, and displays it to the sender provided.
-	 * 
-	 * @param player
-	 * @param name
-	 * @param sender
-	 */
+	// displayStats() retrieves the profession stats of the UUID provided, and displays it to the sender provided.
 	void displayStats(UUID player, String name, CommandSender sender)
 	{	
 		String tier;
 		int maxLevel;
 		boolean practiceFatigue;
 		boolean instructionFatigue;
-		String message = null;
+		String message;
 		ProfessionStats prof = new ProfessionStats(perms, data, config, player);
 
-		sender.sendMessage("--------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE + ">--------------");
+		sender.sendMessage("--------------<" + ChatColor.GOLD + " Horizon Professions " + ChatColor.WHITE
+				+ ">--------------");
 		sender.sendMessage(ChatColor.GOLD + "  Viewing " + name);
 		
 		for (String profession: prof.getProfessions())
@@ -99,13 +97,7 @@ public class ProfessionHandler
 		}
 	}
 	
-	/**
-	 * forgetTier() reduces the tier of the player in a certain profession by one.
-	 * 
-	 * @param uuid
-	 * @param profession
-	 * @return
-	 */
+	// forgetTier() reduces the tier of the player in a certain profession by one.
 	int forgetTier(UUID uuid, String profession) throws IllegalArgumentException
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
@@ -125,13 +117,7 @@ public class ProfessionHandler
 		return newTier;
 	}
 	
-	/**
-	 * giveTier() increases the tier of the player in a certain profession by one.
-	 * 
-	 * @param uuid
-	 * @param profession
-	 * @return
-	 */
+	// giveTier() increases the tier of the player in a certain profession by one.
 	int giveTier(UUID uuid, String profession) throws IllegalArgumentException
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
@@ -154,14 +140,7 @@ public class ProfessionHandler
 		return prof.getTier(profession);
 	}
 	
-	/**
-	 * giveTier() increases the tier of the player in a certain profession by one.
-	 * 
-	 * @param uuid
-	 * @param profession
-	 * @return
-	 * @throws IllegalArgumentException
-	 */
+	// giveTier() increases the tier of the player in a certain profession by one.
 	int claimTier(UUID uuid, String profession) throws IllegalArgumentException
 	{
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
@@ -198,12 +177,12 @@ public class ProfessionHandler
 	}
 	
 	/**
-	 * train() performs checks to ensure the training can be done, then increases the trainee's levels by two and sets instruction fatigue
-	 * which serves as a cooldown for training.
+	 * train() performs checks to ensure the training can be done, then increases the trainee's levels by two and sets
+	 * instruction fatigue which serves as a cooldown for training.
 	 * 
-	 * @param sender
-	 * @param traineeName
-	 * @param profession
+	 * @param sender - the trainer
+	 * @param traineeName - the name of the trainee
+	 * @param profession - the profession to be taught
 	 * @return Returns true if the training resulted in a gained tier, false otherwise.
 	 */
 	String train(CommandSender sender, String traineeName, String profession) throws IllegalArgumentException
@@ -222,8 +201,9 @@ public class ProfessionHandler
 		List<String> tiers = profTrainer.getTiers();
 		
 		if (profTrainer.getTier(profession) < tiers.size() - 1)
-			throw new IllegalArgumentException("You cannot train yet because you are not " 
-					+ getDeterminer(tiers.get(tiers.size()-1)) + " " + tiers.get(tiers.size()-1) + " " + profession + "!");
+			throw new IllegalArgumentException("You cannot train yet because you are not "
+					+ getDeterminer(tiers.get(tiers.size()-1)) + " " + tiers.get(tiers.size()-1) + " " + profession
+					+ "!");
 		
 		//Trying to train yourself is funny, but not allowed.
 		if (trainer.getUniqueId() == trainee.getUniqueId())
@@ -257,7 +237,8 @@ public class ProfessionHandler
 		//Give levels
 		String message = null;
 		if (profTrainee.addLevel(profession, 2))
-			message = "Thanks to your training, you have become " + getDeterminer(profTrainee.getTierName(profTrainee.getTier(profession)))
+			message = "Thanks to your training, you have become "
+					+ getDeterminer(profTrainee.getTierName(profTrainee.getTier(profession)))
 					+ " " + profTrainee.getTierName(profTrainee.getTier(profession)) + " " + profession + ".";
 		
 		return message;
@@ -294,12 +275,7 @@ public class ProfessionHandler
 	    return alignedString;
 	}
 	
-	/**
-	 * getTierName() converts an integer to the name of the tier to which it corresponds.
-	 * 
-	 * @param profession
-	 * @return
-	 */
+	// getTierName() converts an integer to the name of the tier to which it corresponds.
 	String getTierName(int tier)
 	{
 		return config.getString("tiers." + tier + ".name");
@@ -319,12 +295,7 @@ public class ProfessionHandler
 			return "a";
 	}
 	
-	/**
-	 * getUUID() searches the data file for a name and returns the UUID if found.
-	 * 
-	 * @param name
-	 * @return
-	 */
+	// getUUID() searches the data file for a name and returns the UUID if found.
 	UUID getUUID(String name)
 	{
 		Set<String> uuids;
@@ -342,22 +313,14 @@ public class ProfessionHandler
 		return null;
 	}
 	
-	/**
-	 * reset() sets all of the player's experience, levels and tiers to 0 in all professions, and removes all types of fatigue.
-	 * 
-	 */
+	// reset() sets all of the player's experience, levels and tiers to 0 in all professions, and removes all types of fatigue.
 	void reset(UUID uuid)
 	{
 		new ProfessionStats(perms, data, config, uuid).reset();
 	}
 	
-	/**
-	 * isValidProfession() returns true if the given profession is a valid profession in current Horizon Professions configuration,
-	 * and false otherwise.
-	 * 
-	 * @param profession
-	 * @return
-	 */
+	// isValidProfession() returns true if the given profession is a valid profession in current Horizon Professions
+	// configuration, and false otherwise.
 	boolean isValidProfession(String profession)
 	{
 		List<String> professions = config.getStringList("professions");

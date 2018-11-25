@@ -1,4 +1,4 @@
-package com.gmail.Rhisereld.HorizonProfessions;
+package io.github.LonelyNeptune.HorizonProfessions;
 
 import java.util.HashSet;
 import java.util.List;
@@ -42,14 +42,14 @@ import org.bukkit.plugin.Plugin;
  */
 public class ProfessionListener implements Listener
 {
-	Plugin plugin;
-	Permission perms;
-	FileConfiguration data;
-	static FileConfiguration config;
-	boolean isHealingOther;							//Used to cancel healing self if the player is healing another.
-	Set<UUID> notified = new HashSet<UUID>();	//Used to ensure players are not spammed with the reason they are not gaining experience.
+	private Plugin plugin;
+	private Permission perms;
+	private FileConfiguration data;
+	private static FileConfiguration config;
+	private boolean isHealingOther;							//Used to cancel healing self if the player is healing another.
+	private Set<UUID> notified = new HashSet<>();	//Used to ensure players are not spammed with the reason they are not gaining experience.
 	
-	public ProfessionListener(Plugin plugin, Permission perms, FileConfiguration data, FileConfiguration config) 
+	ProfessionListener(Plugin plugin, Permission perms, FileConfiguration data, FileConfiguration config)
 	{
 		this.perms = perms;
 		this.plugin = plugin;
@@ -57,12 +57,8 @@ public class ProfessionListener implements Listener
 		ProfessionListener.config = config;
 	}
 	
-	/**
-	 * updateConfig() updates the config file in the event of a configuration reload.
-	 * 
-	 * @param config
-	 */
-	public static void updateConfig(FileConfiguration config)
+	// updateConfig() updates the config file in the event of a configuration reload.
+	static void updateConfig(FileConfiguration config)
 	{
 		ProfessionListener.config = config;
 	}
@@ -76,7 +72,7 @@ public class ProfessionListener implements Listener
 		UUID uuid = player.getUniqueId();
 		ProfessionStats prof = new ProfessionStats(perms, data, config, uuid);
 		for (String pr: prof.getProfessions())
-			perms.playerAdd((String) null, player, config.getString("permission_prefix") + "." + pr + "." 
+			perms.playerAdd(null, player, config.getString("permission_prefix") + "." + pr + "."
 					+ prof.getTierName(prof.getTier(pr)));
 		
 		//Add the player's name and UUID to file.
@@ -206,7 +202,8 @@ public class ProfessionListener implements Listener
     		
         	ProfessionHandler profHandler = new ProfessionHandler(perms, data, config);
         	
-        	double amountToHeal = config.getInt("healing." + item + "." + p + "." + profHandler.getTierName(prof.getTier(p)));
+        	double amountToHeal = config.getInt("healing." + item + "." + p + "."
+					+ profHandler.getTierName(prof.getTier(p)));
         	if (amountToHeal == 0)
         	{
         		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
@@ -283,7 +280,8 @@ public class ProfessionListener implements Listener
     		//Check if the amount to heal is in the config
         	ProfessionStats prof = new ProfessionStats(perms, data, config, player.getUniqueId());
         	
-        	double amountToHeal = config.getInt("healing." + item + "." + p + "." + profHandler.getTierName(prof.getTier(p)));
+        	double amountToHeal = config.getInt("healing." + item + "." + p + "."
+					+ profHandler.getTierName(prof.getTier(p)));
         	if (amountToHeal == 0)
         	{
         		player.sendMessage(ChatColor.RED + "You do not have the skill required to do this!");
@@ -541,8 +539,9 @@ public class ProfessionListener implements Listener
 			}
 	}
 	
-	void makeDelayedTask(final Player player, final Player recipient, final double amountToHeal, final String item, 
-			final String profession, final Location playerLoc, final Location recipientLoc)
+	private void makeDelayedTask(final Player player, final Player recipient, final double amountToHeal,
+								 final String item, final String profession, final Location playerLoc,
+								 final Location recipientLoc)
 	{
 		//After a second, perform the action.
 		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable() 
@@ -604,7 +603,7 @@ public class ProfessionListener implements Listener
 	 * getMetadataLong() retrieves metadata from an object using a key.
 	 * @param object - the object the metadata is attached to.
 	 * @param key - the key the metadata is under.
-	 * @return
+	 * @return metadata
 	 */
 	private long getMetadataLong(Metadatable object, String key) 
 	{
@@ -620,14 +619,8 @@ public class ProfessionListener implements Listener
 		return 0;
 	}
 	
-	/**
-	 * addExperience() calls ProfessionStats to add experience, and also provides messages to the player
-	 * if giving this experience fails.
-	 * 
-	 * @param prof
-	 * @param profession
-	 * @param exp
-	 */
+	// addExperience() calls ProfessionStats to add experience, and also provides messages to the player if giving this
+	// experience fails.
 	private void addExperience(Player player, String profession, int exp)
 	{
 		UUID uuid = player.getUniqueId();
@@ -646,19 +639,20 @@ public class ProfessionListener implements Listener
 		if (result == 4)
 		{
 			notified.add(uuid);
-			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have reached the maximum number of "
-					+ "tiers permitted.");
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have reached the " +
+					"maximum number of tiers permitted.");
 		}
 		if (result == 3)
 		{
 			notified.add(uuid);
-			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have reached the maximum tier in "
-					+ profession);
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have reached the " +
+					"maximum tier in " + profession);
 		}
 		if (result == 2)
 		{
 			notified.add(uuid);
-			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have not yet claimed all your tiers.");
+			player.sendMessage(ChatColor.YELLOW + "You cannot gain any experience because you have not yet claimed " +
+					"all your tiers.");
 		}
 	}
 }

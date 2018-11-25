@@ -1,50 +1,40 @@
-package com.gmail.Rhisereld.HorizonProfessions;
+package io.github.LonelyNeptune.HorizonProfessions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
 import net.milkbowl.vault.permission.Permission;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
-public class ProfessionStats 
+class ProfessionStats
 {
-	Permission perms;
-	FileConfiguration data;
-	FileConfiguration config;
-	String path;
-	List<String> professions;
-	UUID uuid;
-	HashMap<String, Integer> experience = new HashMap<String, Integer>();
-	HashMap<String, Integer> levels = new HashMap<String, Integer>();
-	HashMap<String, Integer> tiers = new HashMap<String, Integer>();
-	HashMap<String, Long> instructionFatigue = new HashMap<String, Long>();
-	HashMap<String, Long> practiceFatigue = new HashMap<String, Long>();
-	int claimed;
-	
-	/**
-	 * Constructor for fetching existing stats from the data file.
-	 * 
-	 * @param data
-	 * @param uuid
-	 */
-	public ProfessionStats(Permission perms, FileConfiguration data, FileConfiguration config, UUID uuid)
+	private Permission perms;
+	private FileConfiguration data;
+	private FileConfiguration config;
+	private String path;
+	private List<String> professions;
+	private UUID uuid;
+	private HashMap<String, Integer> experience = new HashMap<>();
+	private HashMap<String, Integer> levels = new HashMap<>();
+	private HashMap<String, Integer> tiers = new HashMap<>();
+	private HashMap<String, Long> instructionFatigue = new HashMap<>();
+	private HashMap<String, Long> practiceFatigue = new HashMap<>();
+	private int claimed;
+
+	ProfessionStats(Permission perms, FileConfiguration data, FileConfiguration config, UUID uuid)
 	{		
 		this.perms = perms;
 		this.data = data;
 		this.config = config;
-		
 		this.uuid = uuid;
 
 		path = "data." + uuid.toString();
 		professions = config.getStringList("professions");
-		
 		for (String p: professions)
 		{
 			experience.put(p, data.getInt(path + "." + p + ".exp"));
@@ -53,69 +43,46 @@ public class ProfessionStats
 			instructionFatigue.put(p, data.getLong(path + "." + p + ".instructionFatigue"));
 			practiceFatigue.put(p, data.getLong(path + "." + p + ".practiceFatigue"));
 		}
-
 		claimed = data.getInt(path + ".claimed");
 	}
 	
-	/**
-	 * getProfessions() returns a string list containing the names of all the professions they
-	 * have.
-	 * 
-	 * @return
-	 */
+	// getProfessions() returns a string list containing the names of all the professions they have.
 	List<String> getProfessions()
 	{
 		return professions;
 	}
 	
-	/**
-	 * getClaimed() returns how many free tiers the player has claimed.
-	 * 
-	 * @return
-	 */
+	// getClaimed() returns how many free tiers the player has claimed.
 	int getClaimed()
 	{
 		return claimed;
 	}
 	
-	/**
-	 * setClaimed() sets the number of free tiers the player has claimed.
-	 * 
-	 * @param claimed
-	 */
+	// setClaimed() sets the number of free tiers the player has claimed.
 	void setClaimed(int claimed)
 	{
 		data.set(path + ".claimed", claimed);
 		this.claimed = claimed;
 	}
 	
-	/**
-	 * getExperience() returns the amount of experience the player has in the profession given.
-	 * 
-	 * @param profession
-	 * @return
-	 */
+	// getExperience() returns the amount of experience the player has in the profession given.
 	int getExperience(String profession)
 	{
 		return experience.get(profession);
 	}
 	
-	/**
-	 * resetExperience() sets the amount of experience the player has in the profession given to zero.
-	 * 
-	 * @param profession
-	 */
+	// resetExperience() sets the amount of experience the player has in the profession given to zero.
 	void resetExperience(String profession)
 	{		
 		experience.put(profession, 0);
 	}
 	
 	/**
-	 * addExperience() adds the amount of experience given to the profession given. If the experience is over the maximum experience, 
-	 * the player gains a level and the experience is set to zero.
+	 * addExperience() adds the amount of experience given to the profession given. If the experience is over the
+	 * maximum experience, the player gains a level and the experience is set to zero.
 	 * 
-	 * @param profession
-	 * @param exp
+	 * @param profession: The profession to add experience to
+	 * @param exp: The amount of experience to add
 	 * @return Returns a value which reflects the result.
 	 * 		0 - the experience was added
 	 * 		1 - the added experience resulted in a level-up
@@ -161,36 +128,22 @@ public class ProfessionStats
 		}		
 	}
 	
-	/**
-	 * notifyLevelUp() sends the player a message notifying them that they have levelled up in a profession.
-	 * 
-	 * @param profession
-	 */
+	// notifyLevelUp() sends the player a message notifying them that they have levelled up in a profession.
 	private void notifyLevelUp(String profession)
 	{
 		Player player = Bukkit.getPlayer(uuid);
 		
-		player.sendMessage(ChatColor.YELLOW + "You feel more knowledgeable as a " + profession + ". You will need to rest and "
-				+ "reflect on what you have learned, as you cannot benefit from any more practice today.");
+		player.sendMessage(ChatColor.YELLOW + "You feel more knowledgeable as a " + profession + ". You will need" +
+				" to rest and reflect on what you have learned, as you cannot benefit from any more practice today.");
 	}
 	
-	/**
-	 * getLevel() returns the level progress towards the next tier in the profession given.
-	 * 
-	 * @param profession
-	 * @return
-	 */
+	// getLevel() returns the level progress towards the next tier in the profession given.
 	int getLevel(String profession)
 	{
 		return levels.get(profession);
 	}
 	
-	/**
-	 * resetLevel() set the level progress towards the next tier in the profession given to zero.
-	 * 
-	 * @param profession
-	 * @param level
-	 */
+	// resetLevel() set the level progress towards the next tier in the profession given to zero.
 	void resetLevel(String profession)
 	{
 		data.set(path + "." + profession + ".level", 0);
@@ -200,8 +153,8 @@ public class ProfessionStats
 	/**
 	 * addLevel() adds level progress towards the next tier in the profession given.
 	 * 
-	 * @param profession
-	 * @param level
+	 * @param profession: The profession to add a level in
+	 * @param level: The number of levels to add
 	 * @return Returns true if adding levels resulted in gaining a tier, false otherwise.
 	 */
 	boolean addLevel(String profession, int level)
@@ -224,22 +177,13 @@ public class ProfessionStats
 		}	
 	}
 	
-	/**
-	 * getTier() returns the tier in the profession given.
-	 * 
-	 * @param profession
-	 * @return
-	 */
+	// getTier() returns the tier in the profession given.
 	int getTier(String profession)
 	{
 		return tiers.get(profession);
 	}
 	
-	/**
-	 * resetTier() resets the tier in the profession given to zero.
-	 * 
-	 * @param profession
-	 */
+	// resetTier() resets the tier in the profession given to zero.
 	void resetTier(String profession)
 	{
 		data.set(path + "." + profession + ".tier", 0);
@@ -250,18 +194,21 @@ public class ProfessionStats
 		
 		if (player == null)
 			for (String t: getTiers())
-				perms.playerRemove((String) null, Bukkit.getOfflinePlayer(uuid), config.getString("permission_prefix") + "." + profession + "." + t);
+				perms.playerRemove(
+					null,
+					Bukkit.getOfflinePlayer(uuid),
+					config.getString("permission_prefix") + "." + profession + "." + t
+				);
 		else		
 			for (String t: getTiers())
-				perms.playerRemove((String) null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." + t);
+				perms.playerRemove(
+					null,
+					Bukkit.getPlayer(uuid),
+					config.getString("permission_prefix") + "." + profession + "." + t
+				);
 	}
 
-	/**
-	 * addTier() adds a tier to the profession given.
-	 * 
-	 * @param profession
-	 * @param tier
-	 */
+	// addTier() adds a tier to the profession given.
 	void addTier(String profession)
 	{
 		int oldTier = getTier(profession);
@@ -276,17 +223,13 @@ public class ProfessionStats
 		
 		//Set permissions for the tier.
 		for (String t: getTiers())
-			perms.playerRemove((String) null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." + t);
+			perms.playerRemove(null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." + t);
 		
-		perms.playerAdd((String) null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." 
+		perms.playerAdd(null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "."
 				+ getTierName(newTier));
 	}
 	
-	/**
-	 * loseTier() removes a tier from the profession given.
-	 * 
-	 * @param profession
-	 */
+	// loseTier() removes a tier from the profession given.
 	void loseTier(String profession)
 	{
 		int oldTier = getTier(profession);
@@ -301,31 +244,22 @@ public class ProfessionStats
 		
 		//Set permissions for the tier.
 		for (String t: getTiers())
-			perms.playerRemove((String) null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." + t);
+			perms.playerRemove(null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." + t);
 		
-		perms.playerAdd((String) null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "." 
+		perms.playerAdd(null, Bukkit.getPlayer(uuid), config.getString("permission_prefix") + "." + profession + "."
 				+ getTierName(newTier));
 	}
 	
-	/**
-	 * getTierName() converts an integer to the name of the tier to which it corresponds.
-	 * 
-	 * @param profession
-	 * @return
-	 */
+	// getTierName() converts an integer to the name of the tier to which it corresponds.
 	String getTierName(int tier)
 	{
 		return config.getString("tiers." + tier + ".name");
 	}
 	
-	/**
-	 * getTiers() returns the names of all the tiers as specified in configuration.
-	 * 
-	 * @return
-	 */
+	// getTiers() returns the names of all the tiers as specified in configuration.
 	List<String> getTiers()
 	{
-		List<String> tierNames = new ArrayList<String>();
+		List<String> tierNames = new ArrayList<>();
 		
 		for (String t: config.getConfigurationSection("tiers").getKeys(false))
 			tierNames.add(config.getString("tiers." + t + ".name"));
@@ -333,11 +267,7 @@ public class ProfessionStats
 		return tierNames;
 	}
 	
-	/**
-	 * getTotalTiers() returns the total number of tiers that the player holds in all professions.
-	 * 
-	 * @return
-	 */
+	// getTotalTiers() returns the total number of tiers that the player holds in all professions.
 	int getTotalTiers()
 	{
 		int total = 0;
@@ -348,27 +278,15 @@ public class ProfessionStats
 		return total;
 	}
 
-	/**
-	 * hasTier() returns true if the player has a tier that is equal or higher in the profession given, and false otherwise.
-	 * 
-	 * @param profession
-	 * @param tierNum
-	 * @return
-	 */
+	// hasTier() returns true if the player has a tier that is equal or higher in the profession given, and false
+	// otherwise.
 	boolean hasTier(String profession, int tierNum)
 	{
-		if (tiers.get(profession) >= tierNum)
-			return true;
-		else		
-			return false;
+		return tiers.get(profession) >= tierNum;
 	}
 	
-	/**
-	 * hasTier() returns true of the player has a tier that is equal or higher in the profession given, and false otherwise.
-	 * 
-	 * @param tierName
-	 * @return
-	 */
+	// hasTier() returns true of the player has a tier that is equal or higher in the profession given, and false
+	// otherwise.
 	boolean hasTier(String profession, String tierName)
 	{
 		int tierNum = 0;
@@ -378,67 +296,36 @@ public class ProfessionStats
 			if (config.getString("tiers." + t + ".name").equalsIgnoreCase(tierName))
 				tierNum = Integer.valueOf(t);
 		
-		if (tiers.get(profession) >= tierNum)
-			return true;
-		else
-			return false;
+		return tiers.get(profession) >= tierNum;
 	}
 	
-	/**
-	 * setInstructionFatigue() sets the instruction fatigue of the player in the given profession.
-	 * 
-	 * @param profession
-	 */
+	// setInstructionFatigue() sets the instruction fatigue of the player in the given profession.
 	void setInstructionFatigue(String profession)
 	{
 		data.set(path + "." + profession + ".instructionFatigue", System.currentTimeMillis());
 		instructionFatigue.put(profession,  System.currentTimeMillis());
 	}
 	
-	/**
-	 * isInstructionFatigued() returns true if the instruction cooldown has not yet been met, and false otherwise.
-	 * 
-	 * @param profession
-	 * @return
-	 */
+	// isInstructionFatigued() returns true if the instruction cooldown has not yet been met, and false otherwise.
 	boolean isInstructionFatigued(String profession)
 	{
-		if (System.currentTimeMillis() - instructionFatigue.get(profession) < config.getLong("fatigue_time"))
-			return true;
-		else
-			return false;
+		return System.currentTimeMillis() - instructionFatigue.get(profession) < config.getLong("fatigue_time");
 	}
 	
-	/**
-	 * setPracticeFatigue() sets the practice fatigue of the player in the given profession.
-	 * 
-	 * @param profession
-	 * @param fatigue
-	 */
+	// setPracticeFatigue() sets the practice fatigue of the player in the given profession.
 	void setPracticeFatigue(String profession)
 	{
 		data.set(path + "." + profession + ".practiceFatigue", System.currentTimeMillis());
 		practiceFatigue.put(profession,  System.currentTimeMillis());
 	}
 	
-	/**
-	 * isPracticeFatigued() returns true if the practice cooldown has not yet been met, and false otherwise.
-	 * 
-	 * @param profession
-	 * @return
-	 */
+	// isPracticeFatigued() returns true if the practice cooldown has not yet been met, and false otherwise.
 	boolean isPracticeFatigued(String profession)
 	{
-		if (System.currentTimeMillis() - practiceFatigue.get(profession) < config.getLong("fatigue_time"))
-			return true;
-		else
-			return false;
+		return System.currentTimeMillis() - practiceFatigue.get(profession) < config.getLong("fatigue_time");
 	}
 	
-	/**
-	 * reset() sets all of the player's experience, levels and tiers to 0 in all professions.
-	 * 
-	 */
+	// reset() sets all of the player's experience, levels and tiers to 0 in all professions.
 	void reset()
 	{
 		for (String p: getProfessions())

@@ -1,12 +1,10 @@
-package com.gmail.Rhisereld.HorizonProfessions;
+package io.github.LonelyNeptune.HorizonProfessions;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-
 import net.milkbowl.vault.permission.Permission;
-
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
@@ -26,15 +24,10 @@ public class ProfessionAPI
 	public ProfessionAPI()
 	{	}
 
-	/**
-	 * updateConfig() updates the config file in the event of a configuration reload.
-	 * THIS METHOD IS FOR INTERNAL USE ONLY.
-	 * 
-	 * @param config
-	 */
+	// updateConfig() updates the config file in the event of a configuration reload.
 	static void updateConfig(FileConfiguration config)
 	{
-		CraftListener.config = config;
+		ProfessionAPI.config = config;
 	}
 
 	/**
@@ -48,11 +41,11 @@ public class ProfessionAPI
 	}
 	
 	/**
-	 * isValidProfession() returns true if the given profession is a valid profession in current Horizon Professions configuration,
-	 * and false otherwise.
+	 * isValidProfession() returns true if the given profession is a valid profession in current Horizon Professions
+     * configuration, and false otherwise.
 	 * 
-	 * @param profession
-	 * @return
+	 * @param profession: The profession to test
+	 * @return : True if the profession is a valid profession
 	 */
 	public boolean isValidProfession(String profession)
 	{
@@ -65,11 +58,11 @@ public class ProfessionAPI
 	/**
 	 * getTiers() gets the tier names that Horizon Professions is currently configured to use.
 	 * 
-	 * @return - an list of strings of the tiers
+	 * @return - a list of strings of the tiers
 	 */
 	public List<String> getTiers()
 	{
-		List<String> tierNames = new ArrayList<String>();
+		List<String> tierNames = new ArrayList<>();
 		Set<String> configTiers;
 		
 		try { configTiers = config.getConfigurationSection("tiers").getKeys(false); }
@@ -244,7 +237,8 @@ public class ProfessionAPI
 	}
 	
 	/**
-	 * getTierName() returns the string name for a tier number as specified in Horizon Profession's current configuration.
+	 * getTierName() returns the string name for a tier number as specified in Horizon Profession's current
+     * configuration.
 	 * 
 	 * @param tier - the number of the tier to find
 	 * @return Returns the string name of the tier.
@@ -267,12 +261,13 @@ public class ProfessionAPI
 	}
 	
 	/**
-	 * hasTier() returns true of the player has a tier that is equal or higher in the profession given, and false otherwise.
+	 * hasTier() returns true if the player has a tier that is equal or higher in the profession given, and false
+     * otherwise.
 	 * 
 	 * @param uuid - the player for whom the tier is being checked
 	 * @param profession - the profession for which the tier is being checked
 	 * @param tier - the tier to check
-	 * @return
+	 * @return True if the player has a tier that is equal or higher in the profession given, false otherwise
 	 */
 	public boolean hasTier(UUID uuid, String profession, int tier)
 	{
@@ -281,12 +276,13 @@ public class ProfessionAPI
 	}
 	
 	/**
-	 * hasTier() returns true of the player has a tier that is equal or higher in the profession given, and false otherwise.
+	 * hasTier() returns true if the player has a tier that is equal or higher in the profession given, and false
+     * otherwise.
 	 * 
 	 * @param uuid - the player for whom the tier is being checked
 	 * @param profession - the profession for which the tier is being checked
 	 * @param tier - the tier to check
-	 * @return
+	 * @return True if the player has a tier that is equal or higher in the profession given, false otherwise
 	 */
 	public boolean hasTier(UUID uuid, String profession, String tier)
 	{

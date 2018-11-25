@@ -1,4 +1,4 @@
-package com.gmail.Rhisereld.HorizonProfessions;
+package io.github.LonelyNeptune.HorizonProfessions;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -8,9 +8,7 @@ import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.UUID;
-
 import net.milkbowl.vault.permission.Permission;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -23,15 +21,16 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class ProfessionCommandExecutor implements CommandExecutor
 {	
-	JavaPlugin plugin;
-	Permission perms;
-	FileConfiguration data;
-	FileConfiguration config;
+	private JavaPlugin plugin;
+	private Permission perms;
+	private FileConfiguration data;
+	private FileConfiguration config;
+
+	private HashMap<String, String> confirmForget = new HashMap<>();	//Used to confirm commands
+	private HashMap<String, String> confirmReset = new HashMap<>();
 	
-	HashMap<String, String> confirmForget = new HashMap<String, String>();	//Used to confirm commands
-	HashMap<String, String> confirmReset = new HashMap<String, String>();
-	
-    public ProfessionCommandExecutor(JavaPlugin plugin, Permission perms, FileConfiguration data, FileConfiguration config) 
+    public ProfessionCommandExecutor(JavaPlugin plugin, Permission perms, FileConfiguration data,
+									 FileConfiguration config)
     {
     	this.plugin = plugin;
     	this.perms = perms;
@@ -43,7 +42,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
      * onCommand() is called when a player enters a command recognised by Bukkit to belong to this plugin.
      * After that it is up to the contents of this method to determine what the commands do.
      * 
-     * @see org.bukkit.command.CommandExecutor#onCommand(org.bukkit.command.CommandSender, org.bukkit.command.Command, java.lang.String, java.lang.String[])
+     * @see org.bukkit.command.CommandExecutor#onCommand(org.bukkit.command.CommandSender, org.bukkit.command.Command,
+	 * java.lang.String, java.lang.String[])
      */
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
 	{
@@ -122,7 +122,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				//Player provided too many arguments
 				if (args.length > 2)
 				{
-					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession view [optional:player]");
+					sender.sendMessage(ChatColor.RED +
+							"Too many arguments! Correct usage: /profession view [optional:player]");
 					return false;
 				}
 				
@@ -131,8 +132,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					return viewStatsAdmin(args[1], sender);
 					
 				//Player is attempting to view their own stats.
-				if (args.length == 1)
-					return viewStats(sender);
+				return viewStats(sender);
 			}
 			
 			//profession forget [profession] [player] 
@@ -141,8 +141,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				//Player provided an incorrect number of arguments.
 				if (args.length > 3 || args.length < 2)
 				{
-					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession forget [profession] "
-							+ "[optional:player]");
+					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession " +
+							"forget [profession] [optional:player]");
 					return false;
 				}
 				
@@ -151,8 +151,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					return forgetTier(sender, args[1].toLowerCase(), args[2]);
 				
 				//Player is attempting to forget a tier.
-				if (args.length == 2)
-					return forgetTier(sender, args[1].toLowerCase(), sender.getName());
+				return forgetTier(sender, args[1].toLowerCase(), sender.getName());
 			}
 			
 			//profession givetier [profession] [player] 
@@ -161,12 +160,12 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				//Player provided an incorrect number of arguments.
 				if (args.length > 3 || args.length < 3)
 				{
-					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession givetier [profession] [player]");
+					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession " +
+							"givetier [profession] [player]");
 					return false;
 				}
 				
-				if (args.length == 3)
-					return giveTier(sender, args[1].toLowerCase(), args[2]);
+				return giveTier(sender, args[1].toLowerCase(), args[2]);
 			}
 			
 			//profession claim [profession]
@@ -175,12 +174,12 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				//Player provided too many arguments
 				if (args.length != 2)
 				{
-					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession claim [profession]");
+					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession " +
+							"claim [profession]");
 					return false;
 				}
 				
-				if (args.length == 2)
-					return claimTier(sender, args[1].toLowerCase());
+				return claimTier(sender, args[1].toLowerCase());
 			}
 			
 			//profession reset [player]
@@ -189,7 +188,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				//Player provided too many arguments
 				if (args.length > 2)
 				{
-					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession reset [profession] [optional:player]");
+					sender.sendMessage(ChatColor.RED + "Too many arguments! Correct usage: /profession reset " +
+							"[profession] [optional:player]");
 					return false;
 				}
 				
@@ -198,8 +198,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 					return resetStats(sender, args[1]);
 				
 				//Player is attempting to reset.
-				if (args.length == 1)
-					return resetStats(sender, sender.getName());
+				return resetStats(sender, sender.getName());
 			}
 			
 			//profession train [profession] [player]
@@ -213,7 +212,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 				
 				if (args.length != 3)
 				{
-					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession train [profession] [player]");
+					sender.sendMessage(ChatColor.RED + "Incorrect number of arguments! Correct usage: /profession " +
+							"train [profession] [player]");
 					return false;
 				}
 				
@@ -227,7 +227,6 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	/**
 	 * viewStats() displays all current stats to the player including tiers, levels, experience and fatigue level
 	 * for each profession.
-	 * @param player - the player for whom the stats are being displayed.
 	 * @param sender - the viewer to display the stats to.
 	 */
 	private boolean viewStats(CommandSender sender) 
@@ -256,7 +255,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	/**
 	 * viewStatsAdmin() displays all current stats to the player including tiers, levels, experience and fatigue level
 	 * for each profession.
-	 * @param player - the player for whom the stats are being displayed.
+	 * @param name - the player for whom the stats are being displayed.
 	 * @param sender - the viewer to display the stats to.
 	 */
 	private boolean viewStatsAdmin(String name, CommandSender sender) 
@@ -287,10 +286,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	}
 
 	/**
-	 * forgetTier() checks that the command is valid, asks for confirmation and sets the command to await for confirmation.
+	 * forgetTier() checks that the command is valid, asks for confirmation and sets the command to await for
+	 * confirmation.
 	 * @param sender - the sender to return messages to.
 	 * @param profession - the profession for which to reduce a tier.
-	 * @param playerString - the player of whom to reduce the tier of.
+	 * @param name - the player of whom to reduce the tier of.
 	 */
 	private boolean forgetTier(CommandSender sender, String profession, String name) 
 	{
@@ -321,7 +321,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			//Sender must have permission OR be the console
 			if (sender instanceof Player && !sender.hasPermission("horizonprofessions.forget.admin"))
 			{
-				sender.sendMessage(ChatColor.RED + "You don't have permission to force another player to forget a tier.");
+				sender.sendMessage(ChatColor.RED +
+						"You don't have permission to force another player to forget a tier.");
 				return false;
 			}
 			
@@ -337,10 +338,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	}
 	
 	/**
-	 * confirmForgetTier() performs the confirmed command of reducing the tier of the player in a certain profession by one.
+	 * confirmForgetTier() performs the confirmed command of reducing the tier of the player in a certain profession by
+	 * one.
 	 * @param sender - the sender to return messages to.
 	 * @param profession - the profession for which to reduce a tier.
-	 * @param playerString - the player of whom to reduce the tier of.
+	 * @param name - the player of whom to reduce the tier of.
 	 */
 	private boolean confirmForgetTier(CommandSender sender, String profession, String name)
 	{
@@ -375,11 +377,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		String tierName = profHandler.getTierName(newTier);
 
 		//Notify sender.
-		sender.sendMessage(ChatColor.YELLOW + name + " has forgotten some knowledge. They are now " + getDeterminer(tierName) 
-							+ " " + tierName + " " + profession + ".");
+		sender.sendMessage(ChatColor.YELLOW + name + " has forgotten some knowledge. They are now "
+				+ getDeterminer(tierName) + " " + tierName + " " + profession + ".");
 				
 		//If the sender isn't the receiver, notify the receiver too.
-		if (sender instanceof Player && (Player) sender != player && player != null)
+		if (sender instanceof Player && sender != player && player != null)
 		{
 			player.sendMessage(ChatColor.YELLOW + name + " has forgotten some knowledge. They are now " + 
 					getDeterminer(tierName) + " " + tierName + " " + profession + ".");
@@ -402,13 +404,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		return true;
 	}
 	
-	/**
-	 * giveTier() increases the tier of the player in a certain profession by one.
-	 * 
-	 * @param sender
-	 * @param profession
-	 * @param playerString
-	 */
+	// giveTier() increases the tier of the player in a certain profession by one.
 	private boolean giveTier(CommandSender sender, String profession, String name) 
 	{
 		//Check that the player has permission OR is the console
@@ -445,11 +441,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		String tierName = profHandler.getTierName(newTier);
 
 		//Notify sender.
-		sender.sendMessage(ChatColor.YELLOW + name + " has gained some knowledge. They are now " + getDeterminer(tierName) 
-							+ " " + tierName + " " + profession + ".");
+		sender.sendMessage(ChatColor.YELLOW + name + " has gained some knowledge. They are now "
+				+ getDeterminer(tierName) + " " + tierName + " " + profession + ".");
 				
 		//If the sender isn't the receiver, notify the receiver too.
-		if (sender instanceof Player && (Player) sender != player && player != null)
+		if (sender instanceof Player && sender != player && player != null)
 		{
 			player.sendMessage(ChatColor.YELLOW + name + " has gained some knowledge. They are now "  + 
 					getDeterminer(tierName) + " " + tierName + " " + profession + ".");
@@ -471,7 +467,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	/**
 	 * claimTier() increases the tier of the player in a certain profession by one and updates the number of tiers the 
 	 * player has claimed.
-	 * @param player - the player who is claiming a tier
+	 * @param sender- the player who is claiming a tier
 	 * @param profession - the profession in which a player wishes to claim a tier.
 	 */
 	private boolean claimTier(CommandSender sender, String profession) 
@@ -484,7 +480,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		}
 		
 		//Check that the player has permission
-		if (!sender.hasPermission("horizonprofessions.claimtier") && sender instanceof Player)
+		if (!sender.hasPermission("horizonprofessions.claimtier"))
 		{
 			sender.sendMessage(ChatColor.RED + "You don't have permission to claim a tier.");
 			return false;
@@ -508,10 +504,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	}
 	
 	/**
-	 * resetStats() checks that the command is valid, asks for confirmation and sets the command to await for confirmation.
-	 * @param sender
-	 * @param playerString - the player who is having their stats reset to 0.
-	 * @return 
+	 * resetStats() checks that the command is valid, asks for confirmation and sets the command to await for
+	 * confirmation.
+	 * @param sender - the sender of the command
+	 * @param playerName - the player who is having their stats reset to 0.
+	 * @return True if the command was successful, false otherwise
 	 */
 	private boolean resetStats(CommandSender sender, String playerName) 
 	{		
@@ -533,8 +530,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 			}			
 			
 			//Ask for confirmation
-			sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to reset your professions? You will lose all your progress!"
-					+ " Type '/profession confirm reset' to confirm.");
+			sender.sendMessage(ChatColor.YELLOW + "Are you sure you want to reset your professions? You will lose all" +
+					" your progress! Type '/profession confirm reset' to confirm.");
 		}
 		//If the sender is NOT the target
 		else
@@ -559,9 +556,9 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	
 	/**
 	 * confirmResetStats() removes all experience, levels and tiers from the player.
-	 * @param sender
-	 * @param playerString - the player who is having their stats reset to 0.
-	 * @return 
+	 * @param sender - the sender of the command
+	 * @param name - the player who is having their stats reset to 0.
+	 * @return True if the command was successful, false otherwise
 	 */
 	private boolean confirmResetStats(CommandSender sender, String name)
 	{
@@ -590,7 +587,7 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		//Notify sender.
 		sender.sendMessage(ChatColor.YELLOW + name + " has lost all their knowledge.");
 		//If the sender is not the receiver, notify the receiver too.
-		if (sender instanceof Player && (Player) sender != player && player != null)
+		if (sender instanceof Player && sender != player && player != null)
 		{
 			player.sendMessage(ChatColor.YELLOW + name + " has lost all their knowledge.");
 		}
@@ -614,10 +611,10 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 * trainPlayer() allows one player to train another in a specified profession. The trainer must be the top tier in that
 	 * profession and the trainee must not be. The trainee will gain two levels in the profession, but will suffer 
 	 * instruction fatigue which serves as a cooldown.
-	 * @param sender
-	 * @param profession
-	 * @param traineeString
-	 * @return 
+	 * @param sender - the sender of the command
+	 * @param profession - the profession the sender wishes to train
+	 * @param traineeName - the name of the recipient of the training
+	 * @return True if the command was successful, false otherwise
 	 */
 	private boolean trainPlayer(CommandSender sender, String profession, String traineeName) 
 	{		
@@ -652,14 +649,16 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		if (trainerName == null)
 			trainerName = trainer.getName();
 		
-		sender.sendMessage(ChatColor.YELLOW + "You have trained " + traineeName + " in the " + profession + " profession.");
+		sender.sendMessage(ChatColor.YELLOW + "You have trained " + traineeName + " in the " + profession
+				+ " profession.");
 		trainee.sendMessage(ChatColor.YELLOW + trainerName + " has trained you in the " + profession + " profession.");
 		
 		//If the trainee gained a tier, let them know about that too.
 		if (tierUp != null)
 			trainee.sendMessage(ChatColor.YELLOW + tierUp);
 		
-		String message = ChatColor.YELLOW + trainer.getName() + " just trained " + traineeName + " in the " + profession + " profession!";
+		String message = ChatColor.YELLOW + trainer.getName() + " just trained " + traineeName + " in the " + profession
+				+ " profession!";
 		
 		Collection<? extends Player> onlinePlayers = Bukkit.getOnlinePlayers();
 		
@@ -677,7 +676,8 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	 */
 	private boolean giveCommandsGuide(CommandSender sender) 
 	{
-		sender.sendMessage("------------<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE + ">------------");
+		sender.sendMessage("------------<" + ChatColor.GOLD + " Horizon Profession Commands " + ChatColor.WHITE +
+				">------------");
 		sender.sendMessage(ChatColor.GOLD + "Horizon Professions allows you to keep track of your trade skills!");
 		if (sender.hasPermission("horizonprofessions.view.admin"))
 		{
@@ -744,15 +744,14 @@ public class ProfessionCommandExecutor implements CommandExecutor
 	
 	/**
 	 * createLog() saves the string provided to the file log.txt.
-	 * @param String - the message to be logged.
-	 * @param time - the time the message was logged.
+	 * @param message - the message to be logged.
+	 * @param filename - the time the message was logged.
 	 */
 	private void createLog(String message, String filename)
     {
 		File saveTo = new File("plugins" + File.separator + "HorizonProfessions" + File.separator + filename);
 		long time = System.currentTimeMillis();
 		Timestamp timestamp = new Timestamp(time);
-		PrintWriter out = null;
 		
 		//Add timestamp to the message.
 		message = timestamp.toString() + " - " + message;
@@ -761,18 +760,11 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		{
 			File dataFolder = plugin.getDataFolder();
 			if(!dataFolder.exists())
-			{
 				dataFolder.mkdir();
-			}
-	 
 			if (!saveTo.exists())
-			{
 				saveTo.createNewFile();
-			}
-	 
 			FileWriter fw = new FileWriter(saveTo, true);
 			PrintWriter pw = new PrintWriter(fw);
-	 
 			pw.println(message);
 			pw.close();
 	 
@@ -781,12 +773,6 @@ public class ProfessionCommandExecutor implements CommandExecutor
 		{
 			e.printStackTrace();
 		}
-	 
-		finally
-		{
-		    if(out != null)
-		    out.close();
-		} 
     }
 	
 	private void confirmForgetTimeout(final CommandSender sender, final String name)
